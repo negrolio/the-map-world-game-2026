@@ -1,0 +1,11 @@
+---
+description: Security and privacy standards
+alwaysApply: true
+---
+
+# Privacy Requirements
+
+- Never include API keys, tokens, or secrets in generated code
+- Use environment variables for all sensitive configuration
+- Do not log personally identifiable information (PII)
+- Exclude .env files, credentials, and private keys from any file operations

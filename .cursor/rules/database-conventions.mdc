@@ -1,0 +1,13 @@
+---
+description: Database and ORM conventions
+globs: ["src/db/**/*.ts", "drizzle/**/*", "prisma/**/*"]
+---
+
+# Database Rules
+
+- All schema changes go through migrations, never manual ALTER statements
+- Use transactions for multi-table writes
+- Add indexes for columns used in WHERE clauses and JOINs
+- Implement soft deletes (deletedAt column) for user-facing data
+- Table names: plural snake_case (user_profiles, not UserProfile)
+- Column names: snake_case (created_at, not createdAt)

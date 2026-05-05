@@ -1,0 +1,23 @@
+---
+description: API route patterns
+globs: ["src/api/**/*.ts", "src/pages/api/**/*.ts"]
+---
+
+# API Route Standards
+
+- Validate all inputs with Zod schemas
+- Return consistent response shape: { success, data?, error? }
+- Include rate limiting on write endpoints
+- Log all errors with structured context (requestId, userId, endpoint)
+- Never expose internal error details to clients
+
+## Error Response Format
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Email format is invalid"
+  }
+}
+```

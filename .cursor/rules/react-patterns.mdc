@@ -1,0 +1,16 @@
+---
+description: React component standards
+globs: ["src/components/**/*.tsx", "src/app/**/*.tsx"]
+---
+
+# React Component Rules
+
+- Use functional components with explicit TypeScript props interface
+- Extract complex logic into custom hooks in the same directory
+- Keep components under 150 lines -- split into sub-components if larger
+- Use CSS modules or Tailwind utility classes, never inline styles
+- Include aria-labels for interactive elements
+
+## Component Template
+Refer to @src/components/Button.tsx as the canonical example
+for prop typing, error boundaries, and test structure.

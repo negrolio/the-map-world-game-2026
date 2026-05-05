@@ -1,0 +1,18 @@
+---
+description: Riesgos de producto y roadmap post-MVP
+alwaysApply: false
+---
+
+# PRD - Riesgos y Roadmap
+
+## 1. Riesgos y mitigaciones
+- **Calidad de dataset de capitales:** validar y curar antes de integrar.
+- **Complejidad visual con 6 jugadores en mobile:** diseñar HUD responsive con colapso/scroll.
+- **Anti-cheat no 100% infalible:** comunicar claramente que protege contra cambio de pestaña, no contra segundo dispositivo.
+- **Performance mapa + animaciones:** usar geometria optimizada y memoizacion de renders.
+
+## 2. Roadmap sugerido post-MVP
+- v1.1: persistencia local avanzada + historial de partidas.
+- v1.2: backend/API para cuentas y guardado remoto.
+- v1.3: ranking global y perfiles.
+- v1.4: modo online multijugador.

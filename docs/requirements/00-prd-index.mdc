@@ -1,0 +1,22 @@
+---
+description: Indice de PRDs del proyecto The Map World Game 2026
+alwaysApply: false
+---
+
+# PRDs - The Map World Game 2026
+
+Documentos disponibles:
+
+1. `01-prd-mvp-producto-y-requerimientos.mdc`
+   - Vision del producto
+   - Objetivos
+   - Alcance
+   - Requerimientos funcionales y no funcionales
+   - UX/UI, datos, arquitectura y metricas
+
+2. `02-prd-criterios-de-aceptacion.mdc`
+   - Criterios de aceptacion priorizados para MVP
+
+3. `03-prd-riesgos-y-roadmap.mdc`
+   - Riesgos y mitigaciones
+   - Roadmap sugerido post-MVP

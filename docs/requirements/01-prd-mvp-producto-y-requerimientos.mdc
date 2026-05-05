@@ -1,0 +1,177 @@
+---
+description: PRD principal del MVP para The Map World Game 2026
+alwaysApply: false
+---
+
+# PRD - The Map World Game 2026 (Frontend MVP)
+
+## 1. Resumen del producto
+`The Map World Game 2026` es una app web frontend de geografia, modernizada desde una version legacy en HTML/CSS/JS hacia React + TypeScript, con foco en experiencia visual, escalabilidad y demostracion de refactorizacion asistida por IA.
+
+El juego permite competir adivinando paises o capitales sobre un mapa interactivo, con configuracion flexible de partida (jugadores, cantidad de preguntas, region/continente, modo de juego).
+
+## 2. Objetivos
+- Modernizar la app legacy con arquitectura frontend mantenible.
+- Mejorar significativamente UX/UI y accesibilidad.
+- Habilitar partidas para `1-6` jugadores locales.
+- Diseñar el frontend con contratos y modelo listos para futura persistencia en backend/database.
+- Implementar mecanismos anti-cheat razonables para evitar cambio de pestaña/ventana durante la partida.
+
+## 3. Alcance
+
+### En alcance (MVP)
+- App 100% frontend.
+- Setup de partida avanzado.
+- Juego en mapa interactivo.
+- Modos por pais/capital.
+- Filtros por continente.
+- Logica de turnos multijugador (hasta 6).
+- Pantalla de resultados/ranking final.
+- Modo anti-cheat estricto/opcional.
+- Tests unitarios y e2e criticos.
+
+### Fuera de alcance (MVP)
+- Login de usuarios.
+- Multiplayer online en tiempo real.
+- Persistencia remota (DB/API real).
+- Leaderboards globales.
+- Sistema de achievements.
+- Modo offline PWA completo (puede evaluarse luego).
+
+## 4. Usuarios y casos de uso
+
+### Usuario objetivo
+- Jugadores casuales y educativos.
+- Grupos locales que quieran competir por turnos.
+- Usuarios interesados en geografia mundial.
+
+### Casos principales
+- Configurar una partida personalizada.
+- Jugar adivinando paises por nombre.
+- Jugar adivinando paises por capital.
+- Competir entre varios jugadores y ver ranking final.
+- Mantener integridad de partida con reglas anti-cheat.
+
+## 5. Requerimientos funcionales
+
+### RF-01 — Setup de partida
+El usuario debe poder configurar:
+- cantidad de jugadores (`1-6`);
+- modo de pregunta (`pais` o `capital`);
+- ambito geografico (`mundo` o `continente`);
+- cantidad de paises/preguntas (`min` definido por producto, `max` segun filtro);
+- modo anti-cheat (`normal` o `estricto`).
+
+### RF-02 — Validaciones de setup
+- impedir iniciar partida con configuracion invalida;
+- mostrar mensajes claros de validacion;
+- recalcular maximo de preguntas al cambiar filtros.
+
+### RF-03 — Flujo de juego
+- mostrar objetivo actual (nombre de pais o capital);
+- permitir seleccionar pais en el mapa;
+- evaluar respuesta correcta/incorrecta;
+- actualizar puntaje y metricas por turno;
+- avanzar al siguiente turno/jugador.
+
+### RF-04 — Turnos multijugador (1-6)
+- orden circular de turnos;
+- indicador visual del jugador activo;
+- soporte total para hasta 6 paneles de jugador (responsive).
+
+### RF-05 — Sistema de puntaje
+- puntaje configurable por acierto/error/hint (fijo en MVP, parametrizable a futuro);
+- registro por jugador:
+  - puntos,
+  - aciertos,
+  - errores,
+  - porcentaje final.
+
+### RF-06 — Fin de partida y resultados
+- terminar cuando se agote el pool de preguntas;
+- mostrar ranking final ordenado;
+- desempate por regla explicita (definir: aciertos, luego menor errores, etc.).
+
+### RF-07 — Modo por capitales
+- usar dataset de capitales asociado a pais ISO;
+- mostrar capital como prompt y pais como respuesta esperada.
+
+### RF-08 — Filtro por continente
+- generar pool solo con paises del continente elegido;
+- reflejar limitaciones de dataset en setup.
+
+### RF-09 — Anti-cheat
+- detectar eventos `visibilitychange` y `blur`;
+- modo `estricto`: terminar partida automaticamente al perder foco;
+- modo `normal`: warning + contador de incidentes (sin terminar automatica);
+- mostrar incidente en resultados de partida.
+
+### RF-10 — Reinicio y nueva partida
+- boton para jugar nuevamente con:
+  - misma configuracion, o
+  - volver al setup inicial.
+
+## 6. Requerimientos no funcionales
+- **RNF-01 Performance:** interaccion fluida en mapa en desktop/laptop estandar.
+- **RNF-02 Accesibilidad:** controles interactivos con `aria-label`, navegacion por teclado para setup/UI.
+- **RNF-03 Responsive:** UX funcional en desktop/tablet/mobile.
+- **RNF-04 Mantenibilidad:** TypeScript estricto, arquitectura por features.
+- **RNF-05 Seguridad/privacidad:** no usar secretos; no registrar PII.
+- **RNF-06 Observabilidad frontend:** logging de errores de UI/flujo sin datos sensibles.
+
+## 7. UX/UI (requerimientos de experiencia)
+- Pantalla inicial con CTA de nueva partida.
+- `Game Setup Panel` claro, guiado y validado en tiempo real.
+- HUD de partida con:
+  - turno actual,
+  - objetivo actual,
+  - puntajes por jugador.
+- Feedback visual inmediato:
+  - acierto (positivo),
+  - error (negativo),
+  - transicion de turno.
+- Pantalla final con ranking y resumen estadistico.
+- Estilo visual moderno (consistente con design tokens/Tailwind).
+
+## 8. Datos y contenido
+
+### Dataset minimo requerido
+- paises con `iso2/iso3`, nombre canonico, continente.
+- geometria de mapa (TopoJSON/GeoJSON).
+- capital por pais.
+
+### Recomendacion de origen
+- geometria: Natural Earth (o fuente equivalente abierta).
+- metadatos pais/capital/continente: dataset curado con licencia abierta.
+
+### Reglas de consistencia
+- clave primaria por pais: codigo ISO.
+- normalizacion de nombres para render y evaluacion.
+- versionado del dataset en frontend (`datasetVersion`) para trazabilidad futura.
+
+## 9. Arquitectura propuesta (MVP frontend escalable)
+- `src/features/game/` — logica de dominio de partida.
+- `src/features/setup/` — configuracion pre-partida.
+- `src/components/` — UI reusable.
+- `src/services/` — reglas puras, scoring, seleccion de pool.
+- `src/types/` — contratos y tipos de dominio.
+- `src/data/` — loaders/adapters de dataset.
+
+### Modelo de dominio (base)
+- `Player`
+- `GameConfig`
+- `GameSession`
+- `Round`
+- `Guess`
+- `GameResult`
+
+### Preparacion para backend futuro
+- definir interfaces de repositorio (`GameSessionRepository`) con implementacion local inicial;
+- diseñar respuestas compatibles con `{ success, data?, error? }` para futura API.
+
+## 10. Metricas de exito (MVP)
+- % de partidas iniciadas que llegan a finalizacion.
+- tiempo promedio de setup.
+- cantidad promedio de errores de configuracion por usuario.
+- eventos de anti-cheat por partida.
+- estabilidad tecnica (errores no controlados por sesion).

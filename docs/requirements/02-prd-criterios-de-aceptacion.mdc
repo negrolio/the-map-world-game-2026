@@ -1,0 +1,20 @@
+---
+description: Criterios de aceptacion priorizados para el MVP
+alwaysApply: false
+---
+
+# PRD - Criterios de Aceptacion (MVP)
+
+## Criterios de aceptacion (alta prioridad)
+1. Usuario puede crear partida valida entre 1 y 6 jugadores.
+2. Usuario puede elegir modo pais/capital y continente.
+3. El juego respeta turnos y puntaje por jugador correctamente.
+4. La partida finaliza con ranking ordenado y datos consistentes.
+5. En modo estricto, perder foco termina la partida.
+6. Tests unitarios cubren scoring + turnos + generacion de pool.
+7. Tests e2e cubren flujo completo de setup -> juego -> resultados.
+
+## Definicion de Done (MVP)
+- Todos los criterios anteriores estan implementados y verificados.
+- No hay errores bloqueantes en flujo principal.
+- El documento de requerimientos principal esta alineado con implementacion actual.

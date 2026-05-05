@@ -1,0 +1,281 @@
+---
+name: MVP Frontend Map Game
+overview: Plan por fases para construir el MVP frontend de The Map World Game 2026 (React + TypeScript + Tailwind + Vitest + Playwright), alineado al PRD en docs/requirements, con capa de dominio y datos lista para backend futuro, sin implementar API/DB en MVP.
+todos:
+  - id: phase-0-bootstrap
+    content: "Fase 0: Vite+React+TS+Tailwind+Vitest+Playwright y estructura src/ según PRD"
+    status: pending
+  - id: phase-1-domain-data
+    content: "Fase 1: Tipos dominio, dataset versionado, servicios pool/validación + tests base"
+    status: pending
+  - id: phase-2-setup-ui
+    content: "Fase 2: Feature setup: panel, validación en vivo, a11y formularios"
+    status: pending
+  - id: phase-3-map-loop
+    content: "Fase 3: Mapa TopoJSON/SVG, evaluación de respuesta, feedback visual"
+    status: pending
+  - id: phase-4-multi-hud
+    content: "Fase 4: Turnos 1-6, HUD responsive, indicador jugador activo"
+    status: pending
+  - id: phase-5-score-results
+    content: "Fase 5: Scoring, fin de partida, ranking y desempate"
+    status: pending
+  - id: phase-6-anticheat-restart
+    content: "Fase 6: Anti-cheat strict/normal, reinicio y nueva partida"
+    status: pending
+  - id: phase-7-hardening
+    content: "Fase 7: A11y/responsive/perf + error logging sin PII"
+    status: pending
+  - id: phase-8-qa-dod
+    content: "Fase 8: Completar unit+e2e, verificar CA/DoD MVP"
+    status: pending
+isProject: false
+---
+
+# Plan de implementación MVP — The Map World Game 2026 (frontend)
+
+## Fuentes y trazabilidad
+
+- **Canónico:** [docs/requirements/00-prd-index.mdc](the-map-world-game-2026/docs/requirements/00-prd-index.mdc) apunta a [01-prd-mvp-producto-y-requerimientos.mdc](the-map-world-game-2026/docs/requirements/01-prd-mvp-producto-y-requerimientos.mdc) (RF/RNF), [02-prd-criterios-de-aceptacion.mdc](the-map-world-game-2026/docs/requirements/02-prd-criterios-de-aceptacion.mdc) y [03-prd-riesgos-y-roadmap.mdc](the-map-world-game-2026/docs/requirements/03-prd-riesgos-y-roadmap.mdc) como complementarios.
+- **Convenciones repo:** [the-map-world-game-2026/.cursor/rules/core.mdc](the-map-world-game-2026/.cursor/rules/core.mdc) (React 19.x, TS estricto, Vitest, Playwright, Tailwind; features + `src/services/` + `src/types/`).
+- **Estado del código:** no hay aplicación en `the-map-world-game-2026` aún; el plan asume bootstrap inicial del frontend en este mismo repo (o subcarpeta acordada).
+
+---
+
+## 1. Resumen ejecutivo
+
+Entregar una SPA que permita configurar partidas (1–6 jugadores, modo país/capital, mundo o continente, anti-cheat normal/estricto), jugar sobre mapa interactivo con turnos y puntaje, finalizar con ranking, y cumplir criterios de aceptación y tests del PRD. La implementación separa **dominio puro** (`src/services/`), **features** (`setup`, `game`), **datos versionados** (`src/data/` + `datasetVersion`), y **contratos tipo API** (`{ success, data?, error? }`) sin persistencia remota.
+
+---
+
+## 2. Ambigüedades o conflictos detectados y resolución propuesta
+
+| Tema | Detalle | Resolución propuesta |
+|------|---------|----------------------|
+| Archivo índice | El usuario citó `00-prd-index.mcd`; en repo existe `.mdc` | Tratar [00-prd-index.mdc](the-map-world-game-2026/docs/requirements/00-prd-index.mdc) como fuente de verdad. |
+| `min` de preguntas | RF-01: "min definido por producto" sin número | **Decisión producto:** `min = 1`; `max = tamaño del pool` tras filtros (RF-02). Documentar en constantes de producto (`PRODUCT_RULES`). |
+| Puntajes numéricos | RF-05: "fijo en MVP" sin valores | **Decisión producto:** constantes en un solo módulo (ej. +10 acierto, -5 error, -2 hint si existe hint en MVP). **Nota:** el PRD no lista "hint" en RF de juego; si no hay hints en MVP, no exponer UI de hint y dejar hook/param para futuro. |
+| Desempate ranking | RF-06 sugiere regla pero no la cierra | **Regla explícita:** ordenar por `puntos` desc; empate → `aciertos` desc; empate → `errores` asc; empate → orden de llegada al juego (índice de jugador asc) o nombre estable. |
+| Anti-cheat "normal" | RF-09: warning + contador; umbral no definido | **MVP:** no terminar partida; incrementar `incidentCount`; mostrar en resultados; opcional tope de advertencias solo UX (sin fin de partida) para no contrad RF-09. |
+| Dependencias nuevas | core.mdc: no instalar sin pedir | **Al iniciar Fase 0:** lista cerrada de deps (Vite/React/Tailwind/Vitest/Playwright + mapa/datos) y aprobación explícita antes de `package.json`. |
+| Reglas React | react-patterns referencia `@src/components/Button.tsx` inexistente | Durante bootstrap, crear `Button` canónico o ajustar la regla cuando exista el primer componente base. |
+
+---
+
+## 3. Arquitectura objetivo MVP
+
+### Módulos (alineado PRD §9 + core.mdc)
+
+- **`src/features/setup/`** — UI y estado de configuración; orquesta validación en tiempo real (RF-02).
+- **`src/features/game/`** — sesión activa: HUD, turnos, integración mapa, transiciones (RF-03, RF-04, RF-07–RF-10).
+- **`src/components/`** — layout, HUD, paneles jugador, feedback (RNF-02/03).
+- **`src/services/`** — puras: validación de config, generación de pool/barajado, scoring, avance de turno, fin de partida, anti-cheat policy, ranking (RF-02–RF-06, RF-09 lógica).
+- **`src/types/`** — `Player`, `GameConfig`, `GameSession`, `Round`, `Guess`, `GameResult`, tipos de error (PRD §9).
+- **`src/data/`** — loaders/adapters: TopoJSON/GeoJSON + tabla países (ISO2/ISO3, nombre, continente, capital), `datasetVersion` (PRD §8).
+- **`src/repositories/` (opcional carpeta)** — `GameSessionRepository` interface + implementación `InMemoryGameSessionRepository` (sin red); prepara backend.
+
+### Estado
+
+- **Setup:** estado local React (o URL searchParams opcional solo si aporta shareable links; fuera de MVP explícito → no obligatorio).
+- **Partida:** máquina de estados explícita en `src/features/game/` (ej. `setup | playing | finished | aborted`) derivada de `GameSession`; reducir re-renders con selectores o `useReducer`.
+
+### Datos y mapa
+
+- **Clave primaria:** ISO2 (o ISO3 si se unifica todo el pipeline; documentar una sola clave "canonical" en tipos) (PRD §8).
+- **Geometría:** Natural Earth (110m para MVP perf; 50m si falla legibilidad en desktop) como TopoJSON; build estático o import versionado.
+- **Metadatos:** JSON curado en repo (fuente documentada, licencia abierta) o paquete mantenido; validar capitales en tests de muestra.
+
+### Librerías candidatas (justificación breve)
+
+- **Vite + React 19 + TS strict:** encaja core.mdc; DX y tree-shaking para dataset grande.
+- **Tailwind:** PRD §7 design tokens; cumple react-patterns (no inline styles).
+- **Mapa:** `react-simple-maps` + `topojson-client` — integración directa con TopoJSON, menos complejidad que MapLibre/Leaflet para adivinar país por polígono; bundle razonable. *Trade-off:* menos libertad que D3 puro; si se atasca hit-testing, evaluar capa D3-geo en SVG.
+- **Validación config:** Zod en borde UI (coherente con [api-conventions.mdc](the-map-world-game-2026/.cursor/rules/api-conventions.mdc) para futuro); dominio sigue siendo funciones testeables.
+- **Tests:** Vitest (unit), Playwright (e2e), `@testing-library/react` para componentes críticos.
+
+```mermaid
+flowchart LR
+  subgraph ui [UI_features]
+    SetupUI[setup_feature]
+    GameUI[game_feature]
+  end
+  subgraph domain [services_domain]
+    Pool[pool_generator]
+    Score[scoring]
+    Turns[turn_engine]
+    AntiCheat[anticheat_policy]
+  end
+  subgraph data_layer [data]
+    Loaders[dataset_loaders]
+    Geo[topojson_geo]
+  end
+  SetupUI --> Pool
+  GameUI --> Turns
+  GameUI --> Score
+  GameUI --> AntiCheat
+  Pool --> Loaders
+  GameUI --> Geo
+```
+
+---
+
+## 4. Plan por fases
+
+### Fase 0 — Fundamentos de proyecto
+
+- **Objetivo:** repo ejecutable, lint/format, estructura de carpetas PRD, pipeline mínimo de datos.
+- **Entregables:** `package.json`, Vite, TS strict, Tailwind, Vitest + Playwright scaffold, árbol `src/features`, `src/services`, `src/types`, `src/data`, script de verificación de `datasetVersion`.
+- **Riesgos:** fricción política de dependencias (mitigar con lista aprobada).
+- **Salida:** `npm run dev/test/e2e` verde en smoke; carpetas vacías documentadas en README mínimo (solo si el equipo lo pide; PRD no exige doc).
+
+**Trazabilidad:** RNF-04, RNF-05 (no secretos), preparación RNF-06.
+
+### Fase 1 — Dominio y capa de datos
+
+- **Objetivo:** tipos de dominio + carga de dataset + generación de pool filtrado/barajado.
+- **Entregables:** implementaciones en `src/services/` para validación (RF-02), pool por continente/mundo (RF-08), modo país/capital (RF-07), `datasetVersion` en metadata expuesta al iniciar partida.
+- **Riesgos:** calidad capitales (mitigar tests de invariantes + muestra curada).
+- **Salida:** tests unitarios de pool + validación pasando (base para CA-6).
+
+**Trazabilidad:** RF-01, RF-02, RF-07, RF-08, RNF-04.
+
+### Fase 2 — Pantalla inicial y Setup completo
+
+- **Objetivo:** flujo guiado hasta "Iniciar partida".
+- **Entregables:** home CTA (PRD §7), `Game Setup Panel` con validación en vivo, recálculo de máximo al cambiar filtros (RF-02), accesibilidad básica de formularios (RNF-02).
+- **Riesgos:** validaciones inconsistentes UI vs servicio (mitigar una sola función `validateConfig` compartida).
+- **Salida:** imposible iniciar con config inválida; mensajes claros.
+
+**Trazabilidad:** RF-01, RF-02, UX §7, RNF-02/03.
+
+### Fase 3 — Mapa interactivo y loop de pregunta
+
+- **Objetivo:** mostrar objetivo y registrar click en país (RF-03).
+- **Entregables:** componente mapa (SVG), resolución de país por feature, feedback visual acierto/error, integración con `Guess` y avance de ronda.
+- **Riesgos:** performance (mitigar geometría 110m, memoización, evitar reprojection repetida) — RNF-01, riesgo PRD §3.
+- **Salida:** partida 1 jugador jugable de punta a punta sin ranking pulido (puente a Fase 5).
+
+**Trazabilidad:** RF-03, RNF-01.
+
+### Fase 4 — Multijugador local y HUD
+
+- **Objetivo:** turnos circulares e indicador de activo hasta 6 jugadores (RF-04).
+- **Entregables:** orden circular, UI responsive con scroll/colapso para 6 paneles (riesgo PRD §3).
+- **Riesgos:** layout móvil saturado (mitigar diseño acordeón).
+- **Salida:** CA-3 parcialmente verificable manualmente.
+
+**Trazabilidad:** RF-04, RNF-03, UX §7.
+
+### Fase 5 — Puntaje, fin de partida y resultados
+
+- **Objetivo:** métricas por jugador y ranking (RF-05, RF-06).
+- **Entregables:** acumulación puntos/aciertos/errores, porcentaje final, fin al agotar pool, pantalla ranking con desempate acordado.
+- **Riesgos:** reglas de puntaje no alineadas con expectativa (mitigar tabla de constantes + tests).
+- **Salida:** CA-2, CA-4.
+
+**Trazabilidad:** RF-05, RF-06, UX §7.
+
+### Fase 6 — Anti-cheat y reinicio
+
+- **Objetivo:** visibility/blur según modo (RF-09) y nueva partida (RF-10).
+- **Entregables:** listener central con política strict/normal; resumen incidentes en resultados; botones re-jugar / volver a setup.
+- **Riesgos:** falsos positivos en multitarea (mitigar copy honesto "no infalible").
+- **Salida:** CA-5.
+
+**Trazabilidad:** RF-09, RF-10, RNF-05/06 (no PII en logs de incidentes).
+
+### Fase 7 — Accesibilidad, responsive hardening, observabilidad
+
+- **Objetivo:** cerrar RNF y errores de flujo.
+- **Entregables:** teclado en setup/HUD donde aplique, `aria-label` en controles interactivos, boundary de error UI + logger estructurado sin datos sensibles (RNF-06).
+- **Riesgos:** mapa y teclado (mitigar alternativas: foco en controles de setup; mapa con rol/nombre anunciado vía live region limitada).
+- **Salida:** auditoría manual checklist WCAG básico.
+
+**Trazabilidad:** RNF-02, RNF-03, RNF-06.
+
+### Fase 8 — Verificación final (DoD MVP)
+
+- **Objetivo:** criterios [02-prd-criterios-de-aceptacion.mdc](the-map-world-game-2026/docs/requirements/02-prd-criterios-de-aceptacion.mdc).
+- **Entregables:** suite unit completa (scoring + turnos + pool), e2e setup→juego→resultados (CA-6/7), trazabilidad RF en comentarios de test o matriz en código de prueba.
+- **Riesgos:** e2e flaky por animaciones (mitigar `data-testid` y esperas deterministas).
+- **Salida:** DoD MVP (sección 8 abajo).
+
+---
+
+## 5. Backlog priorizado (formato lista; tabla detallada en entrega al usuario)
+
+**P0 — Bloqueadores MVP / CA alta**
+
+- **BL-01:** Bootstrap toolchain y estructura — deps: ninguna otra — CA: build local — refs: RNF-04.
+- **BL-02:** Tipos dominio + errores tipados — deps: BL-01 — CA: compilación strict sin `any` — refs: PRD §9, RNF-04.
+- **BL-03:** Dataset + loaders + `datasetVersion` — deps: BL-02 — CA: app imprime versión en consola dev o about interno — refs: PRD §8, RF-08.
+- **BL-04:** `validateConfig` + límites min/max pool — deps: BL-03 — CA: RF-02 — refs: RF-01, RF-02.
+- **BL-05:** `buildQuestionPool` (mundo/continente, país/capital) — deps: BL-04 — CA: tests pool — refs: RF-07, RF-08.
+- **BL-06:** Setup UI completo — deps: BL-04 — CA: CA-1, CA-2 — refs: RF-01, RF-02, UX §7.
+- **BL-07:** Mapa + selección país + evaluación — deps: BL-05 — CA: flujo juego — refs: RF-03, RNF-01.
+- **BL-08:** Turnos 1–6 + HUD — deps: BL-07 — CA: CA-3 — refs: RF-04, RNF-03.
+- **BL-09:** Scoring + métricas — deps: BL-08 — CA: CA-3 — refs: RF-05.
+- **BL-10:** Fin partida + ranking + desempate — deps: BL-09 — CA: CA-4 — refs: RF-06.
+- **BL-11:** Anti-cheat strict/normal + registro incidentes — deps: BL-07 — CA: CA-5 — refs: RF-09.
+- **BL-12:** Reinicio/nueva partida — deps: BL-10 — CA: flujo completo — refs: RF-10.
+- **BL-13:** Tests unit (pool, turnos, scoring) — deps: BL-09 — CA: CA-6 — refs: RF-02–RF-06.
+- **BL-14:** E2E setup→juego→resultados — deps: BL-12 — CA: CA-7 — refs: RF-01–RF-06, UX.
+
+**P1 — Calidad y riesgos PRD**
+
+- **BQ-01:** Responsive 6 jugadores (acordeón) — deps: BL-08 — refs: RNF-03, riesgo §3.
+- **BQ-02:** Memoización/render perf mapa — deps: BL-07 — refs: RNF-01.
+- **BQ-03:** Accesibilidad teclado setup + labels mapa/HUD — deps: BL-06, BL-08 — refs: RNF-02.
+- **BQ-04:** Error boundary + logging seguro — deps: BL-01 — refs: RNF-06, RNF-05.
+
+**P2 — Nice-to-have MVP**
+
+- **BN-01:** `GameSessionRepository` persistencia `sessionStorage` opcional — deps: BL-10 — refs: preparación backend PRD §9 (sin API).
+- **BN-02:** Pantalla "about" dataset/licencias — deps: BL-03 — refs: PRD §8, RNF-05.
+
+---
+
+## 6. Plan de testing
+
+**Unit (Vitest)**
+
+- `pool_generator`: continente correcto, mundo completo, `max` acotado al tamaño filtrado, barajado determinista con seed en tests.
+- `validateConfig`: combinaciones inválidas (0 jugadores, >6, preguntas fuera de rango).
+- `turn_engine`: circular 1–6, jugador activo tras N respuestas.
+- `scoring`: acierto/error según constantes; porcentaje final.
+- `ranking`: desempate puntos/aciertos/errores.
+- `anticheat_policy`: strict abort vs normal count (funciones puras + mock de eventos si se separa).
+
+**e2e (Playwright)**
+
+- Happy path: abrir app → setup válido → iniciar → responder N rondas (mock menor N vía config test) → ver ranking.
+- Modo estricto: simular `document.hidden` o API de Page si disponible → partida abortada y reflejada en UI.
+- Regresión: no iniciar con config inválida (mensaje visible).
+
+**Cobertura mínima:** todas las funciones exportadas en `src/services/` usadas en flujo principal; al menos un e2e estable en CI local.
+
+---
+
+## 7. Riesgos técnicos y mitigaciones (añadidos a PRD §3)
+
+- **Tamaño bundle TopoJSON:** dividir por continente en build o cargar dinámico por filtro seleccionado.
+- **Disputas fronteras:** usar dataset neutro documentado; no tomar posición política en UI más allá del dato fuente.
+- **Hit-testing en SVG:** si falla en multi-path, centralizar `onClick` en path con `data-iso` explícito.
+- **Playwright + mapa SVG:** selectores por `data-testid` en país o por texto de leyenda, no por coordenadas frágiles.
+
+---
+
+## 8. Definición de Done del MVP (consolidada)
+
+- Cumple **todos** los CA 1–7 de [02-prd-criterios-de-aceptacion.mdc](the-map-world-game-2026/docs/requirements/02-prd-criterios-de-aceptacion.mdc).
+- RF-01–RF-10 implementados salvo elementos explícitamente "fuera de alcance" en [01-prd-mvp-producto-y-requerimientos.mdc](the-map-world-game-2026/docs/requirements/01-prd-mvp-producto-y-requerimientos.mdc).
+- RNF-01–RNF-06 abordados en nivel razonable MVP (sin auditoría legal formal de accesibilidad salvo que el equipo lo exija).
+- `datasetVersion` trazable; sin PII ni secretos.
+- Flujo principal sin errores bloqueantes en manual QA breve.
+
+---
+
+## Preguntas cortas al cierre (solo si bloquean producto)
+
+1. ¿Confirmas **valores numéricos** propuestos para scoring (+10/-5) y **min preguntas = 1**?
+2. ¿El MVP incluye **hint** en UI? (el PRD no lo lista en RF de juego; afecta RF-05 y BL-09).

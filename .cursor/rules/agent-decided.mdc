@@ -1,0 +1,13 @@
+---
+description: Performance optimization guidelines for when the user asks about performance, latency, or speed improvements
+alwaysApply: false
+---
+
+# Performance Guidelines
+
+When optimizing code:
+- Profile before optimizing -- do not guess at bottlenecks
+- Prefer algorithmic improvements over micro-optimizations
+- Cache expensive computations at the appropriate layer
+- Use lazy loading for components not visible on initial render
+- Document the performance improvement with before/after metrics

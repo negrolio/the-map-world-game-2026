@@ -1,0 +1,31 @@
+---
+description: Core project standards that apply to all code
+alwaysApply: true
+---
+
+# Project: [Your Project Name]
+
+## Tech Stack
+- Runtime: Node.js 20 with TypeScript 5.x (strict mode)
+- Framework: React 19.2 or Latest version
+- Testing: Vitest for unit tests, Playwright for e2e
+- Styling: Tailwind CSS
+
+## Code Conventions
+- Use const by default, let only when reassignment is needed, never var
+- Prefer async/await over .then() chains
+- Use named exports, not default exports
+- Error handling: always use typed errors, never throw raw strings
+- File naming: kebab-case for files, PascalCase for components
+
+## Architecture
+- API routes go in src/api/
+- Business logic lives in src/services/
+- Shared types go in src/types/
+- Reuse existing patterns -- check for similar implementations before creating new ones
+
+## What NOT to Do
+- Do not install new dependencies without asking first
+- Do not modify configuration files (.env, tsconfig, package.json) without explicit request
+- Do not remove existing tests
+- Do not use any as a type -- use unknown and narrow appropriately
