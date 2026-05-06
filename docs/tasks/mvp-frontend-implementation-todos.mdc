@@ -43,23 +43,23 @@ Origen: [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_m
 
 ## Fase 1 — Dominio y capa de datos
 
-- [ ] **F1.1 — Tipos de dominio en `src/types/`**
+- [x] **F1.1 — Tipos de dominio en `src/types/`**
   - **Alcance (2-4 h):** `Player`, `GameConfig`, `GameSession`, `Round`, `Guess`, `GameResult`, errores tipados; clave canonica pais (ISO2 o ISO3) documentada en tipos.
   - **Criterios de aceptacion:** Compilacion strict sin `any` en estos tipos; tipos exportados y usados en al menos un stub de servicio.
 
-- [ ] **F1.2 — Contrato tipo API y `PRODUCT_RULES`**
+- [x] **F1.2 — Contrato tipo API y `PRODUCT_RULES`**
   - **Alcance (1-3 h):** Forma `{ success, data?, error? }` en borde; constantes `min = 1`, `max` acoplado al pool, reglas de scoring MVP (+10/-5, sin hint en UI si no hay hint).
   - **Criterios de aceptacion:** Un solo modulo de constantes de producto; decisiones del plan (min, scoring) reflejadas y referenciadas en tests o comentario breve.
 
-- [ ] **F1.3 — Dataset y loaders (`src/data/`)**
+- [x] **F1.3 — Dataset y loaders (`src/data/`)**
   - **Alcance (2-4 h):** Carga TopoJSON/GeoJSON + tabla paises (ISO, nombre, continente, capital); `datasetVersion` expuesto al iniciar partida (o equivalente en dev).
   - **Criterios de aceptacion:** Tests o script que validen muestra de capitales/continentes; version visible en dev/about interno segun BL-03 del plan.
 
-- [ ] **F1.4 — `validateConfig` (servicio puro + tests)**
+- [x] **F1.4 — `validateConfig` (servicio puro + tests)**
   - **Alcance (2-4 h):** Validacion RF-02 (jugadores 1-6, preguntas en rango tras filtros); casos invalidos cubiertos en Vitest.
   - **Criterios de aceptacion:** Tests para 0 jugadores, >6, preguntas fuera de rango; funcion exportada documentada como unica fuente de verdad UI/dominio.
 
-- [ ] **F1.5 — `buildQuestionPool` (mundo/continente, pais/capital)**
+- [x] **F1.5 — `buildQuestionPool` (mundo/continente, pais/capital)**
   - **Alcance (2-4 h):** Pool filtrado, barajado, `max` acotado al tamano del pool; modo pais vs capital (RF-07/RF-08).
   - **Criterios de aceptacion:** Tests: continente correcto, mundo completo, max acotado, barajado determinista con seed en tests (segun §6 del plan).
 
@@ -67,19 +67,19 @@ Origen: [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_m
 
 ## Fase 2 — Pantalla inicial y setup completo
 
-- [ ] **F2.1 — Home y CTA hacia setup (PRD §7)**
+- [x] **F2.1 — Home y CTA hacia setup (PRD §7)**
   - **Alcance (1-3 h):** Pantalla inicial con CTA; navegacion a panel de configuracion.
   - **Criterios de aceptacion:** Flujo manual: abrir app → ver home → llegar al setup; aspecto coherente con tokens/layout basico.
 
-- [ ] **F2.2 — `Game Setup Panel` (campos y estado)**
+- [x] **F2.2 — `Game Setup Panel` (campos y estado)**
   - **Alcance (2-4 h):** Jugadores, modo pais/capital, mundo/continente, anti-cheat, numero de preguntas; estado local React.
   - **Criterios de aceptacion:** Todos los controles del RF-01/02 reflejados en UI; estado preparado para enviar a `validateConfig` / inicio de partida.
 
-- [ ] **F2.3 — Validacion en vivo y recalculo de maximo**
+- [x] **F2.3 — Validacion en vivo y recalculo de maximo**
   - **Alcance (2-3 h):** Llamadas a `validateConfig` en cambio de filtros; mensajes claros; imposible Iniciar con config invalida.
   - **Criterios de aceptacion:** Cambiar continente/mundo actualiza limites y mensajes; boton iniciar deshabilitado o bloqueado con feedback cuando invalido.
 
-- [ ] **F2.4 — Zod en borde UI + accesibilidad basica de formularios**
+- [x] **F2.4 — Zod en borde UI + accesibilidad basica de formularios**
   - **Alcance (2-4 h):** Esquema Zod alineado a `api-conventions.mdc`; labels, `aria-*`, orden de foco razonable en setup.
   - **Criterios de aceptacion:** Navegacion por teclado en formulario principal; sin errores de accesibilidad obvios en revision rapida (RNF-02).
 
