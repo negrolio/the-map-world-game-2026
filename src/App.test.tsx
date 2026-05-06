@@ -67,4 +67,25 @@ describe('App', () => {
     expect(screen.getAllByRole('alert').length).toBeGreaterThan(0)
     expect(screen.getByLabelText(/Número de preguntas/i)).toHaveAttribute('aria-describedby', 'setup-feedback')
   })
+
+  it('navega a la vista de partida con mapa al iniciar con configuracion valida', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+
+    expect(screen.getByTestId('world-map-root')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Mapa mundial — 110m/i })).toBeInTheDocument()
+  })
+
+  it('muestra la pregunta de la ronda activa al iniciar la partida', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+
+    const prompt = screen.getByTestId('round-prompt')
+    expect(prompt.textContent).toMatch(/¿Dónde está |¿Dónde queda la capital /)
+    expect(prompt.textContent?.length).toBeGreaterThan(12)
+  })
 })

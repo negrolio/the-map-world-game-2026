@@ -5,3 +5,5 @@ export const componentShell = {
 
 export { Button } from './Button'
 export type { ButtonProps } from './Button'
+export { WorldMap } from './WorldMap'
+export type { MapAnswerFeedback, WorldMapProps } from './WorldMap'

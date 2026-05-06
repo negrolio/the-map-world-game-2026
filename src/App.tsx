@@ -1,14 +1,30 @@
 import { useMemo, useState } from 'react'
 
-import { Button, componentShell } from './components'
+import { Button, componentShell, WorldMap } from './components'
 import { countriesCatalog, dataShell, datasetVersion } from './data'
 import { gameFeatureShell } from './features/game'
 import { setupFeatureShell, validateSetupConfigSchema } from './features/setup'
 import { serviceShell } from './services'
-import { PRODUCT_RULES, validateConfig } from './services'
-import type { AntiCheatMode, FeatureShell, GameConfig, QuestionMode, RegionFilter } from './types'
+import {
+  PRODUCT_RULES,
+  advanceToNextRoundOrFinish,
+  beginPlayingSession,
+  buildQuestionPool,
+  createGameSession,
+  submitRoundGuess,
+  validateConfig,
+} from './services'
+import type {
+  AntiCheatMode,
+  FeatureShell,
+  GameConfig,
+  GameSession,
+  IsoCountryCode,
+  QuestionMode,
+  RegionFilter,
+} from './types'
 
-type AppView = 'home' | 'setup'
+type AppView = 'home' | 'setup' | 'game'
 
 export function App() {
   const [currentView, setCurrentView] = useState<AppView>('home')
@@ -19,6 +35,9 @@ export function App() {
   const [antiCheatMode, setAntiCheatMode] = useState<AntiCheatMode>('normal')
   const [questionCount, setQuestionCount] = useState<number>(5)
   const [setupSubmitMessage, setSetupSubmitMessage] = useState<string | null>(null)
+  const [lastClickedCountryCode, setLastClickedCountryCode] = useState<IsoCountryCode | null>(null)
+  const [gameSession, setGameSession] = useState<GameSession | null>(null)
+  const [guessSubmitError, setGuessSubmitError] = useState<string | null>(null)
 
   const shellModules: readonly FeatureShell[] = [
     setupFeatureShell,
@@ -115,7 +134,238 @@ export function App() {
       return
     }
 
-    setSetupSubmitMessage('Configuración validada en borde UI. Lista para iniciar la partida.')
+    const sessionResponse = createGameSession(setupDraft)
+    if (!sessionResponse.success) {
+      setSetupSubmitMessage(sessionResponse.error.message)
+      return
+    }
+
+    const poolSeed = import.meta.env.MODE === 'test' ? 12_345 : Date.now()
+    const pool = buildQuestionPool({
+      countries: countriesCatalog,
+      regionFilter: setupDraft.regionFilter,
+      questionMode: setupDraft.questionMode,
+      requestedQuestionCount: setupDraft.questionCount,
+      seed: poolSeed,
+    })
+
+    const playingSession = beginPlayingSession(sessionResponse.data, pool.selectedQuestions)
+
+    setSetupSubmitMessage(null)
+    setGuessSubmitError(null)
+    setLastClickedCountryCode(null)
+    setGameSession(playingSession)
+    setCurrentView('game')
+  }
+
+  function handleCountryMapClick(iso2: IsoCountryCode | null): void {
+    setLastClickedCountryCode(iso2)
+
+    if (!gameSession || gameSession.status !== 'playing') {
+      return
+    }
+
+    const activeRound = gameSession.rounds[gameSession.activeRoundIndex]
+    if (!activeRound || activeRound.guess || iso2 === null) {
+      return
+    }
+
+    const activePlayer = gameSession.players[0]
+    if (!activePlayer) {
+      return
+    }
+
+    const response = submitRoundGuess({
+      session: gameSession,
+      selectedCountryCode: iso2,
+      playerId: activePlayer.id,
+      answeredAtISO: new Date().toISOString(),
+    })
+
+    if (response.success) {
+      setGuessSubmitError(null)
+      setGameSession(response.data.session)
+    } else {
+      setGuessSubmitError(response.error.message)
+    }
+  }
+
+  function exitGameTo(view: AppView): void {
+    setGameSession(null)
+    setGuessSubmitError(null)
+    setLastClickedCountryCode(null)
+    setCurrentView(view)
+  }
+
+  function handleAdvanceRound(): void {
+    if (!gameSession) {
+      return
+    }
+
+    const response = advanceToNextRoundOrFinish(gameSession)
+    if (response.success) {
+      setGuessSubmitError(null)
+      setLastClickedCountryCode(null)
+      setGameSession(response.data)
+    } else {
+      setGuessSubmitError(response.error.message)
+    }
+  }
+
+  if (currentView === 'game') {
+    if (!gameSession) {
+      return (
+        <main className="min-h-screen bg-slate-950 text-slate-100">
+          <section className="mx-auto flex min-h-screen max-w-lg flex-col justify-center gap-4 px-6 py-10">
+            <p className="text-slate-300">No hay sesión activa. Volvé al setup para iniciar una partida.</p>
+            <Button type="button" onClick={() => exitGameTo('setup')}>
+              Ir al setup
+            </Button>
+          </section>
+        </main>
+      )
+    }
+
+    if (gameSession.status === 'finished') {
+      return (
+        <main className="min-h-screen bg-slate-950 text-slate-100">
+          <section className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-6 px-6 py-10">
+            <header className="flex flex-col gap-2">
+              <p className="inline-flex w-fit rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-sm font-medium text-amber-200">
+                Fin de partida
+              </p>
+              <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Partida terminada</h1>
+              <p className="text-sm text-slate-400" data-testid="game-finished-status">
+                Completaste {gameSession.rounds.length}{' '}
+                {gameSession.rounds.length === 1 ? 'ronda' : 'rondas'}. Dataset version: {datasetVersion}.
+              </p>
+            </header>
+            <ul className="grid gap-3 rounded-xl border border-slate-800 bg-slate-900/70 p-4">
+              {gameSession.players.map((player) => (
+                <li
+                  key={player.id}
+                  className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3 last:border-b-0 last:pb-0"
+                  data-testid={`finished-player-${player.id}`}
+                >
+                  <span className="font-medium text-slate-100">{player.name}</span>
+                  <span className="text-sm text-slate-400">
+                    Puntos <span className="font-mono text-cyan-200">{player.score}</span> · Aciertos{' '}
+                    {player.correctAnswers} · Errores {player.wrongAnswers}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <div className="flex flex-wrap gap-3">
+              <Button type="button" onClick={() => exitGameTo('setup')}>
+                Nueva partida (setup)
+              </Button>
+              <Button type="button" variant="secondary" onClick={() => exitGameTo('home')}>
+                Ir al home
+              </Button>
+            </div>
+          </section>
+        </main>
+      )
+    }
+
+    const activeRound = gameSession.rounds[gameSession.activeRoundIndex]
+    const activePlayer = gameSession.players[0]
+    const roundGuess = activeRound?.guess
+    const mapFeedback =
+      roundGuess && activeRound
+        ? {
+            selectedIso2: roundGuess.selectedCountryCode,
+            targetIso2: activeRound.targetCountryCode,
+            isCorrect: roundGuess.isCorrect,
+          }
+        : null
+    const isLastRound = gameSession.activeRoundIndex >= gameSession.rounds.length - 1
+
+    return (
+      <main className="min-h-screen bg-slate-950 text-slate-100">
+        <section className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-6 py-10">
+          <header className="flex flex-col gap-2">
+            <p className="inline-flex w-fit rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1 text-sm font-medium text-cyan-200">
+              Partida (mapa)
+            </p>
+            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Mapa mundial — 110m</h1>
+            <p className="max-w-2xl text-sm text-slate-400">
+              Dataset version: {datasetVersion}. Los países se renderizan desde TopoJSON Natural Earth (world-atlas).
+            </p>
+            {activeRound ? (
+              <div className="rounded-lg border border-slate-700 bg-slate-900/60 p-4 text-sm text-slate-200">
+                <p className="text-xs uppercase tracking-wide text-slate-400" data-testid="round-counter">
+                  Ronda {activeRound.roundNumber} de {gameSession.rounds.length}
+                </p>
+                <p className="mt-1 text-lg font-semibold text-slate-50" data-testid="round-prompt">
+                  {gameSession.config.questionMode === 'country' ? '¿Dónde está ' : '¿Dónde queda la capital '}
+                  <span className="text-cyan-200">{activeRound.prompt}</span>
+                  ?
+                </p>
+                {activePlayer ? (
+                  <p className="mt-2 text-xs text-slate-400">
+                    Puntos: <span className="font-mono text-slate-200">{activePlayer.score}</span> · Aciertos:{' '}
+                    {activePlayer.correctAnswers} · Errores: {activePlayer.wrongAnswers}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+            {mapFeedback ? (
+              <p className="text-xs text-slate-500">
+                Mapa: verde = acierto; rojo = tu elección si falló; ámbar = país correcto.
+              </p>
+            ) : null}
+            {roundGuess ? (
+              <p
+                data-testid="guess-feedback"
+                role="status"
+                aria-live="polite"
+                className={
+                  roundGuess.isCorrect
+                    ? 'text-sm font-medium text-emerald-300'
+                    : 'text-sm font-medium text-rose-300'
+                }
+              >
+                {roundGuess.isCorrect
+                  ? 'Correcto.'
+                  : `Incorrecto. El objetivo era el país con ISO2 ${activeRound?.targetCountryCode}.`}
+              </p>
+            ) : (
+              <p className="text-sm text-slate-400">Hacé clic en el mapa para responder.</p>
+            )}
+            {guessSubmitError ? (
+              <p role="alert" className="text-sm text-rose-300">
+                {guessSubmitError}
+              </p>
+            ) : null}
+            <p
+              data-testid="map-click-feedback"
+              className="text-sm text-slate-300"
+              aria-live="polite"
+            >
+              Último clic — ISO2 según el mapa (TopoJSON):{' '}
+              <span className="font-mono text-cyan-200">
+                {lastClickedCountryCode ?? '— (sin ISO_A2 en esta geometría)'}
+              </span>
+            </p>
+          </header>
+          <WorldMap mapFeedback={mapFeedback} onCountryClick={handleCountryMapClick} />
+          <div className="flex flex-wrap items-center gap-3">
+            {roundGuess ? (
+              <Button type="button" data-testid="advance-round-button" onClick={handleAdvanceRound}>
+                {isLastRound ? 'Ver resultado final' : 'Siguiente pregunta'}
+              </Button>
+            ) : null}
+            <Button type="button" variant="secondary" onClick={() => exitGameTo('setup')}>
+              Volver al setup
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => exitGameTo('home')}>
+              Ir al home
+            </Button>
+          </div>
+        </section>
+      </main>
+    )
   }
 
   if (currentView === 'setup') {

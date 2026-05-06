@@ -87,19 +87,19 @@ Origen: [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_m
 
 ## Fase 3 — Mapa interactivo y loop de pregunta
 
-- [ ] **F3.1 — Mapa SVG (TopoJSON + libreria elegida)**
+- [x] **F3.1 — Mapa SVG (TopoJSON + libreria elegida)**
   - **Alcance (2-4 h):** Integracion `react-simple-maps` + `topojson-client` (o decision documentada); geometria 110m (o 50m si se justifica).
   - **Criterios de aceptacion:** Mapa renderiza paises del dataset; sin errores de consola en carga; rendimiento aceptable en desktop (sin reprojection redundante evidente).
 
-- [ ] **F3.2 — Resolucion de pais por click (hit-testing)**
+- [x] **F3.2 — Resolucion de pais por click (hit-testing)**
   - **Alcance (2-4 h):** Click en feature → ISO canonico; `data-iso` o estrategia acordada en §7 del plan si multi-path.
   - **Criterios de aceptacion:** Click en pais conocido produce el mismo ISO que el dataset; caso de prueba manual + unit/integration minima si aplica.
 
-- [ ] **F3.3 — Evaluacion de respuesta y modelo `Guess`**
+- [x] **F3.3 — Evaluacion de respuesta y modelo `Guess`**
   - **Alcance (2-4 h):** Integracion servicio de evaluacion con ronda actual (correcto/incorrecto); actualizacion de sesion.
   - **Criterios de aceptacion:** Partida 1 jugador: una ronda completa pregunta → click → resultado coherente con objetivo.
 
-- [ ] **F3.4 — Feedback visual y avance de ronda**
+- [x] **F3.4 — Feedback visual y avance de ronda**
   - **Alcance (2-3 h):** Estados visuales acierto/error; transicion a siguiente pregunta o fin de pool (puente a Fase 5).
   - **Criterios de aceptacion:** Usuario ve feedback inmediato; contador de ronda o pregunta avanza correctamente.
 
