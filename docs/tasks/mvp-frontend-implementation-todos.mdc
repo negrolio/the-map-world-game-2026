@@ -1,0 +1,208 @@
+---
+description: Lista de tareas MVP frontend por fases (1-4 h) con criterios de aceptacion; deriva del plan en docs/architecture/mvp_frontend_map_game_1b56bd4b.plan.mdc
+alwaysApply: false
+---
+
+# Tareas de implementacion MVP — frontend
+
+Origen: [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_map_game_1b56bd4b.plan.mdc). Cada tarea esta pensada para **1-4 horas** de trabajo.
+
+---
+
+## Fase 0 — Fundamentos de proyecto
+
+- [x] **F0.1 — Aprobacion de dependencias y bootstrap Vite**
+  - **Alcance (1-2 h):** Lista cerrada de paquetes (Vite, React 19, TypeScript strict, Tailwind, Vitest, Playwright, mapa/datos segun plan); aprobacion explicita; `package.json` + proyecto Vite React-TS ejecutable.
+  - **Criterios de aceptacion:** `npm install` y `npm run dev` arrancan sin errores; TS en modo strict en `tsconfig`; no hay dependencias fuera de la lista aprobada.
+
+- [x] **F0.2 — Tailwind, lint/format y convenciones de repo**
+  - **Alcance (2-3 h):** Tailwind configurado; ESLint/Prettier (o equivalente del repo); scripts `lint` / `format` si aplica; alineacion con `.cursor/rules/core.mdc`.
+  - **Criterios de aceptacion:** `npm run lint` (o script acordado) pasa en codigo inicial; clases Tailwind funcionan en una pantalla de prueba.
+
+- [x] **F0.3 — Arbol `src/` y feature shells**
+  - **Alcance (2-3 h):** Carpetas `src/features/setup`, `src/features/game`, `src/services`, `src/types`, `src/data`, `src/components`; rutas o entrada minima que importe desde esas rutas.
+  - **Criterios de aceptacion:** Imports resuelven correctamente; estructura coincide con el plan/PRD §9; build no rompe.
+
+- [x] **F0.4 — Vitest + Testing Library**
+  - **Alcance (1-3 h):** Vitest configurado; un test de humo que monte la app o un modulo; script `test` en `package.json`.
+  - **Criterios de aceptacion:** `npm run test` pasa en CI/local; configuracion lista para tests de servicios/componentes.
+
+- [x] **F0.5 — Playwright scaffold**
+  - **Alcance (1-3 h):** Playwright instalado; config base; test e2e humo (abrir URL, asercion minima); script `e2e`.
+  - **Criterios de aceptacion:** `npm run e2e` (o nombre acordado) ejecuta al menos un spec verde contra `dev` o preview.
+
+- [x] **F0.6 — `datasetVersion` y verificacion en build**
+  - **Alcance (1-2 h):** Constante o metadata `datasetVersion` en `src/data` (o script); script o check que falle si falta version (segun plan).
+  - **Criterios de aceptacion:** Version documentada en un solo lugar; el script/check de verificacion termina 0 en estado sano y detecta ausencia de version.
+
+- [x] **F0.7 — Componente base `Button` (o ajuste de regla)**
+  - **Alcance (1-2 h):** `src/components/Button.tsx` canonico alineado a `react-patterns.mdc`, o actualizacion de la regla si el equipo prefiere otro primer componente.
+  - **Criterios de aceptacion:** La regla que referencia `Button` ya no apunta a archivo inexistente; componente reutilizable sin estilos inline prohibidos.
+
+---
+
+## Fase 1 — Dominio y capa de datos
+
+- [ ] **F1.1 — Tipos de dominio en `src/types/`**
+  - **Alcance (2-4 h):** `Player`, `GameConfig`, `GameSession`, `Round`, `Guess`, `GameResult`, errores tipados; clave canonica pais (ISO2 o ISO3) documentada en tipos.
+  - **Criterios de aceptacion:** Compilacion strict sin `any` en estos tipos; tipos exportados y usados en al menos un stub de servicio.
+
+- [ ] **F1.2 — Contrato tipo API y `PRODUCT_RULES`**
+  - **Alcance (1-3 h):** Forma `{ success, data?, error? }` en borde; constantes `min = 1`, `max` acoplado al pool, reglas de scoring MVP (+10/-5, sin hint en UI si no hay hint).
+  - **Criterios de aceptacion:** Un solo modulo de constantes de producto; decisiones del plan (min, scoring) reflejadas y referenciadas en tests o comentario breve.
+
+- [ ] **F1.3 — Dataset y loaders (`src/data/`)**
+  - **Alcance (2-4 h):** Carga TopoJSON/GeoJSON + tabla paises (ISO, nombre, continente, capital); `datasetVersion` expuesto al iniciar partida (o equivalente en dev).
+  - **Criterios de aceptacion:** Tests o script que validen muestra de capitales/continentes; version visible en dev/about interno segun BL-03 del plan.
+
+- [ ] **F1.4 — `validateConfig` (servicio puro + tests)**
+  - **Alcance (2-4 h):** Validacion RF-02 (jugadores 1-6, preguntas en rango tras filtros); casos invalidos cubiertos en Vitest.
+  - **Criterios de aceptacion:** Tests para 0 jugadores, >6, preguntas fuera de rango; funcion exportada documentada como unica fuente de verdad UI/dominio.
+
+- [ ] **F1.5 — `buildQuestionPool` (mundo/continente, pais/capital)**
+  - **Alcance (2-4 h):** Pool filtrado, barajado, `max` acotado al tamano del pool; modo pais vs capital (RF-07/RF-08).
+  - **Criterios de aceptacion:** Tests: continente correcto, mundo completo, max acotado, barajado determinista con seed en tests (segun §6 del plan).
+
+---
+
+## Fase 2 — Pantalla inicial y setup completo
+
+- [ ] **F2.1 — Home y CTA hacia setup (PRD §7)**
+  - **Alcance (1-3 h):** Pantalla inicial con CTA; navegacion a panel de configuracion.
+  - **Criterios de aceptacion:** Flujo manual: abrir app → ver home → llegar al setup; aspecto coherente con tokens/layout basico.
+
+- [ ] **F2.2 — `Game Setup Panel` (campos y estado)**
+  - **Alcance (2-4 h):** Jugadores, modo pais/capital, mundo/continente, anti-cheat, numero de preguntas; estado local React.
+  - **Criterios de aceptacion:** Todos los controles del RF-01/02 reflejados en UI; estado preparado para enviar a `validateConfig` / inicio de partida.
+
+- [ ] **F2.3 — Validacion en vivo y recalculo de maximo**
+  - **Alcance (2-3 h):** Llamadas a `validateConfig` en cambio de filtros; mensajes claros; imposible Iniciar con config invalida.
+  - **Criterios de aceptacion:** Cambiar continente/mundo actualiza limites y mensajes; boton iniciar deshabilitado o bloqueado con feedback cuando invalido.
+
+- [ ] **F2.4 — Zod en borde UI + accesibilidad basica de formularios**
+  - **Alcance (2-4 h):** Esquema Zod alineado a `api-conventions.mdc`; labels, `aria-*`, orden de foco razonable en setup.
+  - **Criterios de aceptacion:** Navegacion por teclado en formulario principal; sin errores de accesibilidad obvios en revision rapida (RNF-02).
+
+---
+
+## Fase 3 — Mapa interactivo y loop de pregunta
+
+- [ ] **F3.1 — Mapa SVG (TopoJSON + libreria elegida)**
+  - **Alcance (2-4 h):** Integracion `react-simple-maps` + `topojson-client` (o decision documentada); geometria 110m (o 50m si se justifica).
+  - **Criterios de aceptacion:** Mapa renderiza paises del dataset; sin errores de consola en carga; rendimiento aceptable en desktop (sin reprojection redundante evidente).
+
+- [ ] **F3.2 — Resolucion de pais por click (hit-testing)**
+  - **Alcance (2-4 h):** Click en feature → ISO canonico; `data-iso` o estrategia acordada en §7 del plan si multi-path.
+  - **Criterios de aceptacion:** Click en pais conocido produce el mismo ISO que el dataset; caso de prueba manual + unit/integration minima si aplica.
+
+- [ ] **F3.3 — Evaluacion de respuesta y modelo `Guess`**
+  - **Alcance (2-4 h):** Integracion servicio de evaluacion con ronda actual (correcto/incorrecto); actualizacion de sesion.
+  - **Criterios de aceptacion:** Partida 1 jugador: una ronda completa pregunta → click → resultado coherente con objetivo.
+
+- [ ] **F3.4 — Feedback visual y avance de ronda**
+  - **Alcance (2-3 h):** Estados visuales acierto/error; transicion a siguiente pregunta o fin de pool (puente a Fase 5).
+  - **Criterios de aceptacion:** Usuario ve feedback inmediato; contador de ronda o pregunta avanza correctamente.
+
+---
+
+## Fase 4 — Multijugador local y HUD
+
+- [ ] **F4.1 — Motor de turnos en servicio + tests**
+  - **Alcance (2-4 h):** Orden circular 1-6; jugador activo tras N respuestas; tests `turn_engine` segun §6.
+  - **Criterios de aceptacion:** Tests unitarios cubren circularidad y jugador activo; API del servicio clara para la UI.
+
+- [ ] **F4.2 — HUD: paneles por jugador (hasta 6)**
+  - **Alcance (2-4 h):** UI que muestra nombre/orden y metricas visibles por jugador.
+  - **Criterios de aceptacion:** Con 6 jugadores, todos los paneles son visibles o accesibles segun diseno (scroll/colapso planificado).
+
+- [ ] **F4.3 — Indicador de jugador activo y layout responsive**
+  - **Alcance (2-4 h):** Resalte del turno actual; layout que no rompe en viewport estrecho (base para acordeon BQ-01).
+  - **Criterios de aceptacion:** CA-3 verificable manualmente en al menos un tamano movil y desktop; jugador activo siempre identificable.
+
+---
+
+## Fase 5 — Puntaje, fin de partida y resultados
+
+- [ ] **F5.1 — Scoring acumulativo (servicio + tests)**
+  - **Alcance (2-4 h):** Acierto/error segun constantes; aciertos/errores/puntos en sesion; tests `scoring`.
+  - **Criterios de aceptacion:** Tests fijan comportamiento numerico; UI o estado refleja mismas cifras que el servicio.
+
+- [ ] **F5.2 — Fin de partida al agotar pool**
+  - **Alcance (1-3 h):** Transicion de `playing` a `finished`; maquina de estados coherente.
+  - **Criterios de aceptacion:** Tras ultima ronda, no se aceptan mas respuestas; se navega o muestra vista de resultados.
+
+- [ ] **F5.3 — Ranking y desempate**
+  - **Alcance (2-4 h):** Orden: puntos desc → aciertos desc → errores asc → indice/nombre estable; tests `ranking`.
+  - **Criterios de aceptacion:** CA-2 y CA-4 verificables; empates resueltos segun regla explicita del plan.
+
+- [ ] **F5.4 — Porcentaje final y copy UX §7**
+  - **Alcance (1-2 h):** Porcentaje u otra metrica acordada en resultados; textos claros.
+  - **Criterios de aceptacion:** Pantalla de resultados legible y alineada al PRD visual basico.
+
+---
+
+## Fase 6 — Anti-cheat y reinicio
+
+- [ ] **F6.1 — Politica anti-cheat (strict vs normal) en servicio**
+  - **Alcance (2-4 h):** Funciones puras + tests: strict aborta; normal incrementa `incidentCount` sin terminar partida (RF-09).
+  - **Criterios de aceptacion:** Tests `anticheat_policy` cubren ambos modos; sin contradiccion con RF-09 del plan.
+
+- [ ] **F6.2 — Listeners de visibilidad/blur en UI**
+  - **Alcance (2-3 h):** Orquestacion central de eventos; integracion con sesion y resultados.
+  - **Criterios de aceptacion:** CA-5 verificable manualmente; incidentes visibles en resultados; copy honesto si hay falsos positivos.
+
+- [ ] **F6.3 — Reinicio y nueva partida (RF-10)**
+  - **Alcance (1-3 h):** Botones re-jugar / volver a setup; reset de estado sin fugas de sesion anterior.
+  - **Criterios de aceptacion:** Flujo completo setup → juego → resultados → nueva partida sin recargar pagina obligatoriamente.
+
+---
+
+## Fase 7 — Accesibilidad, responsive hardening y observabilidad
+
+- [ ] **F7.1 — Teclado y ARIA en setup y HUD**
+  - **Alcance (2-4 h):** Completar gaps de F2.4/F4; `aria-label` en controles interactivos del mapa donde aplique; live region limitada si se acuerda.
+  - **Criterios de aceptacion:** Checklist WCAG basico manual pasado para flujos principales (RNF-02/03).
+
+- [ ] **F7.2 — Responsive 6 jugadores (acordeon / colapso)**
+  - **Alcance (2-4 h):** BQ-01: acordeon o patron equivalente para no saturar movil.
+  - **Criterios de aceptacion:** 6 jugadores usables en viewport pequeno sin solapamiento critico.
+
+- [ ] **F7.3 — Memoizacion y perf del mapa**
+  - **Alcance (2-3 h):** BQ-02: memo, evitar trabajo repetido en render.
+  - **Criterios de aceptacion:** Interaccion fluida en escenario tipico desktop; sin regresion funcional.
+
+- [ ] **F7.4 — Error boundary + logging estructurado sin PII**
+  - **Alcance (2-3 h):** BQ-04: boundary en raiz o feature; logger sin datos sensibles (RNF-05/06).
+  - **Criterios de aceptacion:** Error forzado en dev muestra UI de fallo controlada; logs no contienen nombres de jugadores ni datos personales.
+
+---
+
+## Fase 8 — Verificacion final (DoD MVP)
+
+- [ ] **F8.1 — Cobertura unitaria de servicios criticos**
+  - **Alcance (2-4 h):** Completar/ajustar tests pool, validateConfig, turnos, scoring, ranking, anti-cheat; funciones exportadas usadas en flujo principal cubiertas (§6 del plan).
+  - **Criterios de aceptacion:** `npm run test` verde; CA-6 alineado con matriz o comentarios de trazabilidad RF.
+
+- [ ] **F8.2 — E2E: happy path y config invalida**
+  - **Alcance (2-4 h):** Playwright: setup valido → N rondas (N pequeno via config de test) → ranking; regresion mensaje con config invalida; `data-testid` y esperas deterministas.
+  - **Criterios de aceptacion:** Specs estables en repeticion local; CA-7 parcialmente cubierto.
+
+- [ ] **F8.3 — E2E modo estricto (document.hidden / API Page)**
+  - **Alcance (2-3 h):** Simular perdida de foco/visibilidad; partida abortada reflejada en UI.
+  - **Criterios de aceptacion:** Test verde en CI/local; sin flaky por timeouts arbitrarios largos.
+
+- [ ] **F8.4 — Auditoria DoD MVP y PRD**
+  - **Alcance (2-4 h):** Recorrido contra `02-prd-criterios-de-aceptacion.mdc` CA 1-7; RF-01-RF-10; RNF-01-RNF-06 razonable; `datasetVersion` trazable; QA manual breve §8 del plan.
+  - **Criterios de aceptacion:** Lista de verificacion completada con evidencia (enlaces a tests, notas breves); bloqueadores documentados si queda algo fuera de alcance explicito del PRD.
+
+---
+
+## P2 — Nice-to-have (opcional tras DoD)
+
+- [ ] **BN.1 — `GameSessionRepository` + `sessionStorage`**
+  - **Alcance (2-4 h):** Interfaz + implementacion en memoria extendida a persistencia opcional.
+  - **Criterios de aceptacion:** Recarga opcional restaura sesion cuando el flag/feature esta activo; sin API remota.
+
+- [ ] **BN.2 — Pantalla about (dataset y licencias)**
+  - **Alcance (1-2 h):** Texto fuente + licencia abierta (PRD §8, RNF-05).
+  - **Criterios de aceptacion:** Usuario puede leer procedencia y licencia desde la app.
