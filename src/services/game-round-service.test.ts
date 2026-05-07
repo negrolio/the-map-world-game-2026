@@ -160,6 +160,56 @@ describe('submitRoundGuess', () => {
     }
     expect(result.error.code).toBe('INVALID_GUESS')
   })
+
+  it('rechaza respuesta si no es el turno del jugador', () => {
+    const session: GameSession = {
+      id: 'session-test',
+      status: 'playing',
+      config: { ...baseConfig, players: ['A', 'B'] },
+      players: [
+        { id: 'player-1', name: 'A', turnOrder: 0, score: 0, correctAnswers: 0, wrongAnswers: 0 },
+        { id: 'player-2', name: 'B', turnOrder: 1, score: 0, correctAnswers: 0, wrongAnswers: 0 },
+      ],
+      rounds: [
+        {
+          id: 'r1',
+          roundNumber: 1,
+          targetCountryCode: 'AR',
+          prompt: 'x',
+          guess: {
+            playerId: 'player-1',
+            selectedCountryCode: 'AR',
+            isCorrect: true,
+            answeredAtISO: answeredAt,
+          },
+        },
+        { id: 'r2', roundNumber: 2, targetCountryCode: 'BR', prompt: 'y' },
+      ],
+      activeRoundIndex: 1,
+      incidentCount: 0,
+      datasetVersion: 'test',
+    }
+
+    const wrongTurn = submitRoundGuess({
+      session,
+      selectedCountryCode: 'BR',
+      playerId: 'player-1',
+      answeredAtISO: answeredAt,
+    })
+    expect(wrongTurn.success).toBe(false)
+    if (wrongTurn.success) {
+      return
+    }
+    expect(wrongTurn.error.code).toBe('INVALID_GUESS')
+
+    const ok = submitRoundGuess({
+      session,
+      selectedCountryCode: 'BR',
+      playerId: 'player-2',
+      answeredAtISO: answeredAt,
+    })
+    expect(ok.success).toBe(true)
+  })
 })
 
 describe('advanceToNextRoundOrFinish', () => {
@@ -252,5 +302,8 @@ describe('advanceToNextRoundOrFinish', () => {
 
     expect(result.data.status).toBe('finished')
     expect(result.data.activeRoundIndex).toBe(0)
+    expect(result.data.result?.totalRounds).toBe(1)
+    expect(result.data.result?.leaderboard[0]?.id).toBe('player-1')
+    expect(result.data.result?.winnerPlayerId).toBe('player-1')
   })
 })

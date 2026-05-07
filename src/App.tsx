@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 
-import { Button, componentShell, WorldMap } from './components'
+import { Button, componentShell, GamePlayersHud, WorldMap } from './components'
 import { countriesCatalog, dataShell, datasetVersion } from './data'
 import { gameFeatureShell } from './features/game'
 import { setupFeatureShell, validateSetupConfigSchema } from './features/setup'
@@ -10,7 +10,11 @@ import {
   advanceToNextRoundOrFinish,
   beginPlayingSession,
   buildQuestionPool,
+  answerAccuracyPercent,
+  buildGameResult,
   createGameSession,
+  getActivePlayerForRound,
+  getActivePlayerIdForRound,
   submitRoundGuess,
   validateConfig,
 } from './services'
@@ -170,15 +174,15 @@ export function App() {
       return
     }
 
-    const activePlayer = gameSession.players[0]
-    if (!activePlayer) {
+    const activePlayerId = getActivePlayerIdForRound(gameSession)
+    if (!activePlayerId) {
       return
     }
 
     const response = submitRoundGuess({
       session: gameSession,
       selectedCountryCode: iso2,
-      playerId: activePlayer.id,
+      playerId: activePlayerId,
       answeredAtISO: new Date().toISOString(),
     })
 
@@ -227,34 +231,62 @@ export function App() {
     }
 
     if (gameSession.status === 'finished') {
+      const outcome =
+        gameSession.result ??
+        buildGameResult(gameSession.players, gameSession.rounds.length)
+      const winnerPlayer = outcome.winnerPlayerId
+        ? outcome.leaderboard.find((player) => player.id === outcome.winnerPlayerId)
+        : undefined
+
       return (
         <main className="min-h-screen bg-slate-950 text-slate-100">
           <section className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-6 px-6 py-10">
             <header className="flex flex-col gap-2">
               <p className="inline-flex w-fit rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-sm font-medium text-amber-200">
-                Fin de partida
+                Resultados
               </p>
               <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Partida terminada</h1>
               <p className="text-sm text-slate-400" data-testid="game-finished-status">
-                Completaste {gameSession.rounds.length}{' '}
-                {gameSession.rounds.length === 1 ? 'ronda' : 'rondas'}. Dataset version: {datasetVersion}.
+                {outcome.totalRounds}{' '}
+                {outcome.totalRounds === 1 ? 'ronda jugada' : 'rondas jugadas'}. Puntaje: +10 por acierto, −5
+                por error. Dataset version: {datasetVersion}.
               </p>
-            </header>
-            <ul className="grid gap-3 rounded-xl border border-slate-800 bg-slate-900/70 p-4">
-              {gameSession.players.map((player) => (
-                <li
-                  key={player.id}
-                  className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3 last:border-b-0 last:pb-0"
-                  data-testid={`finished-player-${player.id}`}
+              {winnerPlayer ? (
+                <p
+                  className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100"
+                  data-testid="game-winner"
                 >
-                  <span className="font-medium text-slate-100">{player.name}</span>
-                  <span className="text-sm text-slate-400">
-                    Puntos <span className="font-mono text-cyan-200">{player.score}</span> · Aciertos{' '}
-                    {player.correctAnswers} · Errores {player.wrongAnswers}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                  Mejor puntaje según la tabla: <strong>{winnerPlayer.name}</strong> ({winnerPlayer.score} pts,{' '}
+                  {answerAccuracyPercent(winnerPlayer.correctAnswers, winnerPlayer.wrongAnswers)}% aciertos sobre
+                  respuestas dadas).
+                </p>
+              ) : null}
+            </header>
+            <div>
+              <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Tabla de posiciones
+              </h2>
+              <ol className="list-decimal space-y-3 rounded-xl border border-slate-800 bg-slate-900/70 p-4 pl-8 marker:text-slate-500">
+                {outcome.leaderboard.map((player, rankIndex) => (
+                  <li
+                    key={player.id}
+                    className="border-b border-slate-800 pb-3 pl-1 last:border-b-0 last:pb-0"
+                    data-testid={`finished-rank-${rankIndex + 1}-${player.id}`}
+                  >
+                    <div className="flex flex-col gap-1 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                      <span className="font-medium text-slate-100">{player.name}</span>
+                      <span className="text-sm text-slate-400">
+                        <span className="font-mono text-cyan-200">{player.score}</span> pts · ✓{' '}
+                        {player.correctAnswers} · ✗ {player.wrongAnswers} ·{' '}
+                        <span className="text-slate-300">
+                          {answerAccuracyPercent(player.correctAnswers, player.wrongAnswers)}% precisión
+                        </span>
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
             <div className="flex flex-wrap gap-3">
               <Button type="button" onClick={() => exitGameTo('setup')}>
                 Nueva partida (setup)
@@ -269,7 +301,7 @@ export function App() {
     }
 
     const activeRound = gameSession.rounds[gameSession.activeRoundIndex]
-    const activePlayer = gameSession.players[0]
+    const turnPlayer = getActivePlayerForRound(gameSession)
     const roundGuess = activeRound?.guess
     const mapFeedback =
       roundGuess && activeRound
@@ -302,14 +334,23 @@ export function App() {
                   <span className="text-cyan-200">{activeRound.prompt}</span>
                   ?
                 </p>
-                {activePlayer ? (
-                  <p className="mt-2 text-xs text-slate-400">
-                    Puntos: <span className="font-mono text-slate-200">{activePlayer.score}</span> · Aciertos:{' '}
-                    {activePlayer.correctAnswers} · Errores: {activePlayer.wrongAnswers}
+                {turnPlayer && !roundGuess ? (
+                  <p className="mt-2 text-sm text-slate-300" data-testid="active-turn-player">
+                    Respondé en el mapa: <span className="font-semibold text-cyan-200">{turnPlayer.name}</span>
+                  </p>
+                ) : null}
+                {roundGuess ? (
+                  <p className="mt-2 text-xs text-slate-500">
+                    Respuesta de{' '}
+                    <span className="text-slate-300">
+                      {gameSession.players.find((player) => player.id === roundGuess.playerId)?.name ??
+                        roundGuess.playerId}
+                    </span>
                   </p>
                 ) : null}
               </div>
             ) : null}
+            <GamePlayersHud session={gameSession} roundAnswered={Boolean(roundGuess)} />
             {mapFeedback ? (
               <p className="text-xs text-slate-500">
                 Mapa: verde = acierto; rojo = tu elección si falló; ámbar = país correcto.

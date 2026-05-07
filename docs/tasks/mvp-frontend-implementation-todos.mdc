@@ -107,15 +107,15 @@ Origen: [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_m
 
 ## Fase 4 — Multijugador local y HUD
 
-- [ ] **F4.1 — Motor de turnos en servicio + tests**
+- [x] **F4.1 — Motor de turnos en servicio + tests**
   - **Alcance (2-4 h):** Orden circular 1-6; jugador activo tras N respuestas; tests `turn_engine` segun §6.
   - **Criterios de aceptacion:** Tests unitarios cubren circularidad y jugador activo; API del servicio clara para la UI.
 
-- [ ] **F4.2 — HUD: paneles por jugador (hasta 6)**
+- [x] **F4.2 — HUD: paneles por jugador (hasta 6)**
   - **Alcance (2-4 h):** UI que muestra nombre/orden y metricas visibles por jugador.
   - **Criterios de aceptacion:** Con 6 jugadores, todos los paneles son visibles o accesibles segun diseno (scroll/colapso planificado).
 
-- [ ] **F4.3 — Indicador de jugador activo y layout responsive**
+- [x] **F4.3 — Indicador de jugador activo y layout responsive**
   - **Alcance (2-4 h):** Resalte del turno actual; layout que no rompe en viewport estrecho (base para acordeon BQ-01).
   - **Criterios de aceptacion:** CA-3 verificable manualmente en al menos un tamano movil y desktop; jugador activo siempre identificable.
 
@@ -123,19 +123,19 @@ Origen: [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_m
 
 ## Fase 5 — Puntaje, fin de partida y resultados
 
-- [ ] **F5.1 — Scoring acumulativo (servicio + tests)**
+- [x] **F5.1 — Scoring acumulativo (servicio + tests)**
   - **Alcance (2-4 h):** Acierto/error segun constantes; aciertos/errores/puntos en sesion; tests `scoring`.
   - **Criterios de aceptacion:** Tests fijan comportamiento numerico; UI o estado refleja mismas cifras que el servicio.
 
-- [ ] **F5.2 — Fin de partida al agotar pool**
+- [x] **F5.2 — Fin de partida al agotar pool**
   - **Alcance (1-3 h):** Transicion de `playing` a `finished`; maquina de estados coherente.
   - **Criterios de aceptacion:** Tras ultima ronda, no se aceptan mas respuestas; se navega o muestra vista de resultados.
 
-- [ ] **F5.3 — Ranking y desempate**
+- [x] **F5.3 — Ranking y desempate**
   - **Alcance (2-4 h):** Orden: puntos desc → aciertos desc → errores asc → indice/nombre estable; tests `ranking`.
   - **Criterios de aceptacion:** CA-2 y CA-4 verificables; empates resueltos segun regla explicita del plan.
 
-- [ ] **F5.4 — Porcentaje final y copy UX §7**
+- [x] **F5.4 — Porcentaje final y copy UX §7**
   - **Alcance (1-2 h):** Porcentaje u otra metrica acordada en resultados; textos claros.
   - **Criterios de aceptacion:** Pantalla de resultados legible y alineada al PRD visual basico.
 

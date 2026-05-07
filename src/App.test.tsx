@@ -88,4 +88,15 @@ describe('App', () => {
     expect(prompt.textContent).toMatch(/¿Dónde está |¿Dónde queda la capital /)
     expect(prompt.textContent?.length).toBeGreaterThan(12)
   })
+
+  it('muestra HUD de jugadores y el turno activo en partida', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+
+    expect(screen.getByTestId('game-players-hud')).toBeInTheDocument()
+    expect(screen.getByTestId('player-hud-player-1')).toBeInTheDocument()
+    expect(screen.getByTestId('active-turn-player')).toHaveTextContent(/Jugador 1/i)
+  })
 })

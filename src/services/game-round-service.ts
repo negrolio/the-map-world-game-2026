@@ -1,23 +1,9 @@
 import type { QuestionPoolItem } from './build-question-pool'
-import { PRODUCT_RULES } from './product-rules'
-import type { ApiResponse, GameSession, Guess, IsoCountryCode, Player, Round } from '../types'
+import { buildGameResult } from './game-result'
+import { applyAnswerToPlayer } from './scoring'
+import { getActivePlayerIdForRound } from './turn-engine'
+import type { ApiResponse, GameSession, Guess, IsoCountryCode, Round } from '../types'
 import { DomainError } from '../types'
-
-function applyScoreToPlayer(player: Player, isCorrect: boolean): Player {
-  if (isCorrect) {
-    return {
-      ...player,
-      score: player.score + PRODUCT_RULES.scoring.correctAnswerPoints,
-      correctAnswers: player.correctAnswers + 1,
-    }
-  }
-
-  return {
-    ...player,
-    score: player.score + PRODUCT_RULES.scoring.wrongAnswerPoints,
-    wrongAnswers: player.wrongAnswers + 1,
-  }
-}
 
 export function beginPlayingSession(
   session: GameSession,
@@ -64,7 +50,10 @@ export function submitRoundGuess(
       success: false,
       error: {
         code: 'ROUND_NOT_ACTIVE',
-        message: 'No hay una ronda activa para registrar la respuesta.',
+        message:
+          session.status === 'finished'
+            ? 'La partida ya terminó; no se pueden registrar más respuestas.'
+            : 'No hay una ronda activa para registrar la respuesta.',
       },
     }
   }
@@ -101,6 +90,27 @@ export function submitRoundGuess(
     }
   }
 
+  const expectedPlayerId = getActivePlayerIdForRound(session)
+  if (!expectedPlayerId) {
+    return {
+      success: false,
+      error: {
+        code: 'ROUND_NOT_ACTIVE',
+        message: 'No se pudo determinar el jugador en turno.',
+      },
+    }
+  }
+
+  if (playerId !== expectedPlayerId) {
+    return {
+      success: false,
+      error: {
+        code: 'INVALID_GUESS',
+        message: 'No es el turno de este jugador.',
+      },
+    }
+  }
+
   const isCorrect = selectedCountryCode === currentRound.targetCountryCode
 
   const guess: Guess = {
@@ -128,7 +138,7 @@ export function submitRoundGuess(
   }
 
   const updatedPlayers = session.players.map((player, index) =>
-    index === playerIndex ? applyScoreToPlayer(player, isCorrect) : player,
+    index === playerIndex ? applyAnswerToPlayer(player, isCorrect) : player,
   )
 
   return {
@@ -195,6 +205,7 @@ export function advanceToNextRoundOrFinish(session: GameSession): ApiResponse<Ga
     data: {
       ...session,
       status: 'finished',
+      result: buildGameResult(session.players, session.rounds.length),
     },
   }
 }
