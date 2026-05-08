@@ -1,5 +1,5 @@
 declare module 'react-simple-maps' {
-  import type { CSSProperties, MouseEvent, ReactNode } from 'react'
+  import type { CSSProperties, ReactNode, SVGProps } from 'react'
 
   export interface ComposableMapProps {
     readonly projectionConfig?: { readonly scale?: number; readonly center?: readonly [number, number] }
@@ -19,17 +19,14 @@ declare module 'react-simple-maps' {
     readonly children: (args: { readonly geographies: readonly GeographyRenderObject[] }) => ReactNode
   }
 
-  export interface GeographyProps {
+  export interface GeographyProps extends SVGProps<SVGPathElement> {
     readonly geography: GeographyRenderObject
     readonly style?: {
       readonly default?: CSSProperties
       readonly hover?: CSSProperties
       readonly pressed?: CSSProperties
     }
-    readonly className?: string
-    readonly tabIndex?: number
     readonly 'data-iso'?: string
-    readonly onClick?: (event: MouseEvent<SVGPathElement>) => void
   }
 
   export function ComposableMap(props: ComposableMapProps): ReactNode

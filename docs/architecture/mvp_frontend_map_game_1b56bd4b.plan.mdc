@@ -29,6 +29,9 @@ todos:
   - id: phase-8-qa-dod
     content: "Fase 8: Completar unit+e2e, verificar CA/DoD MVP"
     status: pending
+  - id: phase-9-ux-data-iteration
+    content: "Fase 9: Iteracion UX+Datos (MAP-UX-01..05 y DATA-01)"
+    status: pending
 isProject: false
 ---
 
@@ -202,6 +205,41 @@ flowchart LR
 
 ---
 
+### Fase 9 — Iteración UX + Datos posterior al plan base
+
+- **Objetivo:** incorporar mejoras de usabilidad y cobertura de datos detectadas durante la implementación del MVP base, sin romper RF/RNF existentes.
+- **Entregables:** mapa con zoom/pan usable dentro de contenedor, layout de partida con CTAs visibles sin scroll obligatorio, HUD móvil más directo, catálogo amplio de países alineado al TopoJSON, foco visual reactivo por continente.
+- **Riesgos:** inconsistencias ISO entre catálogo y geografía, degradación de selección tras transformaciones (zoom/pan), regresiones de layout en móvil.
+- **Salida:** experiencia de partida más robusta y coherente con filtros regionales reales, lista para plan/tareas específicas de esta iteración.
+
+**Trazabilidad:** RNF-01, RNF-03, RF-02, RF-03, RF-07, RF-08; tareas `docs/tasks/map-game-ux-and-data/`.
+
+#### Alcance consolidado de tareas nuevas
+
+- **MAP-UX-01:** zoom/pan en `WorldMap` dentro de contenedor fijo, manteniendo selección país y comportamiento con `locked`.
+- **MAP-UX-02:** layout de partida “above the fold” (prompt + mapa + CTA principal visibles en móvil/desktop típicos).
+- **MAP-UX-03:** HUD móvil sin fricción (turno activo visible sin interacción extra).
+- **DATA-01:** catálogo de países amplio y mantenible, coherente con mapa y con validaciones automatizadas.
+- **MAP-UX-05:** reacción del mapa al continente activo (resaltado, atenuación del resto y enfoque inicial con fallback).
+
+#### Dependencias y orden recomendado
+
+1. **MAP-UX-01** (base de interacción del mapa).
+2. **MAP-UX-02** (layout de partida, apoyado en contenedor de mapa estable).
+3. **MAP-UX-03** (mejora HUD móvil, coordinada con layout).
+4. **DATA-01** (catálogo completo + validaciones de resolubilidad).
+5. **MAP-UX-05** (reactividad por continente; depende de MAP-UX-01 y se beneficia de DATA-01).
+
+#### Criterios de salida de la iteración (DoD UX/Datos)
+
+- El mapa permite zoom/pan/reset y sigue resolviendo correctamente país clicado.
+- El usuario ve prompt + mapa + acción principal sin scroll obligatorio en viewport móvil objetivo.
+- El turno activo es visible en móvil sin expandir `details`.
+- El pool “world” usa un catálogo amplio y clicable en mapa, con excepciones documentadas.
+- El filtro por continente produce feedback visual claro y comportamiento consistente de clic/lock/feedback.
+
+---
+
 ## 5. Backlog priorizado (formato lista; tabla detallada en entrega al usuario)
 
 **P0 — Bloqueadores MVP / CA alta**
@@ -220,6 +258,11 @@ flowchart LR
 - **BL-12:** Reinicio/nueva partida — deps: BL-10 — CA: flujo completo — refs: RF-10.
 - **BL-13:** Tests unit (pool, turnos, scoring) — deps: BL-09 — CA: CA-6 — refs: RF-02–RF-06.
 - **BL-14:** E2E setup→juego→resultados — deps: BL-12 — CA: CA-7 — refs: RF-01–RF-06, UX.
+- **BL-15:** MAP-UX-01 zoom/pan en contenedor (sin romper click país) — deps: BL-07 — CA: mapa estable + selección correcta — refs: RNF-01, UX.
+- **BL-16:** MAP-UX-02 layout de partida con CTA visible sin scroll obligatorio — deps: BL-15 — CA: prompt+mapa+CTA visibles — refs: RNF-03, UX.
+- **BL-17:** MAP-UX-03 HUD móvil intuitivo (turno visible sin expansión) — deps: BL-16 — CA: turno visible `< md` — refs: RF-04, RNF-03.
+- **BL-18:** DATA-01 catálogo completo países + validaciones de resolubilidad — deps: BL-03, BL-05 — CA: catálogo amplio coherente mapa — refs: RF-07, RF-08.
+- **BL-19:** MAP-UX-05 continente reactivo (resaltado + foco inicial) — deps: BL-15, BL-18 — CA: estado world vs continente claro — refs: RF-08, UX.
 
 **P1 — Calidad y riesgos PRD**
 

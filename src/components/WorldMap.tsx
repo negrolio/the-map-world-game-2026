@@ -1,4 +1,5 @@
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
+import type { KeyboardEvent, MouseEvent } from 'react'
 
 import countriesTopologyUrl from 'world-atlas/countries-110m.json?url'
 import { resolveCountryClickFromTopologyProperties } from '../services/topology-country-click'
@@ -82,12 +83,19 @@ export function WorldMap({
   answerLocked = false,
 }: WorldMapProps) {
   const locked = answerLocked || Boolean(mapFeedback)
+  const instructionsId = 'world-map-instructions'
 
   return (
     <div
       data-testid="world-map-root"
+      role="region"
+      aria-label="Mapa interactivo de países"
+      aria-describedby={instructionsId}
       className={className ?? 'w-full max-w-4xl overflow-hidden rounded-xl border border-slate-700 bg-slate-900/50'}
     >
+      <p id={instructionsId} className="sr-only">
+        Usá Tab para navegar países y Enter o Barra espaciadora para seleccionar.
+      </p>
       <ComposableMap
         projectionConfig={{ scale: 147, center: [0, 20] }}
         className="h-auto w-full text-slate-100 [&_svg]:block [&_svg]:max-h-[min(70vh,520px)]"
@@ -104,18 +112,35 @@ export function WorldMap({
                   key={geo.rsmKey}
                   geography={geo}
                   data-iso={iso2Clean}
-                  tabIndex={-1}
+                  tabIndex={locked ? -1 : 0}
+                  aria-disabled={locked}
+                  aria-label={
+                    typeof geo.properties?.name === 'string'
+                      ? `Seleccionar ${geo.properties.name}`
+                      : `Seleccionar país ${iso2Clean ?? 'sin código'}`
+                  }
                   className={
                     locked
                       ? 'outline-none transition-[fill] duration-200'
                       : 'cursor-pointer outline-none transition-[fill] duration-150 focus-visible:ring-2 focus-visible:ring-cyan-400'
                   }
                   style={geoStyle}
-                  onClick={(event) => {
+                  onClick={(event: MouseEvent<SVGPathElement>) => {
                     event.stopPropagation()
                     if (locked) {
                       return
                     }
+                    const resolved = resolveCountryClickFromTopologyProperties(geo.properties, geo.id)
+                    onCountryClick?.(resolved)
+                  }}
+                  onKeyDown={(event: KeyboardEvent<SVGPathElement>) => {
+                    if (locked) {
+                      return
+                    }
+                    if (event.key !== 'Enter' && event.key !== ' ') {
+                      return
+                    }
+                    event.preventDefault()
                     const resolved = resolveCountryClickFromTopologyProperties(geo.properties, geo.id)
                     onCountryClick?.(resolved)
                   }}

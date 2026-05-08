@@ -97,6 +97,47 @@ describe('App', () => {
 
     expect(screen.getByTestId('game-players-hud')).toBeInTheDocument()
     expect(screen.getByTestId('player-hud-player-1')).toBeInTheDocument()
+    expect(screen.getByText(/Ver jugadores \(1\)/i)).toBeInTheDocument()
     expect(screen.getByTestId('active-turn-player')).toHaveTextContent(/Jugador 1/i)
+    expect(screen.getByTestId('hud-active-player-announcement')).toHaveTextContent(/Turno actual/i)
+  })
+
+  it('expone semantica accesible para el mapa interactivo', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+
+    expect(screen.getByRole('region', { name: /Mapa interactivo de países/i })).toBeInTheDocument()
+    expect(screen.getByText(/Usá Tab para navegar países/i)).toBeInTheDocument()
+  })
+
+  it('en anti-cheat estricto aborta la partida al perder foco', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    fireEvent.click(screen.getByRole('radio', { name: /Estricto/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+
+    fireEvent.blur(window)
+
+    expect(screen.getByTestId('game-finished-status')).toHaveTextContent(/abortada por anti-cheat/i)
+    expect(screen.getByTestId('anti-cheat-incidents')).toHaveTextContent(/1/)
+  })
+
+  it('permite rejugar desde resultados sin recargar la pagina', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    fireEvent.click(screen.getByRole('radio', { name: /Estricto/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+    fireEvent.blur(window)
+
+    expect(screen.getByTestId('game-finished-status')).toHaveTextContent(/abortada por anti-cheat/i)
+
+    fireEvent.click(screen.getByTestId('replay-same-config-button'))
+
+    expect(screen.getByTestId('world-map-root')).toBeInTheDocument()
+    expect(screen.getByTestId('round-counter')).toHaveTextContent(/Ronda 1 de/i)
   })
 })

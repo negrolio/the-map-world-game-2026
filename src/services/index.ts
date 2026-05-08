@@ -6,6 +6,8 @@ export const serviceShell = {
 export { assertValidSession, createGameSession } from './game-session-service'
 export { advanceToNextRoundOrFinish, beginPlayingSession, submitRoundGuess } from './game-round-service'
 export { buildGameResult } from './game-result'
+export { applyAntiCheatIncident } from './anticheat-policy'
+export type { AntiCheatIncidentSource, AntiCheatPolicyResult } from './anticheat-policy'
 export { buildLeaderboard, comparePlayersForLeaderboard } from './ranking'
 export { answerAccuracyPercent, applyAnswerToPlayer } from './scoring'
 export {

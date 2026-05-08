@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button, componentShell, GamePlayersHud, WorldMap } from './components'
 import { countriesCatalog, dataShell, datasetVersion } from './data'
@@ -11,6 +11,7 @@ import {
   beginPlayingSession,
   buildQuestionPool,
   answerAccuracyPercent,
+  applyAntiCheatIncident,
   buildGameResult,
   createGameSession,
   getActivePlayerForRound,
@@ -42,6 +43,8 @@ export function App() {
   const [lastClickedCountryCode, setLastClickedCountryCode] = useState<IsoCountryCode | null>(null)
   const [gameSession, setGameSession] = useState<GameSession | null>(null)
   const [guessSubmitError, setGuessSubmitError] = useState<string | null>(null)
+  const [antiCheatNotice, setAntiCheatNotice] = useState<string | null>(null)
+  const antiCheatLockUntilRef = useRef<number>(0)
 
   const shellModules: readonly FeatureShell[] = [
     setupFeatureShell,
@@ -87,6 +90,32 @@ export function App() {
     const domainMessages = new Set(validationResult.errors.map((error) => error.message))
     return schemaValidationResult.errors.filter((errorMessage) => !domainMessages.has(errorMessage))
   }, [schemaValidationResult.errors, validationResult.errors])
+
+  function startGameWithConfig(config: GameConfig): void {
+    const sessionResponse = createGameSession(config)
+    if (!sessionResponse.success) {
+      setSetupSubmitMessage(sessionResponse.error.message)
+      return
+    }
+
+    const poolSeed = import.meta.env.MODE === 'test' ? 12_345 : Date.now()
+    const pool = buildQuestionPool({
+      countries: countriesCatalog,
+      regionFilter: config.regionFilter,
+      questionMode: config.questionMode,
+      requestedQuestionCount: config.questionCount,
+      seed: poolSeed,
+    })
+
+    const playingSession = beginPlayingSession(sessionResponse.data, pool.selectedQuestions)
+
+    setSetupSubmitMessage(null)
+    setGuessSubmitError(null)
+    setAntiCheatNotice(null)
+    setLastClickedCountryCode(null)
+    setGameSession(playingSession)
+    setCurrentView('game')
+  }
 
   function handlePlayerCountChange(nextPlayerCount: number): void {
     const boundedCount = Math.min(
@@ -137,29 +166,7 @@ export function App() {
       setSetupSubmitMessage('Corregí la configuración antes de iniciar la partida.')
       return
     }
-
-    const sessionResponse = createGameSession(setupDraft)
-    if (!sessionResponse.success) {
-      setSetupSubmitMessage(sessionResponse.error.message)
-      return
-    }
-
-    const poolSeed = import.meta.env.MODE === 'test' ? 12_345 : Date.now()
-    const pool = buildQuestionPool({
-      countries: countriesCatalog,
-      regionFilter: setupDraft.regionFilter,
-      questionMode: setupDraft.questionMode,
-      requestedQuestionCount: setupDraft.questionCount,
-      seed: poolSeed,
-    })
-
-    const playingSession = beginPlayingSession(sessionResponse.data, pool.selectedQuestions)
-
-    setSetupSubmitMessage(null)
-    setGuessSubmitError(null)
-    setLastClickedCountryCode(null)
-    setGameSession(playingSession)
-    setCurrentView('game')
+    startGameWithConfig(setupDraft)
   }
 
   function handleCountryMapClick(iso2: IsoCountryCode | null): void {
@@ -197,6 +204,7 @@ export function App() {
   function exitGameTo(view: AppView): void {
     setGameSession(null)
     setGuessSubmitError(null)
+    setAntiCheatNotice(null)
     setLastClickedCountryCode(null)
     setCurrentView(view)
   }
@@ -216,6 +224,55 @@ export function App() {
     }
   }
 
+  function handleAntiCheatIncident(source: 'window_blur' | 'document_hidden'): void {
+    setGameSession((currentSession) => {
+      if (!currentSession || currentSession.status !== 'playing') {
+        return currentSession
+      }
+
+      const policyResult = applyAntiCheatIncident(currentSession, source)
+      setGuessSubmitError(null)
+      setAntiCheatNotice(
+        policyResult.didAbortGame
+          ? 'Anti-cheat estricto: la partida fue abortada por pérdida de foco/visibilidad.'
+          : 'Anti-cheat normal: se registró un incidente por pérdida de foco/visibilidad.',
+      )
+      return policyResult.nextSession
+    })
+  }
+
+  useEffect(() => {
+    if (!gameSession || gameSession.status !== 'playing') {
+      return
+    }
+
+    const handleWindowBlur = () => {
+      const now = Date.now()
+      if (now < antiCheatLockUntilRef.current) {
+        return
+      }
+      antiCheatLockUntilRef.current = now + 750
+      handleAntiCheatIncident('window_blur')
+    }
+
+    const handleVisibilityChange = () => {
+      const now = Date.now()
+      if (!document.hidden || now < antiCheatLockUntilRef.current) {
+        return
+      }
+      antiCheatLockUntilRef.current = now + 750
+      handleAntiCheatIncident('document_hidden')
+    }
+
+    window.addEventListener('blur', handleWindowBlur)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('blur', handleWindowBlur)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [gameSession])
+
   if (currentView === 'game') {
     if (!gameSession) {
       return (
@@ -230,7 +287,7 @@ export function App() {
       )
     }
 
-    if (gameSession.status === 'finished') {
+    if (gameSession.status === 'finished' || gameSession.status === 'aborted') {
       const outcome =
         gameSession.result ??
         buildGameResult(gameSession.players, gameSession.rounds.length)
@@ -247,10 +304,20 @@ export function App() {
               </p>
               <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Partida terminada</h1>
               <p className="text-sm text-slate-400" data-testid="game-finished-status">
+                Estado: {gameSession.status === 'aborted' ? 'abortada por anti-cheat' : 'finalizada por rondas'}.
+                {' '}
                 {outcome.totalRounds}{' '}
                 {outcome.totalRounds === 1 ? 'ronda jugada' : 'rondas jugadas'}. Puntaje: +10 por acierto, −5
                 por error. Dataset version: {datasetVersion}.
               </p>
+              <p className="text-sm text-slate-400" data-testid="anti-cheat-incidents">
+                Incidentes anti-cheat registrados: {gameSession.incidentCount}
+              </p>
+              {antiCheatNotice ? (
+                <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+                  {antiCheatNotice}
+                </p>
+              ) : null}
               {winnerPlayer ? (
                 <p
                   className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-sm text-cyan-100"
@@ -288,6 +355,13 @@ export function App() {
               </ol>
             </div>
             <div className="flex flex-wrap gap-3">
+              <Button
+                type="button"
+                data-testid="replay-same-config-button"
+                onClick={() => startGameWithConfig(gameSession.config)}
+              >
+                Rejugar misma configuración
+              </Button>
               <Button type="button" onClick={() => exitGameTo('setup')}>
                 Nueva partida (setup)
               </Button>
@@ -377,6 +451,11 @@ export function App() {
             {guessSubmitError ? (
               <p role="alert" className="text-sm text-rose-300">
                 {guessSubmitError}
+              </p>
+            ) : null}
+            {antiCheatNotice ? (
+              <p role="status" aria-live="polite" className="text-sm text-amber-200">
+                {antiCheatNotice}
               </p>
             ) : null}
             <p

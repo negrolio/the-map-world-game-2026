@@ -143,15 +143,15 @@ Origen: [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_m
 
 ## Fase 6 — Anti-cheat y reinicio
 
-- [ ] **F6.1 — Politica anti-cheat (strict vs normal) en servicio**
+- [x] **F6.1 — Politica anti-cheat (strict vs normal) en servicio**
   - **Alcance (2-4 h):** Funciones puras + tests: strict aborta; normal incrementa `incidentCount` sin terminar partida (RF-09).
   - **Criterios de aceptacion:** Tests `anticheat_policy` cubren ambos modos; sin contradiccion con RF-09 del plan.
 
-- [ ] **F6.2 — Listeners de visibilidad/blur en UI**
+- [x] **F6.2 — Listeners de visibilidad/blur en UI**
   - **Alcance (2-3 h):** Orquestacion central de eventos; integracion con sesion y resultados.
   - **Criterios de aceptacion:** CA-5 verificable manualmente; incidentes visibles en resultados; copy honesto si hay falsos positivos.
 
-- [ ] **F6.3 — Reinicio y nueva partida (RF-10)**
+- [x] **F6.3 — Reinicio y nueva partida (RF-10)**
   - **Alcance (1-3 h):** Botones re-jugar / volver a setup; reset de estado sin fugas de sesion anterior.
   - **Criterios de aceptacion:** Flujo completo setup → juego → resultados → nueva partida sin recargar pagina obligatoriamente.
 
@@ -159,11 +159,11 @@ Origen: [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_m
 
 ## Fase 7 — Accesibilidad, responsive hardening y observabilidad
 
-- [ ] **F7.1 — Teclado y ARIA en setup y HUD**
+- [x] **F7.1 — Teclado y ARIA en setup y HUD**
   - **Alcance (2-4 h):** Completar gaps de F2.4/F4; `aria-label` en controles interactivos del mapa donde aplique; live region limitada si se acuerda.
   - **Criterios de aceptacion:** Checklist WCAG basico manual pasado para flujos principales (RNF-02/03).
 
-- [ ] **F7.2 — Responsive 6 jugadores (acordeon / colapso)**
+- [x] **F7.2 — Responsive 6 jugadores (acordeon / colapso)**
   - **Alcance (2-4 h):** BQ-01: acordeon o patron equivalente para no saturar movil.
   - **Criterios de aceptacion:** 6 jugadores usables en viewport pequeno sin solapamiento critico.
 
@@ -206,3 +206,37 @@ Origen: [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_m
 - [ ] **BN.2 — Pantalla about (dataset y licencias)**
   - **Alcance (1-2 h):** Texto fuente + licencia abierta (PRD §8, RNF-05).
   - **Criterios de aceptacion:** Usuario puede leer procedencia y licencia desde la app.
+
+---
+
+## Iteracion UX + Datos (nuevas tasks MAP-UX/DATA)
+
+Origen: `docs/tasks/map-game-ux-and-data/01-mapa-zoom-pan-contenedor.md`, `02-layout-partida-controles-visibles.md`, `03-hud-jugadores-intuitivo.md`, `04-catalogo-paises-completo.md`, `05-seleccion-continente-reactiva.md`.
+
+- [ ] **UXD.1 — MAP-UX-01: mapa con zoom/pan dentro de contenedor**
+  - **Alcance (3-6 h):** zoom +/-, reset, pan dentro del contenedor; mantener selección de país correcta bajo transformación y comportamiento documentado con `locked`.
+  - **Criterios de aceptacion:** no desborde en móvil/desktop típico; clics resuelven ISO2 esperado con zoom activo; controles con `aria-label`; tests de `WorldMap` actualizados.
+
+- [ ] **UXD.2 — MAP-UX-02: layout de partida sin scroll obligatorio para CTA**
+  - **Alcance (2-5 h):** reorganizar vista `game` para que prompt + mapa + acción principal sean visibles above-the-fold (mobile y desktop típico), compactando debug secundario.
+  - **Criterios de aceptacion:** en 375x667 se ve prompt+mapa+botón principal en estados clave; orden de foco y feedback accesibles preservados.
+
+- [ ] **UXD.3 — MAP-UX-03: HUD móvil más intuitivo**
+  - **Alcance (2-4 h):** reemplazar/complementar `<details>` móvil para mostrar turno activo y estado de jugadores sin interacción extra; no degradar desktop.
+  - **Criterios de aceptacion:** turno visible en `< md` sin expandir nada; usable hasta 6 jugadores; comportamiento de `roundAnswered` preservado.
+
+- [ ] **UXD.4 — DATA-01: catálogo completo de países**
+  - **Alcance (4-8 h):** ampliar `countriesCatalog` (>>10), documentar fuente/fecha, asegurar coherencia ISO2/ISO3/continente/capital y compatibilidad con resolución de clics del TopoJSON.
+  - **Criterios de aceptacion:** `validateConfig` y `buildQuestionPool` funcionan con catálogo ampliado; tests no dependen de longitud fija; excepciones de resolubilidad documentadas.
+
+- [ ] **UXD.5 — MAP-UX-05: selección de continente reactiva en mapa**
+  - **Alcance (3-6 h):** para `region !== world`, resaltar continente activo, atenuar resto y hacer enfoque inicial del viewport con fallback; mantener zoom/pan/reset y consistencia con `locked/feedback`.
+  - **Criterios de aceptacion:** diferencia visual world vs continente evidente; clicks fuera de región no generan ambigüedad; tests UI/props para estados de región.
+
+### Orden sugerido de ejecucion de esta iteracion
+
+1. `UXD.1` (MAP-UX-01)
+2. `UXD.2` (MAP-UX-02)
+3. `UXD.3` (MAP-UX-03)
+4. `UXD.4` (DATA-01)
+5. `UXD.5` (MAP-UX-05)
