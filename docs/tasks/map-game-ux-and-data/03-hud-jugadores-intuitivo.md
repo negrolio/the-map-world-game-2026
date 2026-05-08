@@ -5,7 +5,7 @@
 | **ID** | MAP-UX-03 |
 | **Prioridad** | P1 |
 | **Estimación** | 2–4 h |
-| **Dependencias** | Complementa MAP-UX-02; puede hacerse en paralelo |
+| **Dependencias** | Complementa MAP-UX-02 (overlay pantalla completa); puede hacerse en paralelo o fundirse con el mismo shell si el puntaje/listado vive en la misma capa |
 
 ## Objetivo
 
@@ -19,6 +19,7 @@ Reducir fricción en **móvil**: el usuario no debe abrir un `<details>` para ve
 
 - `src/components/GamePlayersHud.tsx`: en `md:hidden` usa `<details>` (“Ver jugadores”); en `md+` grid de tarjetas.
 - `src/App.tsx`: monta `<GamePlayersHud session={…} roundAnswered={…} />`.
+- Tras MAP-UX-02, el HUD puede integrarse **dentro del overlay** de la vista a pantalla completa; evitar listados que obliguen a scroll de documento o que tapen de forma fija el centro del mapa sin alternativa de pan.
 
 ## Alcance
 
@@ -43,4 +44,4 @@ Reducir fricción en **móvil**: el usuario no debe abrir un `<details>` para ve
 
 ## Orden sugerido
 
-Tras o junto a **MAP-UX-02** para validar el “above the fold” completo en una sola pasada de QA.
+Tras o junto a **MAP-UX-02** para validar en una sola pasada de QA: mapa full-screen, overlay mínimo, turno y puntajes legibles sin fricción (incluido móvil).

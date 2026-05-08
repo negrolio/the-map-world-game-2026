@@ -40,7 +40,6 @@ export function App() {
   const [antiCheatMode, setAntiCheatMode] = useState<AntiCheatMode>('normal')
   const [questionCount, setQuestionCount] = useState<number>(5)
   const [setupSubmitMessage, setSetupSubmitMessage] = useState<string | null>(null)
-  const [lastClickedCountryCode, setLastClickedCountryCode] = useState<IsoCountryCode | null>(null)
   const [gameSession, setGameSession] = useState<GameSession | null>(null)
   const [guessSubmitError, setGuessSubmitError] = useState<string | null>(null)
   const [antiCheatNotice, setAntiCheatNotice] = useState<string | null>(null)
@@ -112,7 +111,6 @@ export function App() {
     setSetupSubmitMessage(null)
     setGuessSubmitError(null)
     setAntiCheatNotice(null)
-    setLastClickedCountryCode(null)
     setGameSession(playingSession)
     setCurrentView('game')
   }
@@ -170,8 +168,6 @@ export function App() {
   }
 
   function handleCountryMapClick(iso2: IsoCountryCode | null): void {
-    setLastClickedCountryCode(iso2)
-
     if (!gameSession || gameSession.status !== 'playing') {
       return
     }
@@ -205,7 +201,6 @@ export function App() {
     setGameSession(null)
     setGuessSubmitError(null)
     setAntiCheatNotice(null)
-    setLastClickedCountryCode(null)
     setCurrentView(view)
   }
 
@@ -217,7 +212,6 @@ export function App() {
     const response = advanceToNextRoundOrFinish(gameSession)
     if (response.success) {
       setGuessSubmitError(null)
-      setLastClickedCountryCode(null)
       setGameSession(response.data)
     } else {
       setGuessSubmitError(response.error.message)
@@ -272,6 +266,26 @@ export function App() {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   }, [gameSession])
+
+  // F2.1 — Shell de partida a pantalla completa: bloquear scroll del documento mientras
+  // currentView === 'game' && status === 'playing'. La altura/ancho del shell se controla
+  // por CSS (100dvh/100svh + overflow:hidden), pero algunos navegadores móviles y barras
+  // dinámicas pueden seguir permitiendo scroll del body si éste no se fija explícitamente.
+  useEffect(() => {
+    const isFullScreenGame =
+      currentView === 'game' && gameSession?.status === 'playing'
+    if (!isFullScreenGame) {
+      return
+    }
+    const previousBodyOverflow = document.body.style.overflow
+    const previousHtmlOverflow = document.documentElement.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousBodyOverflow
+      document.documentElement.style.overflow = previousHtmlOverflow
+    }
+  }, [currentView, gameSession?.status])
 
   if (currentView === 'game') {
     if (!gameSession) {
@@ -388,46 +402,89 @@ export function App() {
     const isLastRound = gameSession.activeRoundIndex >= gameSession.rounds.length - 1
 
     return (
-      <main className="min-h-screen bg-slate-950 text-slate-100">
-        <section className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-6 py-10">
-          <header className="flex flex-col gap-2">
-            <p className="inline-flex w-fit rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1 text-sm font-medium text-cyan-200">
-              Partida (mapa)
-            </p>
-            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Mapa mundial — 110m</h1>
-            <p className="max-w-2xl text-sm text-slate-400">
-              Dataset version: {datasetVersion}. Los países se renderizan desde TopoJSON Natural Earth (world-atlas).
-            </p>
-            {activeRound ? (
-              <div className="rounded-lg border border-slate-700 bg-slate-900/60 p-4 text-sm text-slate-200">
-                <p className="text-xs uppercase tracking-wide text-slate-400" data-testid="round-counter">
-                  Ronda {activeRound.roundNumber} de {gameSession.rounds.length}
+      // F2.1 + F2.2 + F2.3 + F2.4 + F2.7 — Shell de partida a pantalla completa
+      // con mapa edge-to-edge y overlay armónico en dos bandas (top + bottom).
+      //
+      // Arquitectura por capas (orden de hijos DOM = orden de foco con Tab):
+      //  1) Banda superior (z-10, pointer-events-auto): primer foco con Tab.
+      //     Contiene navegación (Setup, Home) + estado de ronda y feedback.
+      //  2) Mapa base (z-0, ocupa toda la superficie): foco al hacer Tab dentro
+      //     de WorldMap (controles de zoom y geografías focusables).
+      //  3) Banda inferior (z-10, pointer-events-auto): último foco. HUD de
+      //     jugadores + acción primaria (Siguiente / Resultado).
+      //
+      // pointer-events: las bandas son interactivas; el área no cubierta por las
+      // bandas (centro del mapa) queda libre para clic / pan / zoom directos al
+      // mapa, sin interceptación opaca.
+      //
+      // F2.1: h-screen (100vh) como fallback y `style={{ height: '100dvh' }}` para
+      // soporte de unidades dinámicas de viewport. `overflow:hidden` evita scroll
+      // de DOCUMENTO durante `playing`.
+      //
+      // Nota a11y: `Mapa mundial — 110m` queda como h1 sr-only para mantener
+      // jerarquía semántica y lectores; visualmente la cabecera prioriza la
+      // pregunta de la ronda.
+      <main
+        data-testid="game-shell"
+        className="relative h-screen w-screen overflow-hidden bg-slate-950 text-slate-100"
+        style={{ height: '100dvh' }}
+      >
+        <h1 className="sr-only">Mapa mundial — 110m</h1>
+
+        {/* F2.3 + F2.4 + F2.7 — Banda superior: navegación + ronda. Primer foco con Tab. */}
+        <div
+          data-testid="game-overlay-top"
+          className="pointer-events-auto absolute inset-x-0 top-0 z-10 bg-gradient-to-b from-slate-950/95 via-slate-950/70 to-transparent px-4 pb-4 pt-[max(env(safe-area-inset-top),0.75rem)] sm:px-6"
+        >
+          <div className="mx-auto flex w-full max-w-5xl flex-col gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="inline-flex w-fit rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-100">
+                  Partida (mapa)
                 </p>
-                <p className="mt-1 text-lg font-semibold text-slate-50" data-testid="round-prompt">
-                  {gameSession.config.questionMode === 'country' ? '¿Dónde está ' : '¿Dónde queda la capital '}
-                  <span className="text-cyan-200">{activeRound.prompt}</span>
-                  ?
-                </p>
-                {turnPlayer && !roundGuess ? (
-                  <p className="mt-2 text-sm text-slate-300" data-testid="active-turn-player">
-                    Respondé en el mapa: <span className="font-semibold text-cyan-200">{turnPlayer.name}</span>
-                  </p>
-                ) : null}
-                {roundGuess ? (
-                  <p className="mt-2 text-xs text-slate-500">
-                    Respuesta de{' '}
-                    <span className="text-slate-300">
-                      {gameSession.players.find((player) => player.id === roundGuess.playerId)?.name ??
-                        roundGuess.playerId}
-                    </span>
+                {activeRound ? (
+                  <p
+                    className="rounded-full border border-slate-700/60 bg-slate-900/60 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-200"
+                    data-testid="round-counter"
+                  >
+                    Ronda {activeRound.roundNumber} / {gameSession.rounds.length}
                   </p>
                 ) : null}
               </div>
+              <nav
+                aria-label="Navegación de partida"
+                className="flex items-center gap-2"
+                data-testid="game-overlay-nav"
+              >
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => exitGameTo('setup')}
+                  aria-label="Volver al setup"
+                  className="px-3 py-1.5 text-xs"
+                >
+                  Setup
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => exitGameTo('home')}
+                  aria-label="Ir al home"
+                  className="px-3 py-1.5 text-xs"
+                >
+                  Home
+                </Button>
+              </nav>
+            </div>
+            {activeRound ? (
+              <p className="text-lg font-semibold text-slate-50 md:text-xl" data-testid="round-prompt">
+                {gameSession.config.questionMode === 'country' ? '¿Dónde está ' : '¿Dónde queda la capital '}
+                <span className="text-cyan-200">{activeRound.prompt}</span>?
+              </p>
             ) : null}
-            <GamePlayersHud session={gameSession} roundAnswered={Boolean(roundGuess)} />
-            {mapFeedback ? (
-              <p className="text-xs text-slate-500">
-                Mapa: verde = acierto; rojo = tu elección si falló; ámbar = país correcto.
+            {turnPlayer && !roundGuess ? (
+              <p className="text-sm text-slate-200" data-testid="active-turn-player">
+                Turno de <span className="font-semibold text-cyan-200">{turnPlayer.name}</span> — respondé tocando el mapa.
               </p>
             ) : null}
             {roundGuess ? (
@@ -444,10 +501,13 @@ export function App() {
                 {roundGuess.isCorrect
                   ? 'Correcto.'
                   : `Incorrecto. El objetivo era el país con ISO2 ${activeRound?.targetCountryCode}.`}
+                {' · Respuesta de '}
+                <span className="text-slate-200">
+                  {gameSession.players.find((player) => player.id === roundGuess.playerId)?.name ??
+                    roundGuess.playerId}
+                </span>
               </p>
-            ) : (
-              <p className="text-sm text-slate-400">Hacé clic en el mapa para responder.</p>
-            )}
+            ) : null}
             {guessSubmitError ? (
               <p role="alert" className="text-sm text-rose-300">
                 {guessSubmitError}
@@ -458,32 +518,30 @@ export function App() {
                 {antiCheatNotice}
               </p>
             ) : null}
-            <p
-              data-testid="map-click-feedback"
-              className="text-sm text-slate-300"
-              aria-live="polite"
-            >
-              Último clic — ISO2 según el mapa (TopoJSON):{' '}
-              <span className="font-mono text-cyan-200">
-                {lastClickedCountryCode ?? '— (sin ISO_A2 en esta geometría)'}
-              </span>
-            </p>
-          </header>
-          <WorldMap mapFeedback={mapFeedback} onCountryClick={handleCountryMapClick} />
-          <div className="flex flex-wrap items-center gap-3">
-            {roundGuess ? (
-              <Button type="button" data-testid="advance-round-button" onClick={handleAdvanceRound}>
-                {isLastRound ? 'Ver resultado final' : 'Siguiente pregunta'}
-              </Button>
-            ) : null}
-            <Button type="button" variant="secondary" onClick={() => exitGameTo('setup')}>
-              Volver al setup
-            </Button>
-            <Button type="button" variant="secondary" onClick={() => exitGameTo('home')}>
-              Ir al home
-            </Button>
           </div>
-        </section>
+        </div>
+
+        {/* Mapa base — entre top y bottom en orden DOM, foco intermedio con Tab. */}
+        <div className="absolute inset-0 z-0">
+          <WorldMap fullBleed mapFeedback={mapFeedback} onCountryClick={handleCountryMapClick} />
+        </div>
+
+        {/* F2.3 + F2.4 + F2.7 — Banda inferior: HUD + acción primaria. Último foco con Tab. */}
+        <div
+          data-testid="game-overlay-bottom"
+          className="pointer-events-auto absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-slate-950/95 via-slate-950/70 to-transparent px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-4 sm:px-6"
+        >
+          <div className="mx-auto flex w-full max-w-5xl flex-col gap-3">
+            <GamePlayersHud session={gameSession} roundAnswered={Boolean(roundGuess)} />
+            {roundGuess ? (
+              <div className="flex flex-wrap items-center justify-end gap-3">
+                <Button type="button" data-testid="advance-round-button" onClick={handleAdvanceRound}>
+                  {isLastRound ? 'Ver resultado final' : 'Siguiente pregunta'}
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        </div>
       </main>
     )
   }

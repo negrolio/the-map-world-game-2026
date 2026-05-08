@@ -48,7 +48,7 @@ Implementar de forma incremental las tareas de UX y datos para mejorar jugabilid
 
 ## Orden recomendado de ejecucion
 1. `MAP-UX-01` (base de interaccion del mapa).
-2. `MAP-UX-02` (layout visible en primer viewport).
+2. `MAP-UX-02` (mapa a pantalla completa + overlay mínimo armonioso; sin scroll de documento en partida).
 3. `MAP-UX-03` (HUD movil sin friccion).
 4. `DATA-01` (catalogo amplio + validaciones).
 5. `MAP-UX-05` (reactividad por continente sobre mapa ya estabilizado).
@@ -59,9 +59,10 @@ Implementar de forma incremental las tareas de UX y datos para mejorar jugabilid
   - Agregar controles accesibles de zoom/reset y mantener seleccion de pais bajo transformacion.
   - Definir y documentar comportamiento cuando `locked` esta activo.
 - **MAP-UX-02**
-  - Reestructurar seccion `game` en layout con area mapa + barra de acciones fija/sticky segun viewport.
-  - Garantizar visibilidad del CTA principal en estados con y sin respuesta de ronda.
-  - Compactar informacion secundaria (debug) para no consumir alto critico.
+  - Shell de partida a pantalla completa (`100dvh`/`100svh` o equivalente): mapa edge-to-edge como capa base.
+  - Overlay con solo lo indispensable: ronda, objetivo (país/capital), turno, puntaje, zoom/reset, siguiente/setup/home, feedback mínimo; composición armoniosa y safe-area.
+  - Sin scroll de documento durante `playing`; pan/zoom (MAP-UX-01) como compensación si la UI tapa parte del mapa.
+  - Debug y metadatos secundarios fuera del overlay principal o solo en modo dev.
 - **MAP-UX-03**
   - Reemplazar `details` movil por un patron de lectura inmediata del turno activo (barra compacta o lista).
   - Conservar semantica accesible y comportamiento actual de `roundAnswered`.
@@ -76,7 +77,7 @@ Implementar de forma incremental las tareas de UX y datos para mejorar jugabilid
 
 ## Validacion y criterios de salida
 - El mapa mantiene seleccion correcta de pais con zoom/pan activos.
-- En viewport movil objetivo se ve prompt+mapa+CTA principal sin scroll obligatorio.
+- Partida: mapa a pantalla completa con overlay mínimo; sin scroll de documento; pan/zoom permite clic en zonas inicialmente bajo la UI.
 - Turno activo visible en movil sin interaccion extra.
 - El catalogo deja de ser reducido y el pool mundial es consistente con paises clicables.
 - El modo por continente se distingue visualmente y no introduce respuestas ambiguas.
@@ -86,6 +87,7 @@ Implementar de forma incremental las tareas de UX y datos para mejorar jugabilid
 - **Desalineacion ISO entre catalogo y TopoJSON**: introducir tabla de alias/exclusiones controlada y testeada.
 - **Regresiones de layout en movil**: validar en un viewport base pequeno antes de cerrar cada task.
 - **Interferencia entre pan y click**: priorizar una sola semantica de interaccion (drag intencional + click corto) y mantener reset rapido.
+- **Overlay vs mapa**: calibrar `pointer-events`, areas clicables y densidad de chips para no bloquear el juego; pan/zoom como compensacion documentada.
 
 ## Entregable documental de esta fase
 Actualizar estado/checklist de cada task origen en `docs/tasks/map-game-ux-and-data/` conforme se complete cada implementacion, sin crear aun la TODO list separada.

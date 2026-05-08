@@ -217,9 +217,9 @@ Origen: `docs/tasks/map-game-ux-and-data/01-mapa-zoom-pan-contenedor.md`, `02-la
   - **Alcance (3-6 h):** zoom +/-, reset, pan dentro del contenedor; mantener selección de país correcta bajo transformación y comportamiento documentado con `locked`.
   - **Criterios de aceptacion:** no desborde en móvil/desktop típico; clics resuelven ISO2 esperado con zoom activo; controles con `aria-label`; tests de `WorldMap` actualizados.
 
-- [ ] **UXD.2 — MAP-UX-02: layout de partida sin scroll obligatorio para CTA**
-  - **Alcance (2-5 h):** reorganizar vista `game` para que prompt + mapa + acción principal sean visibles above-the-fold (mobile y desktop típico), compactando debug secundario.
-  - **Criterios de aceptacion:** en 375x667 se ve prompt+mapa+botón principal en estados clave; orden de foco y feedback accesibles preservados.
+- [ ] **UXD.2 — MAP-UX-02: partida a pantalla completa con overlay mínimo**
+  - **Alcance (4-8 h):** mapa ocupa todo el viewport en `game`; UI superpuesta solo con lo indispensable (ronda, objetivo, turno, puntaje, zoom/reset, siguiente/setup/home, feedback breve); sin scroll de documento en partida; pan/zoom para exponer geografías bajo la UI.
+  - **Criterios de aceptacion:** 375x667 y 1280x800 sin scroll de página por juego; controles accesibles; composición armoniosa; tests/e2e actualizados si cambian selectores o shell.
 
 - [ ] **UXD.3 — MAP-UX-03: HUD móvil más intuitivo**
   - **Alcance (2-4 h):** reemplazar/complementar `<details>` móvil para mostrar turno activo y estado de jugadores sin interacción extra; no degradar desktop.

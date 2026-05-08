@@ -19,6 +19,13 @@ export interface WorldMapProps {
   readonly mapFeedback?: MapAnswerFeedback | null
   /** Mientras hay feedback de ronda, se bloquea el clic y el cursor. */
   readonly answerLocked?: boolean
+  /**
+   * F2.2 — Cuando es `true`, el mapa se renderiza edge-to-edge dentro de su
+   * contenedor padre (h-full / w-full) y descarta los límites visuales propios
+   * del modo "tarjeta" (max-w-4xl, rounded-xl, border y max-h). Pensado para el
+   * shell de partida a pantalla completa donde el mapa es la capa base.
+   */
+  readonly fullBleed?: boolean
 }
 
 interface MapViewport {
@@ -122,14 +129,25 @@ function geographyStyleForIso(
 
 /**
  * Mapa mundial 110m (Natural Earth vía world-atlas) con react-simple-maps.
+ *
  * Nota: react-simple-maps declara peer React hasta 18; el proyecto usa React 19
  * con `npm install --legacy-peer-deps` hasta que el paquete actualice peers.
+ *
+ * F2.6 — Pan/zoom como válvula de escape de la UI:
+ *  En el shell de partida a pantalla completa (App.tsx, MAP-UX-02), el overlay
+ *  ocupa una banda superior y otra inferior sobre el mapa. Si un país objetivo
+ *  queda parcialmente cubierto por esas bandas, el usuario debe poder
+ *  *desplazar* (pan) o *acercar* (zoom) la vista usando los controles de zoom
+ *  +/-/reset, la rueda del mouse, o arrastrando el mapa con el dedo / cursor.
+ *  Esto está habilitado siempre, incluso con `answerLocked` (post-respuesta),
+ *  porque pan/zoom no responden la pregunta: solo modifican la vista.
  */
 export function WorldMap({
   className,
   onCountryClick,
   mapFeedback = null,
   answerLocked = false,
+  fullBleed = false,
 }: WorldMapProps) {
   const defaultViewport = useMemo<MapViewport>(
     () => ({
@@ -179,27 +197,60 @@ export function WorldMap({
       viewportNode.removeEventListener('wheel', handleWheel)
     }
   }, [])
+
+  const baseContainerClass = fullBleed
+    ? 'relative h-full w-full overflow-hidden bg-slate-900/40'
+    : 'relative w-full max-w-4xl overflow-hidden rounded-xl border border-slate-700 bg-slate-900/50'
+  const containerClass = className ?? baseContainerClass
+
+  const baseViewportClass = fullBleed
+    ? 'h-full w-full touch-none overflow-hidden overscroll-contain'
+    : 'max-h-[min(70vh,520px)] touch-none overflow-hidden overscroll-contain'
+  const viewportClass = `${baseViewportClass} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`
+
+  const svgWrapperClass = fullBleed
+    ? 'flex h-full w-full origin-top-left items-center justify-center text-slate-100 transition-transform duration-150 [&_svg]:mx-auto [&_svg]:block [&_svg]:h-full [&_svg]:w-full'
+    : 'flex h-auto w-full origin-top-left justify-center text-slate-100 transition-transform duration-150 [&_svg]:mx-auto [&_svg]:block [&_svg]:h-auto [&_svg]:max-h-[min(70vh,520px)]'
+
   return (
     <div
       data-testid="world-map-root"
       data-viewport-zoom={viewport.zoom.toFixed(2)}
       data-viewport-center={`${viewport.offset[0].toFixed(2)},${viewport.offset[1].toFixed(2)}`}
+      data-fullbleed={fullBleed ? 'true' : undefined}
       role="region"
       aria-label="Mapa interactivo de países"
       aria-describedby={instructionsId}
-      className={
-        className ??
-        'relative w-full max-w-4xl overflow-hidden rounded-xl border border-slate-700 bg-slate-900/50'
-      }
+      className={containerClass}
     >
       <p id={instructionsId} className="sr-only">
         Usá Tab para navegar países y Enter o Barra espaciadora para seleccionar.
+        Si la interfaz superpone parte del mapa, podés acercar, alejar y mover la
+        vista con los controles del mapa o con la rueda del mouse hasta exponer el
+        país que querés tocar.
       </p>
-      <div className="absolute right-3 top-3 z-10 flex gap-2">
+      {/*
+        F2.5 — Zoom +/-/Reset.
+        - En modo `fullBleed` (partida pantalla completa) los controles se apilan
+          verticalmente en el borde derecho, centrados verticalmente, para no chocar
+          con la banda superior (Setup/Home) ni la banda inferior (HUD + Siguiente)
+          del overlay (App.tsx). No hay duplicación con el overlay: estos botones
+          son la única superficie de zoom en la UI.
+        - En modo "tarjeta" (no fullBleed) se mantienen agrupados arriba a la derecha
+          como antes, comportamiento usado por WorldMap.test.tsx y otras vistas.
+      */}
+      <div
+        data-testid="world-map-controls"
+        className={
+          fullBleed
+            ? 'pointer-events-auto absolute right-3 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-2'
+            : 'absolute right-3 top-3 z-10 flex gap-2'
+        }
+      >
         <button
           type="button"
           aria-label="Acercar mapa"
-          className="rounded-md border border-slate-600 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-slate-100 transition-colors hover:border-cyan-400 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+          className="rounded-md border border-slate-600 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-md transition-colors hover:border-cyan-400 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
           onClick={() => {
             const viewportRect = viewportRef.current?.getBoundingClientRect()
             const anchor = viewportRect
@@ -219,7 +270,7 @@ export function WorldMap({
         <button
           type="button"
           aria-label="Alejar mapa"
-          className="rounded-md border border-slate-600 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-slate-100 transition-colors hover:border-cyan-400 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+          className="rounded-md border border-slate-600 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-md transition-colors hover:border-cyan-400 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
           onClick={() => {
             const viewportRect = viewportRef.current?.getBoundingClientRect()
             const anchor = viewportRect
@@ -239,7 +290,7 @@ export function WorldMap({
         <button
           type="button"
           aria-label="Restablecer vista del mapa"
-          className="rounded-md border border-slate-600 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-slate-100 transition-colors hover:border-cyan-400 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
+          className="rounded-md border border-slate-600 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-md transition-colors hover:border-cyan-400 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
           onClick={() => setViewport(defaultViewport)}
         >
           Reset
@@ -248,11 +299,7 @@ export function WorldMap({
       <div
         ref={viewportRef}
         data-testid="world-map-viewport"
-        className={
-          isDragging
-            ? 'max-h-[min(70vh,520px)] touch-none overflow-hidden overscroll-contain cursor-grabbing'
-            : 'max-h-[min(70vh,520px)] touch-none overflow-hidden overscroll-contain cursor-grab'
-        }
+        className={viewportClass}
         onMouseDown={(event) => {
           panStartRef.current = {
             pointerX: event.clientX,
@@ -288,7 +335,7 @@ export function WorldMap({
         }}
       >
         <div
-          className="flex h-auto w-full origin-top-left justify-center text-slate-100 transition-transform duration-150 [&_svg]:mx-auto [&_svg]:block [&_svg]:h-auto [&_svg]:max-h-[min(70vh,520px)]"
+          className={svgWrapperClass}
           style={{
             transform: `translate(${viewport.offset[0]}px, ${viewport.offset[1]}px) scale(${viewport.zoom})`,
           }}

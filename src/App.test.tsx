@@ -138,6 +138,49 @@ describe('App', () => {
     fireEvent.click(screen.getByTestId('replay-same-config-button'))
 
     expect(screen.getByTestId('world-map-root')).toBeInTheDocument()
-    expect(screen.getByTestId('round-counter')).toHaveTextContent(/Ronda 1 de/i)
+    expect(screen.getByTestId('round-counter')).toHaveTextContent(/Ronda 1\s*\/\s*\d+/i)
+  })
+
+  it('renderiza el shell de partida full-screen con bandas top y bottom (MAP-UX-02)', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+
+    expect(screen.getByTestId('game-shell')).toBeInTheDocument()
+    expect(screen.getByTestId('game-overlay-top')).toBeInTheDocument()
+    expect(screen.getByTestId('game-overlay-bottom')).toBeInTheDocument()
+    expect(screen.getByTestId('game-overlay-nav')).toBeInTheDocument()
+  })
+
+  it('expone navegacion compacta a Setup y Home en la banda superior (F2.4)', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+
+    const nav = screen.getByTestId('game-overlay-nav')
+    expect(nav).toContainElement(screen.getByRole('button', { name: /Volver al setup/i }))
+    expect(nav).toContainElement(screen.getByRole('button', { name: /Ir al home/i }))
+  })
+
+  it('quita el bloque debug "Ultimo clic ISO2" de la vista de partida (F2.8)', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+
+    expect(screen.queryByTestId('map-click-feedback')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Último clic — ISO2/i)).not.toBeInTheDocument()
+  })
+
+  it('rendera el mapa en modo full-bleed dentro del shell (F2.2)', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+
+    const root = screen.getByTestId('world-map-root')
+    expect(root).toHaveAttribute('data-fullbleed', 'true')
   })
 })

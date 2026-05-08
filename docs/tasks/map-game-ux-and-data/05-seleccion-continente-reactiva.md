@@ -27,6 +27,7 @@ Esta opcion minimiza riesgo tecnico, reutiliza `WorldMap` y es mas facil de test
 - `src/App.tsx`: maneja filtro de region (`RegionFilter`) y estado de partida.
 - `src/components/WorldMap.tsx`: renderiza el mapa y estilos por geografia.
 - `src/data/countries.ts`: mapea `iso2 -> continent` para saber que paises pertenecen al continente activo.
+- Con **MAP-UX-02** (mapa a pantalla completa + overlay), el fit inicial y el resaltado deben convivir con las bandas/chips de UI sin tapar de forma permanente la zona de juego; el usuario ya cuenta con pan/zoom (MAP-UX-01) para afinar.
 
 ## Alcance
 

@@ -35,32 +35,47 @@ Regla de ejecucion: cada tarea esta pensada para completarse en **1-4 horas**.
 
 ---
 
-## Fase 2 — MAP-UX-02 (Layout de partida sin scroll obligatorio)
+## Fase 2 — MAP-UX-02 (Mapa a pantalla completa + overlay mínimo armonioso)
 
-- [ ] **F2.1 — Redisenar estructura de la vista `game` (2-4 h)**
+- [x] **F2.1 — Shell de partida a pantalla completa sin scroll de documento (1-3 h)**
   - **Criterios de aceptacion:**
-    - El layout separa claramente area de mapa y area de acciones.
-    - La estructura funciona en mobile y desktop sin solapamientos criticos.
+    - La vista `game`/`playing` usa alto/ancho del viewport (`100dvh`/`100svh` o equivalente documentado).
+    - No aparece scroll vertical de **pagina** por el contenido esencial de partida en 375x667 y 1280x800.
 
-- [ ] **F2.2 — Hacer visible CTA principal above-the-fold (1-3 h)**
+- [x] **F2.2 — Mapa como capa base edge-to-edge (2-4 h)**
   - **Criterios de aceptacion:**
-    - En 375x667, el usuario ve prompt + mapa + CTA principal sin scroll obligatorio.
-    - La visibilidad se mantiene en estado de responder y estado post-respuesta.
+    - `WorldMap` ocupa todo el area de juego visible (full bleed dentro del shell).
+    - El mapa no queda “encajonado” en una fracción pequeña del viewport salvo decision explicita de producto.
 
-- [ ] **F2.3 — Compactar informacion secundaria (debug) (1-2 h)**
+- [x] **F2.3 — Overlay con informacion indispensable: ronda, objetivo, turno, puntaje (2-4 h)**
   - **Criterios de aceptacion:**
-    - El bloque de debug deja de competir con elementos criticos de juego.
-    - No se pierde informacion util en desarrollo (se conserva via modo dev o equivalente).
+    - Son visibles sin interaccion extra: numero de ronda, texto de pais/capital a adivinar, jugador en turno, puntaje (compacto o por jugador segun acuerdo con HUD).
+    - Composicion armoniosa (safe-area, contraste, no satura el centro del mapa sin necesidad).
 
-- [ ] **F2.4 — Ajustar accesibilidad y foco de acciones (1-2 h)**
+- [x] **F2.4 — Overlay de acciones y navegacion: siguiente, setup, home + feedback minimo (1-3 h)**
   - **Criterios de aceptacion:**
-    - Orden de foco en CTA y controles es logico.
-    - Feedback de ronda no genera ruido duplicado para lectores de pantalla.
+    - Visibles: Siguiente pregunta / Ver resultado final cuando corresponda; acceso a Setup y Home.
+    - Feedback de acierto/error es breve y legible sobre el mapa.
 
-- [ ] **F2.5 — Actualizar tests de `App`/e2e afectados por layout (1-3 h)**
+- [x] **F2.5 — Integrar zoom + / − y reset en el overlay (armonia con MAP-UX-01) (1-2 h)**
   - **Criterios de aceptacion:**
-    - Tests ajustados a estructura nueva (`data-testid`/flujo visible).
-    - `npm run test` y smoke e2e relevante siguen en verde.
+    - Los controles de zoom y reset siguen funcionando y son accesibles (`aria-label`, foco).
+    - No hay duplicacion confusa de controles entre overlay y mapa salvo que este justificado y documentado.
+
+- [x] **F2.6 — Pan/zoom como compensacion cuando la UI tapa geografia (1-2 h)**
+  - **Criterios de aceptacion:**
+    - Queda documentado (comentario o copy breve) que el usuario puede mover/acercar la vista si un pais queda bajo el overlay.
+    - Verificacion manual: con pan/zoom se puede clicar 2-3 paises que inicialmente quedarian parcialmente ocultos.
+
+- [x] **F2.7 — Accesibilidad: foco, pointer-events y live regions (1-3 h)**
+  - **Criterios de aceptacion:**
+    - Orden de foco coherente entre overlay y mapa; overlays no bloquean de forma opaca toda interaccion sin alternativa.
+    - `aria-live` u anuncios sin duplicar ruido en cada render.
+
+- [x] **F2.8 — Debug solo en dev y tests App/e2e (1-3 h)**
+  - **Criterios de aceptacion:**
+    - Lineas de debug no compiten con la UI de juego en produccion.
+    - `npm run test` y smoke e2e relevante verdes con `data-testid`/flujo actualizado.
 
 ---
 
@@ -151,7 +166,7 @@ Regla de ejecucion: cada tarea esta pensada para completarse en **1-4 horas**.
 - [ ] **CF.1 — Pasada integral de regresion funcional (1-2 h)**
   - **Criterios de aceptacion:**
     - Flujo setup -> juego -> resultado se mantiene operativo.
-    - No aparecen regresiones criticas en mapa, HUD o CTA principal.
+    - No aparecen regresiones criticas en mapa full-screen, overlay de partida o acciones principales.
 
 - [ ] **CF.2 — Actualizar estado en tasks fuente (1-2 h)**
   - **Criterios de aceptacion:**
