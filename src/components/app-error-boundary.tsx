@@ -32,7 +32,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
         errorName: error.name,
         ...(isDev
           ? {
-              componentStackPreview: errorInfo.componentStack.slice(0, COMPONENT_STACK_MAX),
+              componentStackPreview: errorInfo.componentStack?.slice(0, COMPONENT_STACK_MAX) ?? '',
             }
           : {}),
       },
