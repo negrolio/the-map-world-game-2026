@@ -1,25 +1,46 @@
-# The Map World Game 2026 — Frontend MVP
+# The Map World Game 2026
 
-Bootstrap inicial del frontend con `Vite + React 19 + TypeScript`.
+SPA de juego de geografía sobre mapa mundial: configuración de partida (jugadores, modo país o capital, región, anti-cheat), turnos locales, puntuación y resultados. Este repositorio es la **reedición** del proyecto clásico **themapgame** (2016), que está en GitHub del autor y estaba hecho con **HTML, CSS y jQuery** y código del lado del cliente sin framework moderno. La intención aquí es conservar la **idea de juego similar**, pero con **stack actual** (React 19, TypeScript estricto, Vite, Tailwind, Vitest, Playwright) y un proceso de desarrollo apoyado en **agentes de IA** de principio a fin.
 
-## Requisitos
+## Contexto técnico
 
-- Node.js 20+
-- npm 10+
+- **Runtime:** Node.js 20+
+- **Gestor:** npm 10+
+- **Requisitos de producto y criterios de aceptación:** `docs/requirements/`
+- **Plan de arquitectura MVP:** `docs/architecture/mvp_frontend_map_game_1b56bd4b.plan.mdc`
+- **Checklist de implementación:** `docs/tasks/mvp-frontend-implementation-todos.mdc`
 
 ## Scripts
 
-- `npm run dev`: inicia entorno local
-- `npm run build`: compila TypeScript y genera build de producción
-- `npm run lint`: ejecuta lint
-- `npm run preview`: previsualiza build local
+| Comando | Descripción |
+|--------|-------------|
+| `npm run dev` | Servidor de desarrollo (Vite) |
+| `npm run build` | Verifica `datasetVersion`, compila TypeScript y genera el build de producción |
+| `npm run preview` | Sirve el build localmente |
+| `npm run lint` | ESLint |
+| `npm run test` | Vitest (unit / componentes) |
+| `npm run e2e` | Playwright |
+| `npm run check:dataset-version` | Comprueba que la versión del dataset esté definida (también se ejecuta en `build`) |
 
-## Estado actual
+## Arranque rápido
 
-- Proyecto base creado con Vite React-TS
-- TypeScript en modo `strict`
-- Dependencias iniciales de Fase 0.1 instaladas
+```bash
+npm install
+npm run dev
+```
 
-## Próximo paso del plan
+Para probar e2e, suele hacer falta tener instalados los navegadores de Playwright (`npx playwright install` la primera vez).
 
-Continuar con Fase 0.2 (Tailwind + configuración de lint/format según reglas del repo).
+## Estado del proyecto
+
+El **MVP frontend** del plan (fases 0–8) y la **iteración UX + datos** (mapa con zoom/pan, partida a pantalla completa, HUD móvil, catálogo amplio, foco por continente) están implementados. Opcional en backlog: persistencia de sesión en `sessionStorage` y pantalla *about* de fuentes y licencias del dataset (ver sección P2 en `docs/tasks/mvp-frontend-implementation-todos.mdc`).
+
+## Estructura principal del código
+
+- `src/features/setup` — configuración de partida
+- `src/features/game` — partida en curso
+- `src/services/` — lógica de dominio (pool, turnos, puntuación, anti-cheat, etc.)
+- `src/types/` — tipos compartidos
+- `src/data/` — dataset, versión y loaders
+- `src/components/` — UI reutilizable (mapa, HUD, error boundary, etc.)
+- `e2e/` — pruebas end-to-end

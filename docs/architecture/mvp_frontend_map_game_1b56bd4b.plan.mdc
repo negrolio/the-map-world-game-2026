@@ -4,34 +4,34 @@ overview: Plan por fases para construir el MVP frontend de The Map World Game 20
 todos:
   - id: phase-0-bootstrap
     content: "Fase 0: Vite+React+TS+Tailwind+Vitest+Playwright y estructura src/ según PRD"
-    status: pending
+    status: completed
   - id: phase-1-domain-data
     content: "Fase 1: Tipos dominio, dataset versionado, servicios pool/validación + tests base"
-    status: pending
+    status: completed
   - id: phase-2-setup-ui
     content: "Fase 2: Feature setup: panel, validación en vivo, a11y formularios"
-    status: pending
+    status: completed
   - id: phase-3-map-loop
     content: "Fase 3: Mapa TopoJSON/SVG, evaluación de respuesta, feedback visual"
-    status: pending
+    status: completed
   - id: phase-4-multi-hud
     content: "Fase 4: Turnos 1-6, HUD responsive, indicador jugador activo"
-    status: pending
+    status: completed
   - id: phase-5-score-results
     content: "Fase 5: Scoring, fin de partida, ranking y desempate"
-    status: pending
+    status: completed
   - id: phase-6-anticheat-restart
     content: "Fase 6: Anti-cheat strict/normal, reinicio y nueva partida"
-    status: pending
+    status: completed
   - id: phase-7-hardening
     content: "Fase 7: A11y/responsive/perf + error logging sin PII"
-    status: pending
+    status: completed
   - id: phase-8-qa-dod
     content: "Fase 8: Completar unit+e2e, verificar CA/DoD MVP"
-    status: pending
+    status: completed
   - id: phase-9-ux-data-iteration
     content: "Fase 9: Iteracion UX+Datos (MAP-UX-01..05 y DATA-01)"
-    status: pending
+    status: completed
 isProject: false
 ---
 
@@ -41,7 +41,7 @@ isProject: false
 
 - **Canónico:** [docs/requirements/00-prd-index.mdc](the-map-world-game-2026/docs/requirements/00-prd-index.mdc) apunta a [01-prd-mvp-producto-y-requerimientos.mdc](the-map-world-game-2026/docs/requirements/01-prd-mvp-producto-y-requerimientos.mdc) (RF/RNF), [02-prd-criterios-de-aceptacion.mdc](the-map-world-game-2026/docs/requirements/02-prd-criterios-de-aceptacion.mdc) y [03-prd-riesgos-y-roadmap.mdc](the-map-world-game-2026/docs/requirements/03-prd-riesgos-y-roadmap.mdc) como complementarios.
 - **Convenciones repo:** [the-map-world-game-2026/.cursor/rules/core.mdc](the-map-world-game-2026/.cursor/rules/core.mdc) (React 19.x, TS estricto, Vitest, Playwright, Tailwind; features + `src/services/` + `src/types/`).
-- **Estado del código:** no hay aplicación en `the-map-world-game-2026` aún; el plan asume bootstrap inicial del frontend en este mismo repo (o subcarpeta acordada).
+- **Estado del código (2026-05-10):** el frontend MVP está implementado en este repo (`src/features`, `src/services`, mapa TopoJSON, tests Vitest y e2e Playwright). Criterios de cierre y evidencia: [docs/tasks/mvp-frontend-implementation-todos.mdc](../tasks/mvp-frontend-implementation-todos.mdc). Quedan **solo tareas P2 opcionales** del plan (p. ej. `GameSessionRepository` + `sessionStorage`, pantalla *about* de dataset/licencias).
 
 ---
 

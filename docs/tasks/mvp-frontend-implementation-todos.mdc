@@ -5,6 +5,8 @@ alwaysApply: false
 
 # Tareas de implementacion MVP — frontend
 
+**Estado global (2026-05-10):** fases **0–8** del plan base e **iteración UX+Datos (Fase 9 / MAP-UX / DATA-01)** cerradas en código y checklist. Pendiente deliberado: **P2** (`BN.1` / `BN.2` en esta misma lista). El frontmatter de fases en [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_map_game_1b56bd4b.plan.mdc) debe mantenerse alineado a este estado.
+
 Origen: [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_map_game_1b56bd4b.plan.mdc). Cada tarea esta pensada para **1-4 horas** de trabajo.
 
 ---
