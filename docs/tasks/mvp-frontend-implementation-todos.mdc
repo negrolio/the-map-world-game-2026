@@ -167,11 +167,11 @@ Origen: [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_m
   - **Alcance (2-4 h):** BQ-01: acordeon o patron equivalente para no saturar movil.
   - **Criterios de aceptacion:** 6 jugadores usables en viewport pequeno sin solapamiento critico.
 
-- [ ] **F7.3 — Memoizacion y perf del mapa**
+- [x] **F7.3 — Memoizacion y perf del mapa**
   - **Alcance (2-3 h):** BQ-02: memo, evitar trabajo repetido en render.
   - **Criterios de aceptacion:** Interaccion fluida en escenario tipico desktop; sin regresion funcional.
 
-- [ ] **F7.4 — Error boundary + logging estructurado sin PII**
+- [x] **F7.4 — Error boundary + logging estructurado sin PII**
   - **Alcance (2-3 h):** BQ-04: boundary en raiz o feature; logger sin datos sensibles (RNF-05/06).
   - **Criterios de aceptacion:** Error forzado en dev muestra UI de fallo controlada; logs no contienen nombres de jugadores ni datos personales.
 
@@ -179,21 +179,42 @@ Origen: [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_m
 
 ## Fase 8 — Verificacion final (DoD MVP)
 
-- [ ] **F8.1 — Cobertura unitaria de servicios criticos**
+- [x] **F8.1 — Cobertura unitaria de servicios criticos**
   - **Alcance (2-4 h):** Completar/ajustar tests pool, validateConfig, turnos, scoring, ranking, anti-cheat; funciones exportadas usadas en flujo principal cubiertas (§6 del plan).
   - **Criterios de aceptacion:** `npm run test` verde; CA-6 alineado con matriz o comentarios de trazabilidad RF.
 
-- [ ] **F8.2 — E2E: happy path y config invalida**
+- [x] **F8.2 — E2E: happy path y config invalida**
   - **Alcance (2-4 h):** Playwright: setup valido → N rondas (N pequeno via config de test) → ranking; regresion mensaje con config invalida; `data-testid` y esperas deterministas.
   - **Criterios de aceptacion:** Specs estables en repeticion local; CA-7 parcialmente cubierto.
 
-- [ ] **F8.3 — E2E modo estricto (document.hidden / API Page)**
+- [x] **F8.3 — E2E modo estricto (document.hidden / API Page)**
   - **Alcance (2-3 h):** Simular perdida de foco/visibilidad; partida abortada reflejada en UI.
   - **Criterios de aceptacion:** Test verde en CI/local; sin flaky por timeouts arbitrarios largos.
 
-- [ ] **F8.4 — Auditoria DoD MVP y PRD**
+- [x] **F8.4 — Auditoria DoD MVP y PRD**
   - **Alcance (2-4 h):** Recorrido contra `02-prd-criterios-de-aceptacion.mdc` CA 1-7; RF-01-RF-10; RNF-01-RNF-06 razonable; `datasetVersion` trazable; QA manual breve §8 del plan.
   - **Criterios de aceptacion:** Lista de verificacion completada con evidencia (enlaces a tests, notas breves); bloqueadores documentados si queda algo fuera de alcance explicito del PRD.
+
+### Fase 8 — evidencia (trazabilidad CA / tests)
+
+Cierre **2026-05-10**. Comandos: `npm run test`, `npm run e2e`.
+
+| CA / PRD | Evidencia principal |
+|----------|---------------------|
+| **CA-1** Partida valida 1–6 jugadores | Setup + `validate-config` / `createGameSession` en Vitest; flujo manual en app. |
+| **CA-2** Modo pais/capital y continente | Setup en UI + `build-question-pool.test.ts`, `validate-config.test.ts`. |
+| **CA-3** Turnos y puntaje | `turn-engine.test.ts`, `scoring.test.ts`, `App.test.tsx`, HUD/e2e smoke. |
+| **CA-4** Fin y ranking | `ranking.test.ts`, `game-round-service.test.ts`, e2e happy path en `e2e/game-flow.spec.ts`. |
+| **CA-5** Modo estricto | `anticheat-policy.test.ts`, `App.test.tsx` (blur), e2e `document.hidden` en `e2e/game-flow.spec.ts` (F8.3). |
+| **CA-6** Tests unitarios pool/scoring/turnos | `build-question-pool.test.ts`, `scoring.test.ts`, `turn-engine.test.ts` + ampliacion F8.1 en `game-session-service.test.ts`, `game-round-service.test.ts`. |
+| **CA-7** E2E setup → juego → resultados | `e2e/game-flow.spec.ts` (happy path + setup invalido); `e2e/smoke.spec.ts` (shell). |
+| **RF-01–RF-10** | Cubiertos por features existentes + tests anteriores; RF-09 explicito en e2e F8.3 y unit anticheat. |
+| **RNF-01–RNF-06** | Iteraciones Fase 7 (a11y, responsive, perf mapa, error boundary / `app-log`); RNF-05/06 en reglas de logging sin PII. |
+| **`datasetVersion`** | Visible en pantalla de resultados (`App.tsx`); tests de sesion con version en datos. |
+
+**Nota:** En e2e, el prompt de ronda expone `data-target-iso2` en el elemento `round-prompt` para clics estables en `path[data-iso]` cuando el nombre del catalogo y el del TopoJSON no coinciden.
+
+**Bloqueadores:** ninguno declarado frente al PRD MVP en esta auditoria; P2 (`GameSessionRepository`, about) sigue opcional en backlog.
 
 ---
 

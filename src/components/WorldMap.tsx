@@ -1,6 +1,7 @@
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import type { KeyboardEvent, MouseEvent } from 'react'
+import type { GeographyRenderObject } from 'react-simple-maps'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import type { KeyboardEvent, MouseEvent, MutableRefObject } from 'react'
 
 import countriesTopologyUrl from 'world-atlas/countries-110m.json?url'
 import { getContinentForIso2 } from '../data/countries'
@@ -180,6 +181,101 @@ function geographyStyleForIso(
     hover: interactionLocked ? defaultStyle.default : defaultStyle.hover,
   }
 }
+
+type WorldMapGeographyRowProps = {
+  readonly geo: GeographyRenderObject
+  readonly iso2: string | undefined
+  readonly mapFeedback: MapAnswerFeedback | null
+  readonly locked: boolean
+  readonly regionFilter: RegionFilter
+  readonly onCountryClick?: (iso2: IsoCountryCode | null) => void
+  readonly draggedRef: MutableRefObject<boolean>
+}
+
+function mapFeedbackShallowEqual(a: MapAnswerFeedback | null, b: MapAnswerFeedback | null): boolean {
+  if (a === b) {
+    return true
+  }
+  if (!a || !b) {
+    return false
+  }
+  return (
+    a.selectedIso2 === b.selectedIso2 &&
+    a.targetIso2 === b.targetIso2 &&
+    a.isCorrect === b.isCorrect
+  )
+}
+
+function worldMapGeographyRowPropsEqual(
+  prev: Readonly<WorldMapGeographyRowProps>,
+  next: Readonly<WorldMapGeographyRowProps>,
+): boolean {
+  return (
+    prev.geo.rsmKey === next.geo.rsmKey &&
+    prev.iso2 === next.iso2 &&
+    prev.locked === next.locked &&
+    prev.regionFilter === next.regionFilter &&
+    prev.onCountryClick === next.onCountryClick &&
+    prev.draggedRef === next.draggedRef &&
+    mapFeedbackShallowEqual(prev.mapFeedback, next.mapFeedback)
+  )
+}
+
+/** F7.3 — evita re-render de ~200 paths cuando el overlay (HUD/texto) actualiza sin cambiar feedback del mapa. */
+const WorldMapGeographyRow = memo(function WorldMapGeographyRow({
+  geo,
+  iso2,
+  mapFeedback,
+  locked,
+  regionFilter,
+  onCountryClick,
+  draggedRef,
+}: WorldMapGeographyRowProps) {
+  const geoStyle = geographyStyleForIso(iso2, mapFeedback, locked, regionFilter)
+  const ariaLabel =
+    typeof geo.properties.name === 'string'
+      ? `Seleccionar ${geo.properties.name}`
+      : `Seleccionar país ${iso2 ?? 'sin código'}`
+
+  return (
+    <Geography
+      geography={geo}
+      data-iso={iso2}
+      tabIndex={locked ? -1 : 0}
+      aria-disabled={locked}
+      aria-label={ariaLabel}
+      className={
+        locked
+          ? 'outline-none transition-[fill] duration-200'
+          : 'cursor-pointer outline-none transition-[fill] duration-150 focus-visible:ring-2 focus-visible:ring-cyan-400'
+      }
+      style={geoStyle}
+      onClick={(event: MouseEvent<SVGPathElement>) => {
+        event.stopPropagation()
+        if (draggedRef.current) {
+          draggedRef.current = false
+          return
+        }
+        if (locked) {
+          return
+        }
+        const resolved = resolveCountryClickFromTopologyProperties(geo.properties, geo.id)
+        onCountryClick?.(resolved)
+      }}
+      onKeyDown={(event: KeyboardEvent<SVGPathElement>) => {
+        if (locked) {
+          return
+        }
+        if (event.key !== 'Enter' && event.key !== ' ') {
+          return
+        }
+        event.preventDefault()
+        const resolved = resolveCountryClickFromTopologyProperties(geo.properties, geo.id)
+        onCountryClick?.(resolved)
+      }}
+    />
+  )
+}, worldMapGeographyRowPropsEqual)
 
 /**
  * Mapa mundial 110m (Natural Earth vía world-atlas) con react-simple-maps.
@@ -403,49 +499,17 @@ function WorldMapInner({
               geographies.map((geo) => {
                 const iso2Clean =
                   resolveCountryClickFromTopologyProperties(geo.properties, geo.id) ?? undefined
-                const geoStyle = geographyStyleForIso(iso2Clean, mapFeedback, locked, regionFilter)
 
                 return (
-                  <Geography
+                  <WorldMapGeographyRow
                     key={geo.rsmKey}
-                    geography={geo}
-                    data-iso={iso2Clean}
-                    tabIndex={locked ? -1 : 0}
-                    aria-disabled={locked}
-                    aria-label={
-                      typeof geo.properties?.name === 'string'
-                        ? `Seleccionar ${geo.properties.name}`
-                        : `Seleccionar país ${iso2Clean ?? 'sin código'}`
-                    }
-                    className={
-                      locked
-                        ? 'outline-none transition-[fill] duration-200'
-                        : 'cursor-pointer outline-none transition-[fill] duration-150 focus-visible:ring-2 focus-visible:ring-cyan-400'
-                    }
-                    style={geoStyle}
-                    onClick={(event: MouseEvent<SVGPathElement>) => {
-                      event.stopPropagation()
-                      if (draggedRef.current) {
-                        draggedRef.current = false
-                        return
-                      }
-                      if (locked) {
-                        return
-                      }
-                      const resolved = resolveCountryClickFromTopologyProperties(geo.properties, geo.id)
-                      onCountryClick?.(resolved)
-                    }}
-                    onKeyDown={(event: KeyboardEvent<SVGPathElement>) => {
-                      if (locked) {
-                        return
-                      }
-                      if (event.key !== 'Enter' && event.key !== ' ') {
-                        return
-                      }
-                      event.preventDefault()
-                      const resolved = resolveCountryClickFromTopologyProperties(geo.properties, geo.id)
-                      onCountryClick?.(resolved)
-                    }}
+                    geo={geo}
+                    iso2={iso2Clean}
+                    mapFeedback={mapFeedback}
+                    locked={locked}
+                    regionFilter={regionFilter}
+                    onCountryClick={onCountryClick}
+                    draggedRef={draggedRef}
                   />
                 )
               })

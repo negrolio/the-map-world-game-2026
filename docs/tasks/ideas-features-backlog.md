@@ -26,6 +26,20 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
 
 <!-- Agregar nuevas entradas arriba de esta lista, las más recientes primero. -->
 
+- **Actualizar el Home** — 2026-05-10
+  - Contexto / problema: la pantalla de Home actual quedó atrás respecto a la evolución del juego (modos, catálogo ampliado, partida full-screen, etc.) y conviene refrescarla para reflejar mejor el producto y guiar al jugador nuevo.
+  - Idea / dirección: revisar contenido, jerarquía y CTA principal del Home; alinearlo con los modos y features ya existentes y dejar lugar para próximos (multilenguaje, modo aprendizaje, ranking si avanza el server). Definir qué se ve en primer pantallazo en mobile y desktop antes de tocar diseño.
+  - Impacto estimado: UX · medio.
+  - Esfuerzo estimado: medio (según alcance: copy + layout, o rediseño completo).
+  - Notas: pendiente de detalle. Cuando se promueva a tarea, decidir si el cambio es solo de copy/layout o también de arquitectura del estado de la app (`view === 'home'` en `src/App.tsx`). Considerar accesibilidad y consistencia visual con la partida y el setup.
+
+- **Anticheat: no persistir puntaje y mensaje explícito al usuario** — 2026-05-10
+  - Contexto / problema: si existe detección de uso indebido (scripts, automatización, manipulación de cliente), persistir puntajes daría una tabla de clasificación injusta y puede frustrar a jugadores legítimos si no entienden por qué “desapareció” el resultado.
+  - Idea / dirección: cuando la sesión o la partida quede marcada como **no válida** por anticheat (reglas concretas por definir), **no guardar** puntajes en servidor ni en ranking local si aplica; mostrar un mensaje **muy claro** (no técnico): que la partida no cuenta para el ranking / historial, motivo en una línea comprensible y qué puede hacer el usuario (ej. jugar de nuevo sin interferencias). Evitar ambigüedad (“no se guardó” vs “falló la red”).
+  - Impacto estimado: UX / integridad · medio–alto.
+  - Esfuerzo estimado: medio–alto (depende de qué se considera trampa y cómo se audita en cliente vs servidor).
+  - Notas: enlaza con **Persistencia de puntajes en servidor** del mismo backlog: la política anticheat debe documentarse junto al contrato de API. Definir falsos positivos y mensajes accesibles (`aria-live` si es toast/banner). No registrar datos personales innecesarios al bloquear.
+
 - **Filtro por continente: priorizar territorio sobre institución (caso Guyana Francesa)** — 2026-05-10
   - Contexto / problema: con el filtro por continente, territorios dependientes quedan asignados al continente de la nación administradora. Ej.: con `americas` activo, Guyana Francesa no entra en juego porque el catálogo la lista como `Europe` (por pertenecer a Francia).
   - Idea / dirección: la regla del catálogo debe ser **territorial / geográfica**, no institucional. Auditar territorios dependientes (Guyana Francesa, Groenlandia, territorios de ultramar, etc.) y reasignarlos al continente físico. Documentar el criterio para que no se vuelva a mezclar.

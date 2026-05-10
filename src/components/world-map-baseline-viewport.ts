@@ -43,6 +43,7 @@ export function getProjectionConfigForRegion(regionFilter: RegionFilter): WorldM
 }
 
 /** Siempre identidad en CSS: el centrado territorial viene de `getProjectionConfigForRegion`. */
-export function getBaselineViewportForRegion(_regionFilter: RegionFilter): WorldMapBaselineViewport {
+export function getBaselineViewportForRegion(regionFilter: RegionFilter): WorldMapBaselineViewport {
+  void regionFilter
   return { zoom: 1, offset: [0, 0] }
 }

@@ -3,6 +3,8 @@ export const serviceShell = {
   status: 'ready',
 } as const
 
+export { logAppEvent } from './app-log'
+export type { AppLogContextValue, AppLogLevel, AppLogPayload } from './app-log'
 export { assertValidSession, createGameSession } from './game-session-service'
 export { advanceToNextRoundOrFinish, beginPlayingSession, submitRoundGuess } from './game-round-service'
 export { buildGameResult } from './game-result'

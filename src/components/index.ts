@@ -3,6 +3,7 @@ export const componentShell = {
   status: 'ready',
 } as const
 
+export { AppErrorBoundary } from './app-error-boundary'
 export { Button } from './Button'
 export type { ButtonProps } from './Button'
 export { GamePlayersHud } from './GamePlayersHud'

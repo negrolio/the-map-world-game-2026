@@ -161,6 +161,74 @@ describe('submitRoundGuess', () => {
     expect(result.error.code).toBe('INVALID_GUESS')
   })
 
+  it('rechaza respuestas cuando la partida ya finalizo', () => {
+    const session: GameSession = {
+      id: 'session-test',
+      status: 'finished',
+      config: baseConfig,
+      players: [
+        { id: 'player-1', name: 'Ana', turnOrder: 0, score: 0, correctAnswers: 0, wrongAnswers: 0 },
+      ],
+      rounds: [
+        {
+          id: 'r1',
+          roundNumber: 1,
+          targetCountryCode: 'AR',
+          prompt: 'Argentina',
+          guess: {
+            playerId: 'player-1',
+            selectedCountryCode: 'AR',
+            isCorrect: true,
+            answeredAtISO: answeredAt,
+          },
+        },
+      ],
+      activeRoundIndex: 0,
+      incidentCount: 0,
+      datasetVersion: 'test',
+    }
+
+    const result = submitRoundGuess({
+      session,
+      selectedCountryCode: 'AR',
+      playerId: 'player-1',
+      answeredAtISO: answeredAt,
+    })
+    expect(result.success).toBe(false)
+    if (result.success) {
+      return
+    }
+    expect(result.error.code).toBe('ROUND_NOT_ACTIVE')
+    expect(result.error.message).toMatch(/terminó/i)
+  })
+
+  it('rechaza respuestas cuando la sesion no esta en playing', () => {
+    const session: GameSession = {
+      id: 'session-test',
+      status: 'setup',
+      config: baseConfig,
+      players: [
+        { id: 'player-1', name: 'Ana', turnOrder: 0, score: 0, correctAnswers: 0, wrongAnswers: 0 },
+      ],
+      rounds: [],
+      activeRoundIndex: 0,
+      incidentCount: 0,
+      datasetVersion: 'test',
+    }
+
+    const result = submitRoundGuess({
+      session,
+      selectedCountryCode: 'AR',
+      playerId: 'player-1',
+      answeredAtISO: answeredAt,
+    })
+    expect(result.success).toBe(false)
+    if (result.success) {
+      return
+    }
+    expect(result.error.code).toBe('ROUND_NOT_ACTIVE')
+  })
+
   it('rechaza respuesta si no es el turno del jugador', () => {
     const session: GameSession = {
       id: 'session-test',

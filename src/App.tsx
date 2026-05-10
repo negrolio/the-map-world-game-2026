@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button, componentShell, GamePlayersHud, WorldMap } from './components'
 import { countriesCatalog, dataShell, datasetVersion } from './data'
@@ -168,7 +168,7 @@ export function App() {
     startGameWithConfig(setupDraft)
   }
 
-  function handleCountryMapClick(iso2: IsoCountryCode | null): void {
+  const handleCountryMapClick = useCallback((iso2: IsoCountryCode | null): void => {
     if (!gameSession || gameSession.status !== 'playing') {
       return
     }
@@ -207,7 +207,7 @@ export function App() {
     } else {
       setGuessSubmitError(response.error.message)
     }
-  }
+  }, [gameSession])
 
   function exitGameTo(view: AppView): void {
     setGameSession(null)
@@ -489,7 +489,11 @@ export function App() {
               </nav>
             </div>
             {activeRound ? (
-              <p className="text-lg font-semibold text-slate-50 md:text-xl" data-testid="round-prompt">
+              <p
+                className="text-lg font-semibold text-slate-50 md:text-xl"
+                data-testid="round-prompt"
+                data-target-iso2={activeRound.targetCountryCode}
+              >
                 {gameSession.config.questionMode === 'country' ? '¿Dónde está ' : '¿Dónde queda la capital '}
                 <span className="text-cyan-200">{activeRound.prompt}</span>?
               </p>
