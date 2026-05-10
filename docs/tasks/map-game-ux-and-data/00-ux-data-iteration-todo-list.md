@@ -134,30 +134,32 @@ Regla de ejecucion: cada tarea esta pensada para completarse en **1-4 horas**.
 
 ## Fase 5 — MAP-UX-05 (Continente reactivo en el mapa)
 
-- [ ] **F5.1 — Pasar region activa al mapa y aplicar estilos por estado (1-3 h)**
+- [x] **F5.1 — Pasar region activa al mapa y aplicar estilos por estado (1-3 h)**
   - **Criterios de aceptacion:**
     - `world` conserva comportamiento global.
     - En continente, region activa y resto del mundo se distinguen visualmente.
 
-- [ ] **F5.2 — Implementar enfoque inicial por continente con fallback (2-4 h)**
+- [x] **F5.2 — Implementar enfoque inicial por continente con fallback (2-4 h)**
   - **Criterios de aceptacion:**
     - Al cambiar region, el viewport centra/encuadra razonablemente el continente.
     - Si el enfoque falla en casos limite, se aplica fallback estable documentado.
 
-- [ ] **F5.3 — Definir comportamiento de click fuera de region activa (1-2 h)**
+- [x] **F5.3 — Definir comportamiento de click fuera de region activa (1-2 h)**
   - **Criterios de aceptacion:**
     - Los clicks fuera de region no generan respuestas ambiguas.
     - El usuario recibe feedback claro cuando la accion no es valida.
 
-- [ ] **F5.4 — Verificar compatibilidad con `locked` y feedback de ronda (1-2 h)**
+- [x] **F5.4 — Verificar compatibilidad con `locked` y feedback de ronda (1-2 h)**
   - **Criterios de aceptacion:**
     - No hay conflicto entre resaltado regional, estados de respuesta y bloqueo.
     - Flujo de ronda mantiene consistencia visual.
 
-- [ ] **F5.5 — Actualizar pruebas para `world` vs continente (1-3 h)**
+- [x] **F5.5 — Actualizar pruebas para `world` vs continente (1-3 h)**
   - **Criterios de aceptacion:**
     - Existen pruebas de estados clave de region.
     - `npm run test` permanece verde.
+
+**Notas MAP-UX-05 (centrado / specs):** ver [notas-centrado-mapa-por-continente.md](notas-centrado-mapa-por-continente.md) (proyección vs pan-zoom, semántica de Reset, checklist para futuros AC).
 
 ---
 

@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: uxd-region-05
     content: Agregar reaccion visual por continente y enfoque inicial
-    status: pending
+    status: completed
 isProject: false
 ---
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button, componentShell, GamePlayersHud, WorldMap } from './components'
 import { countriesCatalog, dataShell, datasetVersion } from './data'
+import { getContinentForIso2 } from './data/countries'
 import { gameFeatureShell } from './features/game'
 import { setupFeatureShell, validateSetupConfigSchema } from './features/setup'
 import { serviceShell } from './services'
@@ -175,6 +176,17 @@ export function App() {
     const activeRound = gameSession.rounds[gameSession.activeRoundIndex]
     if (!activeRound || activeRound.guess || iso2 === null) {
       return
+    }
+
+    const sessionRegion = gameSession.config.regionFilter
+    if (sessionRegion !== 'world') {
+      const continent = getContinentForIso2(iso2)
+      if (continent !== sessionRegion) {
+        setGuessSubmitError(
+          'Ese país no pertenece al continente de esta partida. Elegí uno dentro de la región resaltada.',
+        )
+        return
+      }
     }
 
     const activePlayerId = getActivePlayerIdForRound(gameSession)
@@ -523,7 +535,13 @@ export function App() {
 
         {/* Mapa base — entre top y bottom en orden DOM, foco intermedio con Tab. */}
         <div className="absolute inset-0 z-0">
-          <WorldMap fullBleed mapFeedback={mapFeedback} onCountryClick={handleCountryMapClick} />
+          <WorldMap
+            key={gameSession.id}
+            fullBleed
+            regionFilter={gameSession.config.regionFilter}
+            mapFeedback={mapFeedback}
+            onCountryClick={handleCountryMapClick}
+          />
         </div>
 
         {/* F2.3 + F2.4 + F2.7 — Banda inferior: HUD + acción primaria. Último foco con Tab. */}

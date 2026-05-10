@@ -3,8 +3,15 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent, MouseEvent } from 'react'
 
 import countriesTopologyUrl from 'world-atlas/countries-110m.json?url'
+import { getContinentForIso2 } from '../data/countries'
 import { resolveCountryClickFromTopologyProperties } from '../services/topology-country-click'
-import type { IsoCountryCode } from '../types'
+import type { IsoCountryCode, RegionFilter } from '../types'
+
+import {
+  getBaselineViewportForRegion,
+  getProjectionConfigForRegion,
+  type WorldMapBaselineViewport,
+} from './world-map-baseline-viewport'
 
 export interface MapAnswerFeedback {
   readonly selectedIso2: IsoCountryCode
@@ -26,12 +33,11 @@ export interface WorldMapProps {
    * shell de partida a pantalla completa donde el mapa es la capa base.
    */
   readonly fullBleed?: boolean
+  /** MAP-UX-05: filtro de región activo para atenuar el resto del mundo (no afecta `world`). */
+  readonly regionFilter?: RegionFilter
 }
 
-interface MapViewport {
-  readonly zoom: number
-  readonly offset: readonly [number, number]
-}
+type MapViewport = WorldMapBaselineViewport
 
 const VIEWPORT_LIMITS = {
   zoom: {
@@ -82,48 +88,96 @@ const defaultStyle = {
   pressed: { fill: '#64748b', outline: 'none' as const },
 }
 
+/** MAP-UX-05: continente elegido más legible que el mapa mundial base. */
+function inActiveContinentStyle(interactionLocked: boolean): typeof defaultStyle {
+  const active = {
+    default: {
+      fill: '#64748b',
+      stroke: '#334155',
+      strokeWidth: 0.55,
+      outline: 'none' as const,
+    },
+    hover: {
+      fill: '#94a3b8',
+      stroke: '#1e293b',
+      strokeWidth: 0.55,
+      outline: 'none' as const,
+    },
+    pressed: { fill: '#64748b', outline: 'none' as const },
+  }
+  return {
+    ...active,
+    hover: interactionLocked ? active.default : active.hover,
+  }
+}
+
+function outOfActiveRegionStyle(interactionLocked: boolean): typeof defaultStyle {
+  const dimmedDefault = {
+    fill: '#020617',
+    stroke: '#020617',
+    strokeWidth: 0.2,
+    outline: 'none' as const,
+  }
+  const dimmedHover = {
+    fill: '#0f172a',
+    stroke: '#0f172a',
+    strokeWidth: 0.22,
+    outline: 'none' as const,
+  }
+  return {
+    default: dimmedDefault,
+    hover: interactionLocked ? dimmedDefault : dimmedHover,
+    pressed: { fill: '#020617', outline: 'none' as const },
+  }
+}
+
+/** MAP-UX-05 / F5.4: el feedback de ronda gana al dimming regional; `interactionLocked` congela hover fuera del feedback. */
 function geographyStyleForIso(
   iso2: string | undefined,
   mapFeedback: MapAnswerFeedback | null | undefined,
-  answerLocked: boolean,
+  interactionLocked: boolean,
+  regionFilter: RegionFilter,
 ): typeof defaultStyle {
-  if (!iso2 || !mapFeedback) {
-    return {
-      ...defaultStyle,
-      hover: answerLocked ? defaultStyle.default : defaultStyle.hover,
-    }
-  }
+  if (iso2 && mapFeedback) {
+    const { selectedIso2, targetIso2, isCorrect } = mapFeedback
 
-  const { selectedIso2, targetIso2, isCorrect } = mapFeedback
-
-  if (isCorrect && iso2 === targetIso2) {
-    return {
-      default: { fill: '#059669', stroke: '#064e3b', strokeWidth: 0.65, outline: 'none' },
-      hover: { fill: '#10b981', stroke: '#064e3b', strokeWidth: 0.65, outline: 'none' },
-      pressed: defaultStyle.pressed,
-    }
-  }
-
-  if (!isCorrect) {
-    if (iso2 === selectedIso2) {
+    if (isCorrect && iso2 === targetIso2) {
       return {
-        default: { fill: '#be123c', stroke: '#881337', strokeWidth: 0.65, outline: 'none' },
-        hover: { fill: '#e11d48', stroke: '#881337', strokeWidth: 0.65, outline: 'none' },
+        default: { fill: '#059669', stroke: '#064e3b', strokeWidth: 0.65, outline: 'none' },
+        hover: { fill: '#10b981', stroke: '#064e3b', strokeWidth: 0.65, outline: 'none' },
         pressed: defaultStyle.pressed,
       }
     }
-    if (iso2 === targetIso2) {
-      return {
-        default: { fill: '#d97706', stroke: '#92400e', strokeWidth: 0.65, outline: 'none' },
-        hover: { fill: '#f59e0b', stroke: '#92400e', strokeWidth: 0.65, outline: 'none' },
-        pressed: defaultStyle.pressed,
+
+    if (!isCorrect) {
+      if (iso2 === selectedIso2) {
+        return {
+          default: { fill: '#be123c', stroke: '#881337', strokeWidth: 0.65, outline: 'none' },
+          hover: { fill: '#e11d48', stroke: '#881337', strokeWidth: 0.65, outline: 'none' },
+          pressed: defaultStyle.pressed,
+        }
+      }
+      if (iso2 === targetIso2) {
+        return {
+          default: { fill: '#d97706', stroke: '#92400e', strokeWidth: 0.65, outline: 'none' },
+          hover: { fill: '#f59e0b', stroke: '#92400e', strokeWidth: 0.65, outline: 'none' },
+          pressed: defaultStyle.pressed,
+        }
       }
     }
+  }
+
+  if (regionFilter !== 'world') {
+    const continent = getContinentForIso2(iso2)
+    if (!continent || continent !== regionFilter) {
+      return outOfActiveRegionStyle(interactionLocked)
+    }
+    return inActiveContinentStyle(interactionLocked)
   }
 
   return {
     ...defaultStyle,
-    hover: answerLocked ? defaultStyle.default : defaultStyle.hover,
+    hover: interactionLocked ? defaultStyle.default : defaultStyle.hover,
   }
 }
 
@@ -142,21 +196,20 @@ function geographyStyleForIso(
  *  Esto está habilitado siempre, incluso con `answerLocked` (post-respuesta),
  *  porque pan/zoom no responden la pregunta: solo modifican la vista.
  */
-export function WorldMap({
+function WorldMapInner({
   className,
   onCountryClick,
   mapFeedback = null,
   answerLocked = false,
   fullBleed = false,
+  regionFilter = 'world',
 }: WorldMapProps) {
-  const defaultViewport = useMemo<MapViewport>(
-    () => ({
-      zoom: VIEWPORT_LIMITS.zoom.min,
-      offset: VIEWPORT_LIMITS.offset.default,
-    }),
-    [],
-  )
-  const [viewport, setViewport] = useState<MapViewport>(defaultViewport)
+  const projectionConfig = useMemo(() => {
+    const c = getProjectionConfigForRegion(regionFilter)
+    return { scale: c.scale, center: [c.center[0], c.center[1]] as [number, number] }
+  }, [regionFilter])
+
+  const [viewport, setViewport] = useState<MapViewport>(() => getBaselineViewportForRegion(regionFilter))
   const [isDragging, setIsDragging] = useState(false)
   const viewportRef = useRef<HTMLDivElement | null>(null)
   const panStartRef = useRef<{
@@ -218,6 +271,9 @@ export function WorldMap({
       data-viewport-zoom={viewport.zoom.toFixed(2)}
       data-viewport-center={`${viewport.offset[0].toFixed(2)},${viewport.offset[1].toFixed(2)}`}
       data-fullbleed={fullBleed ? 'true' : undefined}
+      data-region-filter={regionFilter}
+      data-map-projection-scale={String(projectionConfig.scale)}
+      data-map-projection-center={`${projectionConfig.center[0]},${projectionConfig.center[1]}`}
       role="region"
       aria-label="Mapa interactivo de países"
       aria-describedby={instructionsId}
@@ -291,7 +347,7 @@ export function WorldMap({
           type="button"
           aria-label="Restablecer vista del mapa"
           className="rounded-md border border-slate-600 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-md transition-colors hover:border-cyan-400 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-          onClick={() => setViewport(defaultViewport)}
+          onClick={() => setViewport(getBaselineViewportForRegion(regionFilter))}
         >
           Reset
         </button>
@@ -340,14 +396,14 @@ export function WorldMap({
             transform: `translate(${viewport.offset[0]}px, ${viewport.offset[1]}px) scale(${viewport.zoom})`,
           }}
         >
-          <ComposableMap projectionConfig={{ scale: 147, center: [0, 0] }}>
+          <ComposableMap projectionConfig={projectionConfig}>
           {/* Regla: con `locked` se bloquea responder país, pero pan/zoom siguen habilitados para explorar el mapa. */}
           <Geographies geography={countriesTopologyUrl}>
             {({ geographies }) =>
               geographies.map((geo) => {
                 const iso2Clean =
                   resolveCountryClickFromTopologyProperties(geo.properties, geo.id) ?? undefined
-                const geoStyle = geographyStyleForIso(iso2Clean, mapFeedback, locked)
+                const geoStyle = geographyStyleForIso(iso2Clean, mapFeedback, locked, regionFilter)
 
                 return (
                   <Geography
@@ -400,4 +456,13 @@ export function WorldMap({
       </div>
     </div>
   )
+}
+
+/**
+ * MAP-UX-05: al cambiar `regionFilter` se remonta el estado de pan/zoom para que
+ * la vista CSS vuelva al “home” mientras la proyección encuadra el continente.
+ */
+export function WorldMap(props: WorldMapProps) {
+  const regionFilter = props.regionFilter ?? 'world'
+  return <WorldMapInner key={regionFilter} {...props} regionFilter={regionFilter} />
 }

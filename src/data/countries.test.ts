@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { countriesCatalog, type CountryRecord } from './countries'
+import { countriesCatalog, getContinentForIso2, type CountryRecord } from './countries'
 
 const VALID_CONTINENTS = new Set<CountryRecord['continent']>([
   'africa',
@@ -9,6 +9,18 @@ const VALID_CONTINENTS = new Set<CountryRecord['continent']>([
   'europe',
   'oceania',
 ])
+
+describe('getContinentForIso2', () => {
+  it('resuelve continente desde el catalogo', () => {
+    expect(getContinentForIso2('DE')).toBe('europe')
+    expect(getContinentForIso2('AR')).toBe('americas')
+  })
+
+  it('devuelve undefined para ISO desconocido', () => {
+    expect(getContinentForIso2('ZZ')).toBeUndefined()
+    expect(getContinentForIso2(undefined)).toBeUndefined()
+  })
+})
 
 describe('countriesCatalog', () => {
   it('tiene cobertura amplia respecto al MVP reducido', () => {
