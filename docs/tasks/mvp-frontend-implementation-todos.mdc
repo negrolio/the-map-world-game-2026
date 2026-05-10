@@ -211,25 +211,27 @@ Origen: [mvp_frontend_map_game_1b56bd4b.plan.mdc](../architecture/mvp_frontend_m
 
 ## Iteracion UX + Datos (nuevas tasks MAP-UX/DATA)
 
+**Estado:** cerrada (2026-05-10). Detalle por fase y cierre: [`docs/tasks/map-game-ux-and-data/00-ux-data-iteration-todo-list.md`](map-game-ux-and-data/00-ux-data-iteration-todo-list.md).
+
 Origen: `docs/tasks/map-game-ux-and-data/01-mapa-zoom-pan-contenedor.md`, `02-layout-partida-controles-visibles.md`, `03-hud-jugadores-intuitivo.md`, `04-catalogo-paises-completo.md`, `05-seleccion-continente-reactiva.md`.
 
-- [ ] **UXD.1 — MAP-UX-01: mapa con zoom/pan dentro de contenedor**
+- [x] **UXD.1 — MAP-UX-01: mapa con zoom/pan dentro de contenedor**
   - **Alcance (3-6 h):** zoom +/-, reset, pan dentro del contenedor; mantener selección de país correcta bajo transformación y comportamiento documentado con `locked`.
   - **Criterios de aceptacion:** no desborde en móvil/desktop típico; clics resuelven ISO2 esperado con zoom activo; controles con `aria-label`; tests de `WorldMap` actualizados.
 
-- [ ] **UXD.2 — MAP-UX-02: partida a pantalla completa con overlay mínimo**
+- [x] **UXD.2 — MAP-UX-02: partida a pantalla completa con overlay mínimo**
   - **Alcance (4-8 h):** mapa ocupa todo el viewport en `game`; UI superpuesta solo con lo indispensable (ronda, objetivo, turno, puntaje, zoom/reset, siguiente/setup/home, feedback breve); sin scroll de documento en partida; pan/zoom para exponer geografías bajo la UI.
   - **Criterios de aceptacion:** 375x667 y 1280x800 sin scroll de página por juego; controles accesibles; composición armoniosa; tests/e2e actualizados si cambian selectores o shell.
 
-- [ ] **UXD.3 — MAP-UX-03: HUD móvil más intuitivo**
+- [x] **UXD.3 — MAP-UX-03: HUD móvil más intuitivo**
   - **Alcance (2-4 h):** reemplazar/complementar `<details>` móvil para mostrar turno activo y estado de jugadores sin interacción extra; no degradar desktop.
   - **Criterios de aceptacion:** turno visible en `< md` sin expandir nada; usable hasta 6 jugadores; comportamiento de `roundAnswered` preservado.
 
-- [ ] **UXD.4 — DATA-01: catálogo completo de países**
+- [x] **UXD.4 — DATA-01: catálogo completo de países**
   - **Alcance (4-8 h):** ampliar `countriesCatalog` (>>10), documentar fuente/fecha, asegurar coherencia ISO2/ISO3/continente/capital y compatibilidad con resolución de clics del TopoJSON.
   - **Criterios de aceptacion:** `validateConfig` y `buildQuestionPool` funcionan con catálogo ampliado; tests no dependen de longitud fija; excepciones de resolubilidad documentadas.
 
-- [ ] **UXD.5 — MAP-UX-05: selección de continente reactiva en mapa**
+- [x] **UXD.5 — MAP-UX-05: selección de continente reactiva en mapa**
   - **Alcance (3-6 h):** para `region !== world`, resaltar continente activo, atenuar resto y hacer enfoque inicial del viewport con fallback; mantener zoom/pan/reset y consistencia con `locked/feedback`.
   - **Criterios de aceptacion:** diferencia visual world vs continente evidente; clicks fuera de región no generan ambigüedad; tests UI/props para estados de región.
 

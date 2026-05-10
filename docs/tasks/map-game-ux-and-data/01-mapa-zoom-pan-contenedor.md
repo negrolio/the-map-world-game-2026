@@ -33,7 +33,7 @@ Permitir **acercar/alejar** y **arrastrar** el mapa dentro de su contenedor fijo
 ## Criterios de aceptación
 
 - [x] En viewport típico (375px y 1280px), el mapa no desborda el contenedor; pan/zoom ocurre **solo** dentro de él.
-- [ ] Con zoom ≠ 100%, un clic en un país sigue disparando `onCountryClick` con el ISO2 esperado en casos de prueba manual (AR, BR, FR del dataset reducido o muestra acordada). *Cubierto en parte por tests; falta spot-check manual explícito en build.*
+- [x] Con zoom ≠ 100%, un clic en un país sigue disparando `onCountryClick` con el ISO2 esperado (cubierto por `WorldMap.test.tsx` y checklist manual § «Clic con zoom» en QA 2026-05-08).
 - [x] Con `answerLocked` / feedback activo, no se puede “jugar” de forma ambigua (clic bloqueado como hoy; pan/zoom puede permitirse o bloquearse, pero comportamiento documentado en el componente).
 - [x] Controles de zoom y reset tienen `aria-label` y foco visible.
 - [x] `npm run test` pasa con tests nuevos o actualizados para `WorldMap` / integración mínima.

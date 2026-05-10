@@ -1,16 +1,16 @@
 ---
 name: Plan UX Data Iteracion
-overview: Plan de ejecucion para implementar las 5 tasks nuevas de UX y datos del mapa sin mezclar con la TODO list general del MVP.
+overview: Plan de ejecucion para implementar las 5 tasks nuevas de UX y datos del mapa sin mezclar con la TODO list general del MVP. Iteracion cerrada 2026-05-10 (ver docs/tasks/map-game-ux-and-data/00-ux-data-iteration-todo-list.md).
 todos:
   - id: uxd-map-01
     content: Implementar MAP-UX-01 en WorldMap y validar click bajo transformaciones
-    status: pending
+    status: completed
   - id: uxd-layout-02
     content: Ajustar layout de partida para visibilidad de CTA sin scroll
-    status: pending
+    status: completed
   - id: uxd-hud-03
     content: Redisenar HUD movil para turno visible sin details
-    status: pending
+    status: completed
   - id: uxd-data-04
     content: Ampliar catalogo de paises y corregir tests dependientes
     status: completed
@@ -91,3 +91,8 @@ Implementar de forma incremental las tareas de UX y datos para mejorar jugabilid
 
 ## Entregable documental de esta fase
 Actualizar estado/checklist de cada task origen en `docs/tasks/map-game-ux-and-data/` conforme se complete cada implementacion, sin crear aun la TODO list separada.
+
+## Cierre (2026-05-10)
+- Checklist maestra y cierre CF.1/CF.2: [`docs/tasks/map-game-ux-and-data/00-ux-data-iteration-todo-list.md`](/Users/minecbook/Development/map-game/the-map-world-game-2026/docs/tasks/map-game-ux-and-data/00-ux-data-iteration-todo-list.md).
+- Resumen MVP frontend (bloque UXD): [`docs/tasks/mvp-frontend-implementation-todos.mdc`](/Users/minecbook/Development/map-game/the-map-world-game-2026/docs/tasks/mvp-frontend-implementation-todos.mdc).
+- Regresion: `npm run test` verde (94 tests).

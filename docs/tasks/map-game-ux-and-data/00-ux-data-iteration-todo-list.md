@@ -165,12 +165,18 @@ Regla de ejecucion: cada tarea esta pensada para completarse en **1-4 horas**.
 
 ## Cierre de iteracion (validacion final)
 
-- [ ] **CF.1 — Pasada integral de regresion funcional (1-2 h)**
+- [x] **CF.1 — Pasada integral de regresion funcional (1-2 h)**
   - **Criterios de aceptacion:**
     - Flujo setup -> juego -> resultado se mantiene operativo.
     - No aparecen regresiones criticas en mapa full-screen, overlay de partida o acciones principales.
 
-- [ ] **CF.2 — Actualizar estado en tasks fuente (1-2 h)**
+- [x] **CF.2 — Actualizar estado en tasks fuente (1-2 h)**
   - **Criterios de aceptacion:**
     - Cada archivo `01..05` refleja estado real de avance.
     - Quedan anotadas decisiones tecnicas clave y excepciones conocidas.
+
+### Cierre registrado (2026-05-10)
+
+- **Regresion automatizada:** `npm run test` — 94 tests en 18 archivos, verde.
+- **Documentacion sincronizada:** `mvp-frontend-implementation-todos.mdc` (bloque UXD), plan `.cursor/plans/plan_ux_data_iteracion_5f5e1e95.plan.md`, y criterios residuales en `01`/`02` alineados al estado actual (MAP-UX-03 y QA MAP-UX-01).
+- **Referencias tecnicas:** centrado regional y semantica de Reset — [notas-centrado-mapa-por-continente.md](notas-centrado-mapa-por-continente.md); fuente/versionado de catalogo — [04-catalogo-fuente-y-versionado.md](04-catalogo-fuente-y-versionado.md).

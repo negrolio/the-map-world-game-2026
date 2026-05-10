@@ -50,7 +50,7 @@ La **interacción con el mapa** (pan/zoom) compensa el hecho de que parte del te
 - [x] Son visibles de forma inmediata: **ronda**, **objetivo (país/capital)**, **turno**, **puntaje** (o resumen acordado), **Siguiente** / **resultado** cuando aplique, **Setup**, **Home**, controles **zoom ±** y **reset**, y **feedback** mínimo de acierto/error.
 - [x] La composición es **armoniosa** (alineación, contraste legible sobre mapa, safe-area).
 - [x] Con pan/zoom, el usuario puede **seleccionar un país** aunque inicialmente quede parcialmente bajo la UI (comportamiento verificable manualmente en 2–3 países).
-- [x] `GamePlayersHud` no obliga a expandir `<details>` para saber el turno **si** MAP-UX-03 ya está hecho; si MAP-UX-02 va sola, el turno debe leerse en el overlay mínimo o en el HUD sin empeorar el shell pantalla completa. *MAP-UX-02 va sola: el turno aparece como subtítulo en la banda superior (`data-testid="active-turn-player"`) cuando aún no hay respuesta; el HUD móvil mantiene `<details>` y se refina en MAP-UX-03 (Fase 3).*
+- [x] Turno legible en partida: subtítulo en banda superior (`data-testid="active-turn-player"`) cuando aún no hay respuesta; MAP-UX-03 completado — HUD móvil con lista compacta siempre visible (sin `<details>` obligatorio).
 - [x] Tests en `src/App.test.tsx` o e2e (`e2e/smoke.spec.ts`) actualizados si cambian `data-testid`, rutas visibles o jerarquía de foco.
 
 ## Orden sugerido
@@ -87,7 +87,7 @@ Después de **MAP-UX-01**; antes o en paralelo con **MAP-UX-03** según si el pu
   - `documentElement.scrollHeight - clientHeight ≤ 1` (sin scroll de documento),
   - ausencia del `data-testid="map-click-feedback"`.
 
-### Pendiente conocido
+### Pendiente conocido (post-iteracion)
 
-- **MAP-UX-03 (Fase 3)**: el HUD móvil usa lista compacta siempre visible (sin `<details>`). F2.3 sigue complementando con el subtítulo de turno en la banda superior. Revisar contraste y alineación en la banda inferior si se itera el layout.
 - **QA manual**: verificar en dispositivo físico iOS Safari que `100dvh` no deja hueco al colapsar/expandir la barra de URL; el fallback a `100vh` está disponible si hace falta retoque.
+- **Refinamiento opcional**: contraste y alineación en banda inferior del HUD si se itera el layout.
