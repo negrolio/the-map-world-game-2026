@@ -13,7 +13,7 @@ todos:
     status: pending
   - id: uxd-data-04
     content: Ampliar catalogo de paises y corregir tests dependientes
-    status: pending
+    status: completed
   - id: uxd-region-05
     content: Agregar reaccion visual por continente y enfoque inicial
     status: pending

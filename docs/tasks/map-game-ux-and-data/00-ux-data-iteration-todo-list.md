@@ -105,27 +105,27 @@ Regla de ejecucion: cada tarea esta pensada para completarse en **1-4 horas**.
 
 ## Fase 4 — DATA-01 (Catalogo completo de paises)
 
-- [ ] **F4.1 — Definir fuente y formato del catalogo ampliado (1-3 h)**
+- [x] **F4.1 — Definir fuente y formato del catalogo ampliado (1-3 h)**
   - **Criterios de aceptacion:**
     - Queda definida una fuente mantenible para datos de paises.
     - El formato respeta `iso2`, `iso3`, `name`, `continent`, `capital`.
 
-- [ ] **F4.2 — Reemplazar catalogo reducido por catalogo amplio (2-4 h)**
+- [x] **F4.2 — Reemplazar catalogo reducido por catalogo amplio (2-4 h)**
   - **Criterios de aceptacion:**
     - `countriesCatalog` pasa de lista reducida a cobertura amplia (>>10).
     - La app sigue compilando y cargando datos sin errores.
 
-- [ ] **F4.3 — Validar coherencia continente/region y normalizacion (1-3 h)**
+- [x] **F4.3 — Validar coherencia continente/region y normalizacion (1-3 h)**
   - **Criterios de aceptacion:**
     - No hay valores de continente fuera del conjunto esperado por `RegionFilter`.
     - Nombres/capitales mantienen consistencia de idioma y formato.
 
-- [ ] **F4.4 — Agregar validacion resolubilidad mapa<->catalogo (2-4 h)**
+- [x] **F4.4 — Agregar validacion resolubilidad mapa<->catalogo (2-4 h)**
   - **Criterios de aceptacion:**
     - Existe test o script que detecta paises no resolubles por TopoJSON.
     - Excepciones quedan documentadas en alias/exclusiones cuando aplique.
 
-- [ ] **F4.5 — Actualizar tests dependientes de longitud fija (1-3 h)**
+- [x] **F4.5 — Actualizar tests dependientes de longitud fija (1-3 h)**
   - **Criterios de aceptacion:**
     - Tests que asumian `length === 10` pasan a reglas derivadas/fixtures.
     - `validateConfig` y `buildQuestionPool` quedan verdes con el nuevo catalogo.

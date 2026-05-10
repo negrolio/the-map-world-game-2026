@@ -7,6 +7,8 @@
 | **Estimación** | 4–8 h (según fuente y validación) |
 | **Dependencias** | Coherencia con `world-atlas/countries-110m.json` y `resolveCountryClickFromTopologyProperties` |
 
+**Estado:** implementado (DATA-01). Detalle de fuentes, regeneración y excepciones: [`04-catalogo-fuente-y-versionado.md`](./04-catalogo-fuente-y-versionado.md).
+
 ## Objetivo
 
 Sustituir la lista fija de **10 países** en `src/data/countries.ts` por un **catálogo amplio** (idealmente todos los países jugables alineados al mapa 110m), manteniendo el contrato `CountryRecord`:
@@ -39,10 +41,10 @@ y el tipo `RegionFilter` para continentes.
 
 ## Criterios de aceptación
 
-- [ ] `countriesCatalog.length` refleja el conjunto acordado (>> 10; típicamente ~180+ soberanos según criterio).
-- [ ] `validateConfig` / `buildQuestionPool` funcionan con el nuevo tamaño; límites de preguntas en UI siguen correctos.
-- [ ] Al menos un test asegura que **ningún** país del pool de una partida “mundo” queda fuera de lo clicable en el mapa (muestra o propiedad invariante acordada).
-- [ ] `datasetVersion` o documentación equivalente actualizada si el dataset cambia.
+- [x] `countriesCatalog.length` refleja el conjunto acordado (>> 10; **173** soberanos/jugables alineados a `countries-110m` + REST Countries; excluye Antártida y geometrías no resolubles).
+- [x] `validateConfig` / `buildQuestionPool` funcionan con el nuevo tamaño; límites de preguntas en UI siguen correctos.
+- [x] Al menos un test asegura que **ningún** país del pool de una partida “mundo” queda fuera de lo clicable en el mapa (muestra o propiedad invariante acordada).
+- [x] `datasetVersion` o documentación equivalente actualizada si el dataset cambia.
 
 ## Riesgos
 
