@@ -29,43 +29,47 @@ export function GamePlayersHud({ session, roundAnswered }: GamePlayersHudProps) 
           ? `Turno actual: ${activePlayerName}.`
           : 'Ronda respondida. Esperando avance a la siguiente pregunta.'}
       </p>
-      <details className="mb-3 rounded-md border border-slate-700 bg-slate-950/40 md:hidden">
-        <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-slate-200">
-          Ver jugadores ({ordered.length})
-        </summary>
-        <div className="grid gap-2 border-t border-slate-700 px-3 py-2">
+      {/* MAP-UX-03: lista compacta siempre visible por debajo del breakpoint md (sin acordeon). Scroll local solo si hace falta. */}
+      <div
+        className="mb-3 max-h-[min(42vh,15rem)] overflow-y-auto rounded-md border border-slate-700 bg-slate-950/40 md:hidden"
+        role="list"
+        aria-label={`Lista de ${ordered.length} jugador${ordered.length === 1 ? '' : 'es'}`}
+      >
+        <div className="divide-y divide-slate-700/80 px-2 py-1">
           {ordered.map((player, index) => {
             const isTurn = activeId === player.id
             return (
               <div
                 key={`mobile-${player.id}`}
+                role="listitem"
                 data-testid={`player-hud-mobile-${player.id}`}
+                aria-current={isTurn ? 'true' : undefined}
                 className={[
-                  'rounded-lg border px-3 py-2 transition-colors',
-                  isTurn
-                    ? 'border-cyan-400/70 bg-cyan-400/10 ring-2 ring-cyan-400/50'
-                    : 'border-slate-700/80 bg-slate-950/40',
+                  'flex min-h-[2.75rem] items-center gap-2 py-1.5 transition-colors',
+                  isTurn ? 'bg-cyan-400/10 ring-1 ring-inset ring-cyan-400/40' : '',
                 ].join(' ')}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="truncate text-sm font-semibold text-slate-100" title={player.name}>
-                    {index + 1}. {player.name}
-                  </p>
-                  {isTurn ? (
-                    <span className="shrink-0 rounded bg-cyan-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase text-cyan-200">
-                      Turno
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-1 font-mono text-xs text-slate-400">
-                  <span className="text-cyan-200">{player.score}</span> pts · ✓ {player.correctAnswers} · ✗{' '}
-                  {player.wrongAnswers}
+                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-100" title={player.name}>
+                  <span className="text-slate-500">{index + 1}.</span> {player.name}
+                </p>
+                {isTurn ? (
+                  <span className="shrink-0 rounded bg-cyan-500/20 px-1.5 py-0.5 text-[10px] font-bold uppercase text-cyan-200">
+                    Turno
+                  </span>
+                ) : (
+                  <span className="w-12 shrink-0" aria-hidden />
+                )}
+                <p className="shrink-0 whitespace-nowrap font-mono text-[11px] leading-tight text-slate-400 sm:text-xs">
+                  <span className="text-cyan-200">{player.score}</span>
+                  <span className="text-slate-500">pts</span>
+                  <span className="text-slate-500">·</span>✓{player.correctAnswers}
+                  <span className="text-slate-500">·</span>✗{player.wrongAnswers}
                 </p>
               </div>
             )
           })}
         </div>
-      </details>
+      </div>
       <div className="hidden gap-3 pb-1 md:grid md:grid-cols-2 md:gap-3 lg:grid-cols-3">
         {ordered.map((player, index) => {
           const isTurn = activeId === player.id

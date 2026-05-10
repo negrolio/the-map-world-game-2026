@@ -1,9 +1,24 @@
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen, within } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import { App } from './App'
 
+/** Ancho de ventana inicial de jsdom (restaurar tras tests que cambian viewport). */
+const initialInnerWidth = window.innerWidth
+
+function setTestViewportWidth(width: number): void {
+  Object.defineProperty(window, 'innerWidth', { configurable: true, writable: true, value: width })
+  Object.defineProperty(window, 'outerWidth', { configurable: true, writable: true, value: width })
+}
+
+function restoreTestViewportWidth(): void {
+  setTestViewportWidth(initialInnerWidth)
+}
+
 describe('App', () => {
+  afterEach(() => {
+    restoreTestViewportWidth()
+  })
   it('renderiza el titulo principal', () => {
     render(<App />)
 
@@ -89,15 +104,31 @@ describe('App', () => {
     expect(prompt.textContent?.length).toBeGreaterThan(12)
   })
 
-  it('muestra HUD de jugadores y el turno activo en partida', () => {
+  it('muestra HUD de jugadores y el turno activo en partida (escritorio)', () => {
+    setTestViewportWidth(1200)
     render(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
 
     expect(screen.getByTestId('game-players-hud')).toBeInTheDocument()
-    expect(screen.getByTestId('player-hud-player-1')).toBeInTheDocument()
-    expect(screen.getByText(/Ver jugadores \(1\)/i)).toBeInTheDocument()
+    const desktopCard = screen.getByTestId('player-hud-player-1')
+    expect(desktopCard).toBeVisible()
+    expect(within(desktopCard).getByText('Turno')).toBeInTheDocument()
+    expect(screen.getByTestId('active-turn-player')).toHaveTextContent(/Jugador 1/i)
+    expect(screen.getByTestId('hud-active-player-announcement')).toHaveTextContent(/Turno actual/i)
+  })
+
+  it('muestra lista compacta de jugadores y turno en viewport estrecho (MAP-UX-03)', () => {
+    setTestViewportWidth(375)
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+
+    const mobileRow = screen.getByTestId('player-hud-mobile-player-1')
+    expect(mobileRow).toBeVisible()
+    expect(within(mobileRow).getByText('Turno')).toBeInTheDocument()
     expect(screen.getByTestId('active-turn-player')).toHaveTextContent(/Jugador 1/i)
     expect(screen.getByTestId('hud-active-player-announcement')).toHaveTextContent(/Turno actual/i)
   })

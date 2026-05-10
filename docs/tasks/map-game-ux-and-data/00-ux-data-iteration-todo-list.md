@@ -81,22 +81,22 @@ Regla de ejecucion: cada tarea esta pensada para completarse en **1-4 horas**.
 
 ## Fase 3 — MAP-UX-03 (HUD movil intuitivo)
 
-- [ ] **F3.1 — Reemplazar patron `<details>` movil por vista inmediata (2-4 h)**
+- [x] **F3.1 — Reemplazar patron `<details>` movil por vista inmediata (2-4 h)**
   - **Criterios de aceptacion:**
     - En `< md`, el turno activo se ve sin interaccion extra.
     - La solucion elegida mantiene legibilidad con hasta 6 jugadores.
 
-- [ ] **F3.2 — Mantener semantica de estado `roundAnswered` (1-2 h)**
+- [x] **F3.2 — Mantener semantica de estado `roundAnswered` (1-2 h)**
   - **Criterios de aceptacion:**
     - Cuando `roundAnswered` es `true`, no se muestra turno activo ambiguo.
     - El comportamiento visual coincide con la logica actual de juego.
 
-- [ ] **F3.3 — Conservar o migrar `data-testid` del HUD (1-2 h)**
+- [x] **F3.3 — Conservar o migrar `data-testid` del HUD (1-2 h)**
   - **Criterios de aceptacion:**
     - Los selectores de test existentes no quedan rotos sin reemplazo.
     - Cualquier cambio de testid queda reflejado en pruebas.
 
-- [ ] **F3.4 — Ajustar tests de HUD/App (1-3 h)**
+- [x] **F3.4 — Ajustar tests de HUD/App (1-3 h)**
   - **Criterios de aceptacion:**
     - Hay cobertura de visibilidad de turno activo en movil.
     - Suite de tests relevante permanece verde.

@@ -89,5 +89,5 @@ Después de **MAP-UX-01**; antes o en paralelo con **MAP-UX-03** según si el pu
 
 ### Pendiente conocido
 
-- **MAP-UX-03 (Fase 3)**: el HUD móvil sigue usando `<details>` para colapsar la lista. F2.3 cumple su parte con el subtítulo de turno en la banda superior. Cuando MAP-UX-03 reemplace `<details>`, conviene revisar contraste y alineación dentro de la banda inferior.
+- **MAP-UX-03 (Fase 3)**: el HUD móvil usa lista compacta siempre visible (sin `<details>`). F2.3 sigue complementando con el subtítulo de turno en la banda superior. Revisar contraste y alineación en la banda inferior si se itera el layout.
 - **QA manual**: verificar en dispositivo físico iOS Safari que `100dvh` no deja hueco al colapsar/expandir la barra de URL; el fallback a `100vh` está disponible si hace falta retoque.

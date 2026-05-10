@@ -9,7 +9,7 @@
 
 ## Objetivo
 
-Reducir fricción en **móvil**: el usuario no debe abrir un `<details>` para ver el estado de jugadores y el **turno actual** durante la partida. El HUD debe comunicar de un vistazo:
+Reducir fricción en **móvil**: el usuario no debe realizar un paso extra (p. ej. acordeón) para ver el estado de jugadores y el **turno actual** durante la partida. El HUD debe comunicar de un vistazo:
 
 - Quién tiene el turno (si la ronda no está respondida).
 - Puntos y contadores por jugador (al menos en vista compacta).
@@ -17,26 +17,23 @@ Reducir fricción en **móvil**: el usuario no debe abrir un `<details>` para ve
 
 ## Contexto en repo
 
-- `src/components/GamePlayersHud.tsx`: en `md:hidden` usa `<details>` (“Ver jugadores”); en `md+` grid de tarjetas.
+- `src/components/GamePlayersHud.tsx`: en `md:hidden` lista compacta siempre visible (scroll local si hace falta); en `md+` grid de tarjetas.
 - `src/App.tsx`: monta `<GamePlayersHud session={…} roundAnswered={…} />`.
 - Tras MAP-UX-02, el HUD puede integrarse **dentro del overlay** de la vista a pantalla completa; evitar listados que obliguen a scroll de documento o que tapen de forma fija el centro del mapa sin alternativa de pan.
 
 ## Alcance
 
-1. Sustituir o complementar el patrón `<details>` por una de:
-   - **Carrusel horizontal** con snap y 1 tarjeta visible + indicadores; o
-   - **Lista compacta** (1 línea por jugador) con icono/badge de turno; o
-   - **Barra superior** “Turno: Nombre” + mini puntajes.
+1. **Implementado:** lista compacta en `md:hidden` (1 fila por jugador, badge “Turno”, métricas; scroll local `max-h` si hace falta). Carrusel o barra superior quedan como alternativas documentadas si hiciera falta iterar.
 2. Mantener `aria-live` / anuncios para lectores de pantalla (`hud-active-player-announcement`).
-3. Conservar `data-testid` existentes o migrar con búsqueda en repo (`player-hud-*`, `game-players-hud`).
-4. No degradar desktop: el grid actual puede mantenerse o alinearse visualmente con el nuevo móvil.
+3. **`data-testid`:** `game-players-hud`, `hud-active-player-announcement`, `player-hud-{id}` (escritorio `md+`), `player-hud-mobile-{id}` (móvil `<md`).
+4. No degradar desktop: grid `md:grid` sin cambios de comportamiento.
 
 ## Criterios de aceptación
 
-- [ ] En viewport `< md`, el turno activo es **visible sin interacción extra** (sin abrir acordeón).
-- [ ] Hasta 6 jugadores: layout usable sin scroll vertical masivo dentro del HUD.
-- [ ] `roundAnswered === true`: no se resalta “en turno” hasta avanzar (comportamiento actual preservado).
-- [ ] Tests actualizados en `App.test.tsx` o test dedicado del HUD si existe.
+- [x] En viewport `< md`, el turno activo es **visible sin interacción extra** (sin abrir acordeón).
+- [x] Hasta 6 jugadores: layout usable sin scroll vertical masivo dentro del HUD (scroll local acotado si aplica).
+- [x] `roundAnswered === true`: no se resalta “en turno” hasta avanzar (comportamiento actual preservado).
+- [x] Tests en `App.test.tsx` (viewport ancho/estrecho) y `GamePlayersHud.test.tsx` (turno / `roundAnswered`).
 
 ## Fuera de alcance
 
