@@ -1,0 +1,97 @@
+---
+description: Estado actual post-MVP y punto de entrada para nuevas iteraciones
+alwaysApply: false
+---
+
+# Estado actual post-MVP — The Map World Game 2026
+
+**Estado de referencia:** 2026-05-10.
+
+Este documento es el punto de entrada para entender dónde está hoy la app y cómo avanzar sin mezclar definiciones cerradas del MVP con nuevas features.
+
+---
+
+## 1. Qué está cerrado
+
+El **MVP frontend base** está implementado y verificado según los documentos originales de producto:
+
+- [`01-prd-mvp-producto-y-requerimientos.mdc`](01-prd-mvp-producto-y-requerimientos.mdc): definición de producto MVP, RF/RNF y alcance.
+- [`02-prd-criterios-de-aceptacion.mdc`](02-prd-criterios-de-aceptacion.mdc): criterios de aceptación del MVP.
+- [`03-prd-riesgos-y-roadmap.mdc`](03-prd-riesgos-y-roadmap.mdc): riesgos y roadmap post-MVP inicial.
+- [`../architecture/mvp_frontend_map_game_1b56bd4b.plan.mdc`](../architecture/mvp_frontend_map_game_1b56bd4b.plan.mdc): plan de arquitectura e implementación del MVP frontend.
+- [`../tasks/mvp-frontend-implementation-todos.mdc`](../tasks/mvp-frontend-implementation-todos.mdc): checklist de ejecución MVP, evidencia y cierre.
+
+También está cerrada la iteración posterior **UX + Datos**:
+
+- [`../tasks/map-game-ux-and-data/00-ux-data-iteration-todo-list.md`](../tasks/map-game-ux-and-data/00-ux-data-iteration-todo-list.md): checklist y cierre de MAP-UX/DATA.
+- [`../../.cursor/plans/plan_ux_data_iteracion_5f5e1e95.plan.md`](../../.cursor/plans/plan_ux_data_iteracion_5f5e1e95.plan.md): plan operativo de esa iteración.
+
+Estos archivos quedan como **documentación histórica y trazabilidad**. No conviene seguir agregando nuevas fases o features dentro de ellos salvo correcciones de estado, links o aclaraciones de decisiones ya tomadas.
+
+---
+
+## 2. Qué existe hoy en la app
+
+La app ya cuenta con:
+
+- Setup de partida para 1–6 jugadores.
+- Modo país/capital.
+- Filtro mundo/continente.
+- Mapa interactivo con zoom, pan, reset, selección por país y reacción visual por continente.
+- Turnos locales, HUD responsive, puntaje, ranking y fin de partida.
+- Política anti-cheat normal/estricta.
+- Reinicio y nueva partida.
+- Catálogo de países ampliado, versionado y validado contra el mapa.
+- Tests unitarios Vitest y e2e Playwright para los flujos principales.
+
+Pendientes deliberados que siguen siendo opcionales desde el cierre MVP:
+
+- `BN.1`: `GameSessionRepository` + persistencia opcional con `sessionStorage`.
+- `BN.2`: pantalla about con dataset y licencias.
+
+---
+
+## 3. Cómo avanzar desde ahora
+
+Las nuevas features no deberían agregarse al plan MVP cerrado. El flujo recomendado es:
+
+1. Registrar ideas livianas en [`../tasks/ideas-features-backlog.md`](../tasks/ideas-features-backlog.md).
+2. Cuando una idea se decide trabajar, promoverla a una carpeta propia de iteración en `docs/tasks/<nombre-iteracion>/`.
+3. Crear dentro de esa carpeta una lista de tareas ejecutables, idealmente en bloques de 1–4 horas.
+4. Si la feature cambia una definición estable de producto, crear o actualizar un PRD post-MVP específico.
+5. Al cerrar la iteración, registrar evidencia, tests y links desde este documento si pasa a ser parte del estado actual.
+
+Estructura sugerida para una nueva iteración:
+
+```text
+docs/tasks/<nombre-iteracion>/
+  00-<nombre>-todo-list.md
+  01-<feature-o-problema>.md
+  02-<feature-o-problema>.md
+```
+
+---
+
+## 4. Próximas fuentes de trabajo
+
+El backlog actual de ideas vive en [`../tasks/ideas-features-backlog.md`](../tasks/ideas-features-backlog.md). Algunas líneas posibles para priorizar:
+
+- Correcciones mobile/touch del mapa.
+- Mejora del Home.
+- Claridad del CTA que abandona o reinicia una partida.
+- Persistencia local o remota de partidas/puntajes.
+- Tema claro/oscuro.
+- i18n.
+- Modo aprendizaje.
+
+Antes de implementar una de estas líneas, conviene convertirla en una iteración concreta con alcance, criterios de aceptación, riesgos y plan de test.
+
+---
+
+## 5. Regla de mantenimiento documental
+
+- **No borrar** documentos cerrados si tienen trazabilidad útil.
+- **No seguir extendiendo** el plan MVP como si fuera el plan vivo del producto.
+- **Sí crear** documentos nuevos para cambios post-MVP con alcance claro.
+- **Sí actualizar** índices y este estado actual cuando una iteración pase a estar cerrada.
+- **Sí modificar** PRDs existentes solo cuando cambie una definición de producto que sigue vigente.

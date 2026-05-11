@@ -3,6 +3,7 @@
 Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no** estén comprometidas en una iteración. El objetivo es no perder ideas y poder priorizarlas más adelante sin contaminar las tareas activas.
 
 > Este archivo **no** es una lista de tareas en ejecución. Cuando una idea se decide trabajar, se promueve a una task formal en su carpeta de iteración (por ejemplo `docs/tasks/<nombre-iteracion>/NN-...md`) y se marca aquí como **promovida**.
+> Punto de entrada post-MVP: [`docs/requirements/04-current-state-post-mvp.mdc`](../requirements/04-current-state-post-mvp.mdc).
 
 ## Cómo usarlo
 
@@ -25,6 +26,28 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
 ## Ideas pendientes
 
 <!-- Agregar nuevas entradas arriba de esta lista, las más recientes primero. -->
+
+- **Botón “Setup”: el label no comunica que se abandona la partida** — 2026-05-10
+  - Contexto / problema: al tocar el botón de setup durante una partida se navega a la pantalla de configuración y **se pierde el progreso** de la ronda en curso; el texto “Setup” suena a ajustes menores y no advierte que implica **salir / reiniciar flujo** de juego.
+  - Idea / dirección: renombrar o complementar el CTA (ej. “Nueva partida”, “Opciones y reinicio”, “Salir al menú de juego”) y/o pedir **confirmación** si hay partida activa; revisar `aria-label` y copy en mobile donde el espacio es corto.
+  - Impacto estimado: UX · medio.
+  - Esfuerzo estimado: bajo–medio (según si solo copy o también modal de confirmación).
+  - Notas: al promover, ubicar el componente del HUD que renderiza el botón y el handler que cambia `view` o estado de partida; alinear tono con el resto de la UI.
+  - Tener en cuenta que en docs/requirements/01-prd-mvp-producto-y-requerimientos.mdc se especifica este boton, al actualizar tmb actualizar ese PRD
+
+- **Vite: acceso desde dispositivo móvil real en red local** — 2026-05-10
+  - Contexto / problema: al levantar el dev server en la máquina de desarrollo, por defecto suele escuchar solo en `localhost`, así que no se puede abrir la URL desde un teléfono o tablet en la misma Wi‑Fi para probar touch, viewport y rendimiento reales.
+  - Idea / dirección: configurar `vite.config` (`server.host` en `true` o `0.0.0.0`, y si hace falta `strictPort` / `port` documentado) para exponer el servidor en la LAN; documentar en README la URL tipo `http://<IP-local>:<puerto>` y recordar firewall / HTTPS mixto si aplica.
+  - Impacto estimado: infra / DX · bajo.
+  - Esfuerzo estimado: bajo.
+  - Notas: no comprometer seguridad en producción (solo dev). Si Vite avisa de `allowedHosts`, ajustar según versión del proyecto.
+
+- **Mapa en mobile: pan y zoom no funcionan** — 2026-05-10
+  - Contexto / problema: en dispositivos táctiles, el arrastre (pan) y el zoom del mapa no responden como en desktop; la partida en mobile queda degradada o bloqueada para explorar el mapa.
+  - Idea / dirección: auditar handlers de puntero vs touch (`pointerdown`/`touch-action`, `preventDefault` en listeners pasivos, conflicto con scroll del contenedor), pinch-zoom y coherencia con el viewport del mapa (`WorldMap`, baseline de viewport). Probar en iOS Safari y Chrome Android tras habilitar acceso LAN (ver tarea relacionada de Vite arriba).
+  - Impacto estimado: UX · alto.
+  - Esfuerzo estimado: medio.
+  - Notas: enlaza con **Pan del mapa: curva de movimiento poco natural al arrastrar** (misma zona de código); esta entrada se centra en **funcionalidad rota en touch**, no solo en la sensación del movimiento.
 
 - **Actualizar el Home** — 2026-05-10
   - Contexto / problema: la pantalla de Home actual quedó atrás respecto a la evolución del juego (modos, catálogo ampliado, partida full-screen, etc.) y conviene refrescarla para reflejar mejor el producto y guiar al jugador nuevo.

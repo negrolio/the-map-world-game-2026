@@ -5,6 +5,8 @@ alwaysApply: false
 
 # PRDs - The Map World Game 2026
 
+Punto de entrada recomendado para trabajo nuevo: `04-current-state-post-mvp.mdc`.
+
 Documentos disponibles:
 
 1. `01-prd-mvp-producto-y-requerimientos.mdc`
@@ -20,3 +22,8 @@ Documentos disponibles:
 3. `03-prd-riesgos-y-roadmap.mdc`
    - Riesgos y mitigaciones
    - Roadmap sugerido post-MVP
+
+4. `04-current-state-post-mvp.mdc`
+   - Estado actual de la app
+   - Documentos MVP/UX-Datos cerrados
+   - Estrategia para nuevas iteraciones y features

@@ -37,9 +37,11 @@ isProject: false
 
 # Plan de implementación MVP — The Map World Game 2026 (frontend)
 
+> **Documento cerrado:** este plan describe la construcción del MVP frontend y queda como trazabilidad histórica. Para trabajo nuevo post-MVP, partir de [`docs/requirements/04-current-state-post-mvp.mdc`](../requirements/04-current-state-post-mvp.mdc).
+
 ## Fuentes y trazabilidad
 
-- **Canónico:** [docs/requirements/00-prd-index.mdc](the-map-world-game-2026/docs/requirements/00-prd-index.mdc) apunta a [01-prd-mvp-producto-y-requerimientos.mdc](the-map-world-game-2026/docs/requirements/01-prd-mvp-producto-y-requerimientos.mdc) (RF/RNF), [02-prd-criterios-de-aceptacion.mdc](the-map-world-game-2026/docs/requirements/02-prd-criterios-de-aceptacion.mdc) y [03-prd-riesgos-y-roadmap.mdc](the-map-world-game-2026/docs/requirements/03-prd-riesgos-y-roadmap.mdc) como complementarios.
+- **Canónico:** [docs/requirements/00-prd-index.mdc](the-map-world-game-2026/docs/requirements/00-prd-index.mdc) apunta a [01-prd-mvp-producto-y-requerimientos.mdc](the-map-world-game-2026/docs/requirements/01-prd-mvp-producto-y-requerimientos.mdc) (RF/RNF), [02-prd-criterios-de-aceptacion.mdc](the-map-world-game-2026/docs/requirements/02-prd-criterios-de-aceptacion.mdc), [03-prd-riesgos-y-roadmap.mdc](the-map-world-game-2026/docs/requirements/03-prd-riesgos-y-roadmap.mdc) y [04-current-state-post-mvp.mdc](../requirements/04-current-state-post-mvp.mdc) como entrada viva post-MVP.
 - **Convenciones repo:** [the-map-world-game-2026/.cursor/rules/core.mdc](the-map-world-game-2026/.cursor/rules/core.mdc) (React 19.x, TS estricto, Vitest, Playwright, Tailwind; features + `src/services/` + `src/types/`).
 - **Estado del código (2026-05-10):** el frontend MVP está implementado en este repo (`src/features`, `src/services`, mapa TopoJSON, tests Vitest y e2e Playwright). Criterios de cierre y evidencia: [docs/tasks/mvp-frontend-implementation-todos.mdc](../tasks/mvp-frontend-implementation-todos.mdc). Quedan **solo tareas P2 opcionales** del plan (p. ej. `GameSessionRepository` + `sessionStorage`, pantalla *about* de dataset/licencias).
 
