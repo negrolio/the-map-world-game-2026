@@ -1,0 +1,38 @@
+/* Local font faces. Bundled via Vite asset processing so URLs respect the
+   configured base path and avoid third-party requests at runtime. */
+
+@font-face {
+  font-family: 'Lilita One';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/lilita-one-400.woff2') format('woff2');
+}
+
+/* Nunito is shipped as a single variable woff2 covering the weight axis we
+   actually use (400 / 600 / 700). Declaring multiple @font-face entries that
+   point to the same file lets the browser pick the right weight without
+   downloading anything extra. */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./fonts/nunito-variable.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('./fonts/nunito-variable.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./fonts/nunito-variable.woff2') format('woff2');
+}

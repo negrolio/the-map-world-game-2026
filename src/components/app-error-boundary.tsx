@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
 
 import { logAppEvent } from '../services/app-log'
+import { ChunkyButton, Panel } from './ui'
 
 type AppErrorBoundaryProps = {
   readonly children: ReactNode
@@ -42,21 +43,25 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
   override render(): ReactNode {
     if (this.state.hasError) {
       return (
-        <main className="flex min-h-screen flex-col items-center justify-center bg-slate-950 px-6 text-center text-slate-100">
-          <h1 className="mb-2 text-xl font-semibold">Algo salió mal</h1>
-          <p className="mb-6 max-w-md text-sm text-slate-300">
-            La aplicación encontró un error inesperado. Podés recargar la página para volver a
-            intentar.
-          </p>
-          <button
-            type="button"
-            className="rounded-lg border border-cyan-500/50 bg-cyan-500/10 px-4 py-2 text-sm font-medium text-cyan-200 transition-colors hover:border-cyan-400 hover:bg-cyan-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
-            onClick={() => {
-              window.location.reload()
-            }}
-          >
-            Recargar página
-          </button>
+        <main className="flex min-h-screen flex-col items-center justify-center bg-paper px-6 text-center text-ink">
+          <Panel tone="paper" padding="lg" className="w-full max-w-md">
+            <h1 className="mb-2 font-display text-2xl uppercase tracking-tight text-wood-dark">
+              Algo salió mal
+            </h1>
+            <p className="mb-6 max-w-md font-body text-sm text-ink-soft">
+              La aplicación encontró un error inesperado. Podés recargar la página para volver a
+              intentar.
+            </p>
+            <ChunkyButton
+              type="button"
+              tone="primary"
+              onClick={() => {
+                window.location.reload()
+              }}
+            >
+              Recargar página
+            </ChunkyButton>
+          </Panel>
         </main>
       )
     }

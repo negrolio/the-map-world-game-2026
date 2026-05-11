@@ -143,8 +143,10 @@ describe('WorldMap', () => {
     render(<WorldMap regionFilter="europe" />)
     expect(screen.getByTestId('world-map-root')).toHaveAttribute('data-region-filter', 'europe')
 
-    expect(screen.getByTestId('geo-de')).toHaveStyle({ fill: 'rgb(100, 116, 139)' })
-    expect(screen.getByTestId('geo-ar')).toHaveStyle({ fill: 'rgb(2, 6, 23)' })
+    // MAP_ACTIVE_CONTINENT_PALETTE.default.fill = '#d4bf95'
+    expect(screen.getByTestId('geo-de')).toHaveStyle({ fill: 'rgb(212, 191, 149)' })
+    // MAP_OUT_OF_REGION_PALETTE.default.fill = '#3a2412'
+    expect(screen.getByTestId('geo-ar')).toHaveStyle({ fill: 'rgb(58, 36, 18)' })
   })
 
   it('prioriza estilos de mapFeedback sobre el dimming regional', () => {
@@ -159,8 +161,10 @@ describe('WorldMap', () => {
       />,
     )
 
-    expect(screen.getByTestId('geo-de')).toHaveStyle({ fill: 'rgb(217, 119, 6)' })
-    expect(screen.getByTestId('geo-ar')).toHaveStyle({ fill: 'rgb(2, 6, 23)' })
+    // MAP_REVEALED_TARGET_PALETTE.default.fill = '#fdd835'
+    expect(screen.getByTestId('geo-de')).toHaveStyle({ fill: 'rgb(253, 216, 53)' })
+    // MAP_OUT_OF_REGION_PALETTE.default.fill = '#3a2412'
+    expect(screen.getByTestId('geo-ar')).toHaveStyle({ fill: 'rgb(58, 36, 18)' })
   })
 
   it('al cambiar regionFilter centra la proyeccion en el continente y deja pan/zoom en home', () => {

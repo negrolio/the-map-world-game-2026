@@ -1,0 +1,298 @@
+---
+description: PRD post-MVP para rediseño visual integral y brief de diseño
+alwaysApply: false
+---
+
+# PRD - Rediseño visual integral (Brief de diseño)
+
+## 1. Resumen
+
+Esta feature redefine la identidad gráfica completa de `The Map World Game 2026` sin cambiar las reglas centrales del juego. El objetivo es pasar de una UI funcional, oscura y utilitaria a una dirección visual propia de juego de aventura casual: mapa, exploración, pergamino, madera, botones físicos y componentes con más personalidad.
+
+La referencia visual analizada apunta a un estilo **playful / adventure / casual RPG / rústico**, con paneles tipo pergamino, fondos de madera, bordes gruesos, sombras sólidas tipo `chunky 3D`, acentos vivos y tipografías expresivas para títulos. La implementación debe adaptar esa dirección a una app web responsive, accesible y mantenible, no copiar literalmente la imagen.
+
+## 2. Contexto
+
+El MVP y la iteración UX + Datos ya dejaron la app con flujo jugable completo:
+
+- Home.
+- Setup de partida.
+- Mapa interactivo full-screen.
+- HUD de jugadores.
+- Feedback de acierto/error.
+- Resultados/ranking.
+- Anti-cheat normal/estricto.
+
+La UI actual resuelve estructura y usabilidad base, pero todavía se siente como una interfaz técnica con Tailwind genérico (`slate`, `cyan`, paneles oscuros). Esta feature busca convertir esa base en una experiencia con identidad visual consistente y memorable.
+
+## 3. Objetivos
+
+- Definir una dirección gráfica completa y aplicable a toda la app.
+- Crear una identidad visual de juego de aventura geográfica, no solo cambiar colores.
+- Unificar botones, inputs, cards, HUD, overlays, badges, mensajes y resultados bajo un mismo sistema.
+- Hacer que el mapa siga siendo protagonista, con UI superpuesta que parezca parte del mundo del juego.
+- Mantener accesibilidad, legibilidad, responsive design y performance.
+- Dejar tokens y componentes preparados para futuras features como tema claro/oscuro, modo aprendizaje o ranking.
+
+## 4. No objetivos
+
+- No cambiar reglas de juego, scoring, turnos, dataset ni lógica anti-cheat.
+- No agregar backend, persistencia, ranking global ni nuevos modos.
+- No copiar assets, íconos, personajes, marcas o formas exactas de la imagen de referencia.
+- No depender de texturas fotorrealistas pesadas.
+- No usar fuentes decorativas en textos largos o mensajes críticos.
+- No priorizar ornamento visual por encima de claridad, foco y feedback.
+
+## 5. Usuarios y necesidad
+
+### Usuario principal
+
+Jugador casual o educativo que entra a una partida local y espera una experiencia clara, rápida y entretenida.
+
+### Necesidad
+
+La app debe comunicar desde el primer pantallazo que es un juego de geografía con tono aventurero. La interfaz debe ayudar a entender qué hacer, quién juega, qué país/capital se busca, qué pasó luego de responder y cómo terminó la partida.
+
+## 6. Dirección visual
+
+### Tono
+
+- Aventura casual.
+- Fantasía ligera.
+- Exploración cartográfica.
+- Rústico y cálido, sin verse anticuado.
+- Divertido, pero no infantil ni saturado.
+
+### Metáfora visual
+
+- El mapa es el tablero/mundo.
+- Los paneles son pergaminos o placas sobre madera.
+- Los botones son piezas físicas con volumen.
+- Los estados de juego se expresan con señales claras: éxito, error, advertencia, información y turno activo.
+
+## 7. Sistema visual propuesto
+
+### Paleta base
+
+- **Madera profunda:** `#2D1E0F` para bordes, sombras sólidas y fondos oscuros.
+- **Madera media:** `#4A3219` para superficies oscuras, contenedores exteriores y texto principal sobre pergamino.
+- **Pergamino principal:** `#F4E4BC` para cards, paneles e interiores de formularios.
+- **Pergamino sombreado:** `#E3CBA8` para superficies secundarias, bloques internos y estados neutros.
+- **Tinta:** `#3A2412` para texto principal sobre superficies claras.
+- **Texto claro:** `#FFF8E7` para texto sobre madera o botones oscuros.
+
+### Acentos
+
+- **Rojo acción / peligro:** `#D94C38`.
+- **Verde éxito:** `#7CB342`.
+- **Azul información / agua / mapa:** `#29B6F6`.
+- **Dorado advertencia / recompensa:** `#FDD835`.
+- **Morado especial:** `#8E24AA`.
+
+### Tipografía
+
+- **Títulos:** fuente display redondeada, gruesa y con personalidad. Alternativas web: `Lilita One`, `Luckiest Guy`, `Bangers` o `Fredoka`.
+- **Cuerpo/UI:** sans legible y amable. Alternativas web: `Nunito`, `Quicksand`, `Inter` o fallback `system-ui`.
+- **Números/puntaje:** puede usarse la fuente de cuerpo con peso alto; evitar monospace salvo que aporte lectura técnica clara.
+
+Regla de uso: la fuente display queda reservada para títulos, CTAs principales, badges cortos y números destacados. Formularios, mensajes de error, instrucciones, anti-cheat y ranking deben priorizar legibilidad.
+
+### Bordes y radios
+
+- Bordes principales entre `2px` y `4px`.
+- Color de borde principal: madera profunda o una variante oscura del color del componente.
+- Radio pequeño en controles: `8px`.
+- Radio medio en botones/cards: `12px`.
+- Radio grande en paneles principales: `16px` a `20px`.
+- Evitar bordes rasgados complejos; sugerir pergamino con color, borde, sombra e ilustración sutil si hace falta.
+
+### Sombras y profundidad
+
+- Usar sombras sólidas desplazadas hacia abajo para botones y paneles (`0 4px 0 #2D1E0F` o similar).
+- Evitar blur excesivo y glassmorphism como estilo principal.
+- En interacción `active`, el botón debe bajar visualmente y reducir/quitar la sombra para simular presión.
+- Los paneles principales pueden tener una capa exterior madera + interior pergamino.
+
+### Texturas
+
+- Priorizar colores planos y patrones sutiles.
+- Si se usan texturas, deben ser livianas, repetibles y no afectar contraste.
+- No bloquear el primer release del rediseño por ilustraciones complejas.
+
+## 8. Alcance funcional
+
+### Home
+
+- Reemplazar el aspecto técnico actual por una portada de juego.
+- Comunicar el nombre del juego, la promesa principal y el CTA de inicio.
+- Mostrar el estado/dataset solo como información secundaria, no como protagonista.
+- Preparar el layout para futuras entradas como modo aprendizaje o ranking, sin implementarlas.
+
+### Setup de partida
+
+- Convertir el formulario en un panel de configuración tipo pergamino.
+- Mantener validaciones en tiempo real y mensajes accesibles.
+- Reestilizar inputs, selects, radios y bloques informativos.
+- Hacer que la configuración se sienta como preparar una expedición/partida, sin esconder los datos importantes.
+
+### Partida en mapa
+
+- Mantener el mapa full-screen y edge-to-edge como superficie principal.
+- Reestilizar bandas superior e inferior como overlays del mundo del juego.
+- Reestilizar pregunta activa, turno, feedback y navegación.
+- Evitar que los overlays tapen interacción crítica del mapa, especialmente en mobile.
+
+### HUD de jugadores
+
+- Reconvertir cada jugador en ficha o placa legible.
+- Destacar turno activo con color, borde y/o badge claro.
+- Mantener soporte para hasta 6 jugadores en desktop y mobile.
+- Preservar anuncios `aria-live` y estado accesible.
+
+### Mapa y controles
+
+- Reestilizar controles de zoom/reset como botones del sistema visual.
+- Mantener área táctil suficiente.
+- Mantener foco visible y etiquetas accesibles.
+- Evaluar colores del mapa para que convivan con la paleta cálida sin perder diferenciación de país seleccionado, país correcto, error y continente activo.
+
+### Resultados
+
+- Convertir el ranking en una pantalla de cierre con sensación de recompensa.
+- Destacar ganador, puntajes, precisión e incidentes anti-cheat.
+- Reestilizar CTAs de rejugar, nueva partida e ir al home.
+- Mantener claridad sobre partida finalizada vs abortada.
+
+### Estados y feedback
+
+- Éxito: verde, mensaje corto y refuerzo visual.
+- Error: rojo, mensaje claro y empático.
+- Advertencia: dorado/ámbar, especialmente para anti-cheat o límites.
+- Información: azul, para datos del mapa/setup.
+- Estados deshabilitados: baja saturación, pero contraste suficiente.
+
+## 9. Requerimientos funcionales
+
+### RF-01 - Tokens visuales
+
+La app debe contar con tokens centralizados para colores, tipografía, radios, sombras y estados principales.
+
+### RF-02 - Componentes base
+
+Los componentes reutilizables deben cubrir al menos:
+
+- botón primario/secundario/peligro;
+- panel/card;
+- badge/label;
+- campo de formulario;
+- bloque de alerta/status;
+- placa de jugador;
+- contenedor de overlay.
+
+### RF-03 - Rediseño de superficies existentes
+
+Home, setup, partida, HUD, controles de mapa, resultados y error boundary deben usar el nuevo sistema visual.
+
+### RF-04 - Estados interactivos
+
+Hover, active, disabled, focus-visible, selected, correct, incorrect y warning deben tener tratamiento visual consistente.
+
+### RF-05 - Responsividad
+
+El rediseño debe funcionar en desktop, tablet y mobile sin perder controles principales ni bloquear interacción con el mapa.
+
+### RF-06 - Accesibilidad
+
+La nueva identidad visual debe preservar o mejorar:
+
+- contraste mínimo de texto;
+- foco visible;
+- nombres accesibles de controles;
+- `aria-live` en mensajes dinámicos;
+- navegación por teclado en setup, mapa y resultados.
+
+### RF-07 - Compatibilidad con tests actuales
+
+El rediseño no debe romper tests de flujo por cambios innecesarios en labels, roles o `data-testid`. Si se decide cambiar copy, debe actualizarse el test por una razón de producto clara.
+
+## 10. Requerimientos no funcionales
+
+- **Performance:** la UI debe seguir fluida durante pan/zoom del mapa; evitar texturas pesadas, SVGs decorativos costosos o animaciones permanentes.
+- **Mantenibilidad:** evitar repetir cadenas largas de clases Tailwind si se puede consolidar en componentes o helpers existentes.
+- **Escalabilidad:** los tokens deben permitir sumar variantes futuras sin reescribir toda la app.
+- **Consistencia:** no mezclar la paleta nueva con el estilo `slate/cyan` anterior salvo durante migración puntual.
+- **Privacidad:** no introducir tracking ni logs nuevos con datos personales.
+
+## 11. Criterios de aceptación
+
+1. La app completa comunica una identidad visual consistente de aventura cartográfica.
+2. Home, setup, partida, HUD, mapa, resultados y error boundary ya no dependen del estilo oscuro genérico anterior como lenguaje principal.
+3. Los botones tienen estilo físico/chunky con estados hover, active, disabled y focus-visible.
+4. Los paneles principales usan metáfora pergamino/madera sin sacrificar legibilidad.
+5. La pantalla de partida mantiene el mapa como protagonista y conserva interacción directa con países, pan y zoom.
+6. El HUD sigue mostrando hasta 6 jugadores con puntaje, aciertos, errores y turno activo.
+7. Los mensajes de éxito, error, advertencia e información son distinguibles por color y texto, no solo por color.
+8. La UI cumple contraste suficiente en textos principales, formularios y CTAs.
+9. Los flujos e2e existentes de setup -> juego -> resultados siguen pasando o se actualizan por cambios de copy intencionales.
+10. El rediseño no introduce dependencias nuevas sin decisión explícita.
+
+## 12. Riesgos y mitigaciones
+
+- **Riesgo: exceso de ornamento que tape el mapa.** Mitigación: overlays compactos, pruebas mobile y prioridad al área interactiva.
+- **Riesgo: fuentes display ilegibles.** Mitigación: usarlas solo en títulos cortos y mantener cuerpo con fuente legible.
+- **Riesgo: contraste insuficiente sobre pergamino.** Mitigación: validar combinaciones de texto/tokens antes de migrar superficies.
+- **Riesgo: performance por texturas/animaciones.** Mitigación: primer release con colores planos, sombras sólidas y patrones mínimos.
+- **Riesgo: inconsistencia durante migración.** Mitigación: migrar por superficies completas y mantener checklist visual.
+- **Riesgo: romper tests por cambios visuales.** Mitigación: conservar roles, labels críticos y `data-testid` salvo decisión documentada.
+
+## 13. Decisiones abiertas
+
+- Elegir fuente final de títulos y fuente final de cuerpo.
+- Decidir si se importarán fuentes externas o si se usará fallback local/sistema.
+- Definir si habrá assets propios mínimos: textura sutil de pergamino, patrón de madera, íconos o ribbons.
+- Definir si el rediseño reemplaza por completo el futuro tema claro/oscuro o si se prepara desde el inicio como sistema tematizable.
+- Decidir si el mapa cambia su paleta geográfica en esta misma iteración o en una fase posterior.
+
+## 14. Plan de entrega sugerido
+
+### Fase 1 - Fundaciones
+
+- Definir tokens visuales.
+- Crear/adaptar componentes base.
+- Validar contraste y estados.
+
+### Fase 2 - Superficies fuera de partida
+
+- Rediseñar Home.
+- Rediseñar Setup.
+- Rediseñar Resultados.
+- Rediseñar error boundary.
+
+### Fase 3 - Partida y mapa
+
+- Rediseñar overlays.
+- Rediseñar HUD.
+- Rediseñar controles de mapa.
+- Ajustar feedback visual de países, respuesta correcta/incorrecta y continente activo.
+
+### Fase 4 - Verificación
+
+- Ejecutar tests unitarios/e2e relevantes.
+- Probar mobile/touch.
+- Revisar accesibilidad básica.
+- Registrar evidencia visual antes/después.
+
+## 15. Métricas de éxito
+
+- El usuario entiende en menos de un primer pantallazo que está entrando a un juego de aventura geográfica.
+- El CTA principal de inicio es claro y visualmente dominante.
+- El jugador puede completar una partida sin confusión causada por el rediseño.
+- No hay regresiones conocidas en setup, selección de país, avance de ronda o resultados.
+- La UI se percibe consistente entre Home, Setup, Game y Results.
+
+## 16. Relación con documentos existentes
+
+- Este PRD es post-MVP y no reemplaza el PRD MVP original.
+- El estado actual de referencia sigue siendo `04-current-state-post-mvp.mdc`.
+- Cuando se decida implementar, conviene crear una iteración propia en `docs/tasks/rediseno-visual-integral/`.
+- Si durante implementación cambia comportamiento de producto, actualizar este PRD antes de cerrar la iteración.

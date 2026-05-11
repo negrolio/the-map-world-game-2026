@@ -8,11 +8,20 @@ import { getContinentForIso2 } from '../data/countries'
 import { resolveCountryClickFromTopologyProperties } from '../services/topology-country-click'
 import type { IsoCountryCode, RegionFilter } from '../types'
 
+import { ChunkyButton } from './ui'
 import {
   getBaselineViewportForRegion,
   getProjectionConfigForRegion,
   type WorldMapBaselineViewport,
 } from './world-map-baseline-viewport'
+import {
+  MAP_ACTIVE_CONTINENT_PALETTE,
+  MAP_CORRECT_TARGET_PALETTE,
+  MAP_DEFAULT_PALETTE,
+  MAP_OUT_OF_REGION_PALETTE,
+  MAP_REVEALED_TARGET_PALETTE,
+  MAP_WRONG_SELECTION_PALETTE,
+} from './world-map-palette'
 
 export interface MapAnswerFeedback {
   readonly selectedIso2: IsoCountryCode
@@ -83,52 +92,25 @@ function applyZoomAroundPoint(
   }
 }
 
-const defaultStyle = {
-  default: { fill: '#334155', stroke: '#1e293b', strokeWidth: 0.4, outline: 'none' as const },
-  hover: { fill: '#475569', stroke: '#0f172a', strokeWidth: 0.4, outline: 'none' as const },
-  pressed: { fill: '#64748b', outline: 'none' as const },
+type GeographyCssStyle = {
+  readonly default: { readonly fill: string; readonly stroke: string; readonly strokeWidth: number; readonly outline: 'none' }
+  readonly hover: { readonly fill: string; readonly stroke: string; readonly strokeWidth: number; readonly outline: 'none' }
+  readonly pressed: { readonly fill: string; readonly outline: 'none' }
 }
 
-/** MAP-UX-05: continente elegido más legible que el mapa mundial base. */
-function inActiveContinentStyle(interactionLocked: boolean): typeof defaultStyle {
-  const active = {
-    default: {
-      fill: '#64748b',
-      stroke: '#334155',
-      strokeWidth: 0.55,
-      outline: 'none' as const,
-    },
-    hover: {
-      fill: '#94a3b8',
-      stroke: '#1e293b',
-      strokeWidth: 0.55,
-      outline: 'none' as const,
-    },
-    pressed: { fill: '#64748b', outline: 'none' as const },
-  }
+function toGeographyStyle(
+  palette: {
+    readonly default: { readonly fill: string; readonly stroke: string; readonly strokeWidth: number }
+    readonly hover: { readonly fill: string; readonly stroke: string; readonly strokeWidth: number }
+    readonly pressed: { readonly fill: string }
+  },
+  interactionLocked: boolean,
+): GeographyCssStyle {
+  const hover = interactionLocked ? palette.default : palette.hover
   return {
-    ...active,
-    hover: interactionLocked ? active.default : active.hover,
-  }
-}
-
-function outOfActiveRegionStyle(interactionLocked: boolean): typeof defaultStyle {
-  const dimmedDefault = {
-    fill: '#020617',
-    stroke: '#020617',
-    strokeWidth: 0.2,
-    outline: 'none' as const,
-  }
-  const dimmedHover = {
-    fill: '#0f172a',
-    stroke: '#0f172a',
-    strokeWidth: 0.22,
-    outline: 'none' as const,
-  }
-  return {
-    default: dimmedDefault,
-    hover: interactionLocked ? dimmedDefault : dimmedHover,
-    pressed: { fill: '#020617', outline: 'none' as const },
+    default: { ...palette.default, outline: 'none' },
+    hover: { ...hover, outline: 'none' },
+    pressed: { ...palette.pressed, outline: 'none' },
   }
 }
 
@@ -138,32 +120,20 @@ function geographyStyleForIso(
   mapFeedback: MapAnswerFeedback | null | undefined,
   interactionLocked: boolean,
   regionFilter: RegionFilter,
-): typeof defaultStyle {
+): GeographyCssStyle {
   if (iso2 && mapFeedback) {
     const { selectedIso2, targetIso2, isCorrect } = mapFeedback
 
     if (isCorrect && iso2 === targetIso2) {
-      return {
-        default: { fill: '#059669', stroke: '#064e3b', strokeWidth: 0.65, outline: 'none' },
-        hover: { fill: '#10b981', stroke: '#064e3b', strokeWidth: 0.65, outline: 'none' },
-        pressed: defaultStyle.pressed,
-      }
+      return toGeographyStyle(MAP_CORRECT_TARGET_PALETTE, interactionLocked)
     }
 
     if (!isCorrect) {
       if (iso2 === selectedIso2) {
-        return {
-          default: { fill: '#be123c', stroke: '#881337', strokeWidth: 0.65, outline: 'none' },
-          hover: { fill: '#e11d48', stroke: '#881337', strokeWidth: 0.65, outline: 'none' },
-          pressed: defaultStyle.pressed,
-        }
+        return toGeographyStyle(MAP_WRONG_SELECTION_PALETTE, interactionLocked)
       }
       if (iso2 === targetIso2) {
-        return {
-          default: { fill: '#d97706', stroke: '#92400e', strokeWidth: 0.65, outline: 'none' },
-          hover: { fill: '#f59e0b', stroke: '#92400e', strokeWidth: 0.65, outline: 'none' },
-          pressed: defaultStyle.pressed,
-        }
+        return toGeographyStyle(MAP_REVEALED_TARGET_PALETTE, interactionLocked)
       }
     }
   }
@@ -171,15 +141,12 @@ function geographyStyleForIso(
   if (regionFilter !== 'world') {
     const continent = getContinentForIso2(iso2)
     if (!continent || continent !== regionFilter) {
-      return outOfActiveRegionStyle(interactionLocked)
+      return toGeographyStyle(MAP_OUT_OF_REGION_PALETTE, interactionLocked)
     }
-    return inActiveContinentStyle(interactionLocked)
+    return toGeographyStyle(MAP_ACTIVE_CONTINENT_PALETTE, interactionLocked)
   }
 
-  return {
-    ...defaultStyle,
-    hover: interactionLocked ? defaultStyle.default : defaultStyle.hover,
-  }
+  return toGeographyStyle(MAP_DEFAULT_PALETTE, interactionLocked)
 }
 
 type WorldMapGeographyRowProps = {
@@ -247,7 +214,7 @@ const WorldMapGeographyRow = memo(function WorldMapGeographyRow({
       className={
         locked
           ? 'outline-none transition-[fill] duration-200'
-          : 'cursor-pointer outline-none transition-[fill] duration-150 focus-visible:ring-2 focus-visible:ring-cyan-400'
+          : 'cursor-pointer outline-none transition-[fill] duration-150 focus-visible:ring-2 focus-visible:ring-warning'
       }
       style={geoStyle}
       onClick={(event: MouseEvent<SVGPathElement>) => {
@@ -348,8 +315,8 @@ function WorldMapInner({
   }, [])
 
   const baseContainerClass = fullBleed
-    ? 'relative h-full w-full overflow-hidden bg-slate-900/40'
-    : 'relative w-full max-w-4xl overflow-hidden rounded-xl border border-slate-700 bg-slate-900/50'
+    ? 'relative h-full w-full overflow-hidden bg-info/10'
+    : 'relative w-full max-w-4xl overflow-hidden rounded-panel border-2 border-wood-dark/50 bg-info/10 shadow-chunky-sm'
   const containerClass = className ?? baseContainerClass
 
   const baseViewportClass = fullBleed
@@ -358,8 +325,8 @@ function WorldMapInner({
   const viewportClass = `${baseViewportClass} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`
 
   const svgWrapperClass = fullBleed
-    ? 'flex h-full w-full origin-top-left items-center justify-center text-slate-100 transition-transform duration-150 [&_svg]:mx-auto [&_svg]:block [&_svg]:h-full [&_svg]:w-full'
-    : 'flex h-auto w-full origin-top-left justify-center text-slate-100 transition-transform duration-150 [&_svg]:mx-auto [&_svg]:block [&_svg]:h-auto [&_svg]:max-h-[min(70vh,520px)]'
+    ? 'flex h-full w-full origin-top-left items-center justify-center text-wood-dark transition-transform duration-150 [&_svg]:mx-auto [&_svg]:block [&_svg]:h-full [&_svg]:w-full'
+    : 'flex h-auto w-full origin-top-left justify-center text-wood-dark transition-transform duration-150 [&_svg]:mx-auto [&_svg]:block [&_svg]:h-auto [&_svg]:max-h-[min(70vh,520px)]'
 
   return (
     <div
@@ -399,10 +366,11 @@ function WorldMapInner({
             : 'absolute right-3 top-3 z-10 flex gap-2'
         }
       >
-        <button
+        <ChunkyButton
           type="button"
+          tone="secondary"
+          size="sm"
           aria-label="Acercar mapa"
-          className="rounded-md border border-slate-600 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-md transition-colors hover:border-cyan-400 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
           onClick={() => {
             const viewportRect = viewportRef.current?.getBoundingClientRect()
             const anchor = viewportRect
@@ -418,11 +386,12 @@ function WorldMapInner({
           }}
         >
           Zoom +
-        </button>
-        <button
+        </ChunkyButton>
+        <ChunkyButton
           type="button"
+          tone="secondary"
+          size="sm"
           aria-label="Alejar mapa"
-          className="rounded-md border border-slate-600 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-md transition-colors hover:border-cyan-400 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
           onClick={() => {
             const viewportRect = viewportRef.current?.getBoundingClientRect()
             const anchor = viewportRect
@@ -438,15 +407,16 @@ function WorldMapInner({
           }}
         >
           Zoom -
-        </button>
-        <button
+        </ChunkyButton>
+        <ChunkyButton
           type="button"
+          tone="secondary"
+          size="sm"
           aria-label="Restablecer vista del mapa"
-          className="rounded-md border border-slate-600 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-slate-100 shadow-md transition-colors hover:border-cyan-400 hover:text-cyan-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400"
           onClick={() => setViewport(getBaselineViewportForRegion(regionFilter))}
         >
           Reset
-        </button>
+        </ChunkyButton>
       </div>
       <div
         ref={viewportRef}

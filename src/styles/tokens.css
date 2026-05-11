@@ -1,0 +1,87 @@
+/* Design tokens for the visual redesign.
+ *
+ * Uses Tailwind v4's `@theme` directive so each declared variable is
+ * exposed both as a CSS custom property and as a generated utility
+ * (e.g. `--color-paper` => `bg-paper`, `text-paper`, `border-paper`).
+ *
+ * Reference: docs/requirements/05-prd-rediseno-visual-brief-diseno.mdc §6, §7.
+ */
+
+@theme {
+  /* Wood + paper neutrals --------------------------------------------------*/
+  --color-wood-dark: #2d1e0f; /* borders, chunky shadows, dark surfaces */
+  --color-wood: #4a3219; /* secondary wood surfaces, body text on paper */
+  --color-wood-soft: #6b4a26; /* hover for wood-toned controls */
+  --color-paper: #f4e4bc; /* main panels, form interiors */
+  --color-paper-dark: #e3cba8; /* secondary surfaces, hovered paper */
+  --color-paper-mute: #f8eed1; /* lightest paper for inputs */
+  --color-ink: #3a2412; /* primary text on paper */
+  --color-ink-soft: #5d3a1f; /* secondary text on paper */
+  --color-bone: #fff8e7; /* text on wood, badges */
+
+  /* Accent palette --------------------------------------------------------*/
+  --color-action: #d94c38; /* primary CTAs, danger */
+  --color-action-dark: #b53824;
+  --color-success: #7cb342; /* correct answers, valid status */
+  --color-success-dark: #5e8c2d;
+  --color-info: #29b6f6; /* informational, map water */
+  --color-info-dark: #1a8fc4;
+  --color-warning: #fdd835; /* warning, anti-cheat, reward */
+  --color-warning-dark: #c9a700;
+  --color-special: #8e24aa; /* future use: epic, achievements */
+
+  /* Typography ------------------------------------------------------------*/
+  --font-display: 'Lilita One', 'Fredoka', system-ui, -apple-system, sans-serif;
+  --font-body: 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Border radius scale ---------------------------------------------------*/
+  --radius-control: 0.5rem; /* 8px - inputs, small buttons */
+  --radius-card: 0.75rem; /* 12px - default buttons, cards */
+  --radius-panel: 1rem; /* 16px - panels */
+  --radius-panel-lg: 1.25rem; /* 20px - large panels, hero */
+
+  /* Chunky 3D shadows -----------------------------------------------------*/
+  --shadow-chunky: 0 4px 0 0 #2d1e0f;
+  --shadow-chunky-sm: 0 2px 0 0 #2d1e0f;
+  --shadow-chunky-lg: 0 6px 0 0 #2d1e0f;
+  --shadow-chunky-wood: 0 4px 0 0 #1a1208;
+}
+
+/* Global baseline tied to the new tokens. ----------------------------------*/
+
+:root {
+  color-scheme: light;
+  /* Surface gradients used by overlays in the game shell. */
+  --gradient-wood-top: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--color-wood-dark) 95%, transparent) 0%,
+    color-mix(in oklab, var(--color-wood-dark) 70%, transparent) 60%,
+    transparent 100%
+  );
+  --gradient-wood-bottom: linear-gradient(
+    to top,
+    color-mix(in oklab, var(--color-wood-dark) 95%, transparent) 0%,
+    color-mix(in oklab, var(--color-wood-dark) 70%, transparent) 60%,
+    transparent 100%
+  );
+}
+
+html,
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background-color: var(--color-paper);
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+}

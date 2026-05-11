@@ -5,7 +5,7 @@ alwaysApply: false
 
 # Estado actual post-MVP — The Map World Game 2026
 
-**Estado de referencia:** 2026-05-10.
+**Estado de referencia:** 2026-05-11.
 
 Este documento es el punto de entrada para entender dónde está hoy la app y cómo avanzar sin mezclar definiciones cerradas del MVP con nuevas features.
 
@@ -26,6 +26,11 @@ También está cerrada la iteración posterior **UX + Datos**:
 - [`../tasks/map-game-ux-and-data/00-ux-data-iteration-todo-list.md`](../tasks/map-game-ux-and-data/00-ux-data-iteration-todo-list.md): checklist y cierre de MAP-UX/DATA.
 - [`../../.cursor/plans/plan_ux_data_iteracion_5f5e1e95.plan.md`](../../.cursor/plans/plan_ux_data_iteracion_5f5e1e95.plan.md): plan operativo de esa iteración.
 
+También está cerrada la iteración de **Rediseño visual integral** (paleta pergamino + madera, tipografía Lilita One/Nunito, primitives chunky):
+
+- [`05-prd-rediseno-visual-brief-diseno.mdc`](05-prd-rediseno-visual-brief-diseno.mdc): brief de diseño y criterios.
+- [`../../.cursor/plans/rediseno_visual_integral_259fcc38.plan.md`](../../.cursor/plans/rediseno_visual_integral_259fcc38.plan.md): plan operativo de la iteración.
+
 Estos archivos quedan como **documentación histórica y trazabilidad**. No conviene seguir agregando nuevas fases o features dentro de ellos salvo correcciones de estado, links o aclaraciones de decisiones ya tomadas.
 
 ---
@@ -43,6 +48,8 @@ La app ya cuenta con:
 - Reinicio y nueva partida.
 - Catálogo de países ampliado, versionado y validado contra el mapa.
 - Tests unitarios Vitest y e2e Playwright para los flujos principales.
+- **Sistema visual unificado**: tokens (`src/styles/tokens.css`) con paleta madera + pergamino y tipografía Lilita One/Nunito locales (`src/styles/fonts/`), primitives (`src/components/ui/`: `ChunkyButton`, `Panel`, `Alert`, `Badge`, `FieldInput`, `FieldSelect`, `FieldRadioGroup`, `OverlayBand`, `PlayerCard`) y paleta del mapa centralizada en `src/components/world-map-palette.ts`.
+- **Vistas extraídas** desde `App.tsx`: `HomeView`, `SetupView`, `GameShell`, `ResultsView` viven en `src/features/<feature>/`.
 
 Pendientes deliberados que siguen siendo opcionales desde el cierre MVP:
 
@@ -80,7 +87,7 @@ El backlog actual de ideas vive en [`../tasks/ideas-features-backlog.md`](../tas
 - Mejora del Home.
 - Claridad del CTA que abandona o reinicia una partida.
 - Persistencia local o remota de partidas/puntajes.
-- Tema claro/oscuro.
+- Tema claro/oscuro (los tokens visuales ya están preparados para variar `:root`).
 - i18n.
 - Modo aprendizaje.
 
