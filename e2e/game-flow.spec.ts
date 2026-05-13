@@ -2,7 +2,9 @@ import { expect, test } from '@playwright/test'
 
 async function goToSetup(page: import('@playwright/test').Page): Promise<void> {
   await page.goto('/')
-  await page.getByRole('button', { name: /Comenzar setup/i }).click()
+  await page.getByRole('button', { name: /Comenzar setup|Start setup/i }).click()
+  await page.waitForSelector('#app-locale')
+  await page.selectOption('#app-locale', 'es')
 }
 
 test.describe('F8.2 — flujo e2e', () => {
@@ -11,8 +13,8 @@ test.describe('F8.2 — flujo e2e', () => {
 
     await page.locator('#player-name-1').fill('')
 
-    await expect(page.getByRole('button', { name: /Iniciar partida/i })).toBeDisabled()
-    await expect(page.getByText('Player names cannot be empty.')).toBeVisible()
+    await expect(page.getByRole('button', { name: /Iniciar partida|Start game/i })).toBeDisabled()
+    await expect(page.getByText(/no pueden estar vacíos|cannot be empty/i).first()).toBeVisible()
     await expect(page.getByTestId('game-shell')).toHaveCount(0)
   })
 
@@ -21,7 +23,7 @@ test.describe('F8.2 — flujo e2e', () => {
     await goToSetup(page)
 
     await page.locator('#question-count').fill('2')
-    await page.getByRole('button', { name: /Iniciar partida/i }).click()
+    await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
 
     await expect(page.getByTestId('game-shell')).toBeVisible()
     await expect(page.getByTestId('round-prompt')).toBeVisible()
@@ -37,7 +39,7 @@ test.describe('F8.2 — flujo e2e', () => {
       await target.scrollIntoViewIfNeeded()
 
       for (let attempt = 0; attempt < 3; attempt += 1) {
-        await target.click()
+        await target.click({ force: true })
         try {
           await expect(page.getByTestId('guess-feedback')).toBeVisible({ timeout: 5000 })
           break
@@ -67,9 +69,9 @@ test.describe('F8.3 — anti-cheat estricto (visibilidad)', () => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await goToSetup(page)
 
-    await page.getByRole('radio', { name: /Estricto/i }).check()
+    await page.getByRole('radio', { name: /Estricto|Strict/i }).check()
     await page.locator('#question-count').fill('1')
-    await page.getByRole('button', { name: /Iniciar partida/i }).click()
+    await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
 
     await expect(page.getByTestId('game-shell')).toBeVisible()
 

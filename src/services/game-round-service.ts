@@ -49,11 +49,14 @@ export function submitRoundGuess(
     return {
       success: false,
       error: {
-        code: 'ROUND_NOT_ACTIVE',
+        code:
+          session.status === 'finished'
+            ? 'GAME_FINISHED_NO_MORE_GUESSES'
+            : 'GAME_NOT_IN_PLAYING_STATE',
         message:
           session.status === 'finished'
-            ? 'La partida ya terminó; no se pueden registrar más respuestas.'
-            : 'No hay una ronda activa para registrar la respuesta.',
+            ? 'Game finished; no more guesses.'
+            : 'Session is not in playing state.',
       },
     }
   }
@@ -62,8 +65,8 @@ export function submitRoundGuess(
     return {
       success: false,
       error: {
-        code: 'INVALID_GUESS',
-        message: 'El mapa no pudo resolver un ISO2 para esta selección.',
+        code: 'MAP_SELECTION_UNRESOLVED',
+        message: 'Map could not resolve ISO2 for selection.',
       },
     }
   }
@@ -73,8 +76,8 @@ export function submitRoundGuess(
     return {
       success: false,
       error: {
-        code: 'ROUND_NOT_ACTIVE',
-        message: 'Índice de ronda fuera de rango.',
+        code: 'ROUND_INDEX_INVALID_SUBMIT',
+        message: 'Round index out of range.',
       },
     }
   }
@@ -84,8 +87,8 @@ export function submitRoundGuess(
     return {
       success: false,
       error: {
-        code: 'INVALID_GUESS',
-        message: 'Esta ronda ya tiene una respuesta registrada.',
+        code: 'ROUND_ALREADY_ANSWERED',
+        message: 'Round already has a guess.',
       },
     }
   }
@@ -95,8 +98,8 @@ export function submitRoundGuess(
     return {
       success: false,
       error: {
-        code: 'ROUND_NOT_ACTIVE',
-        message: 'No se pudo determinar el jugador en turno.',
+        code: 'ACTIVE_PLAYER_UNKNOWN',
+        message: 'Could not determine active player.',
       },
     }
   }
@@ -105,8 +108,8 @@ export function submitRoundGuess(
     return {
       success: false,
       error: {
-        code: 'INVALID_GUESS',
-        message: 'No es el turno de este jugador.',
+        code: 'GUESS_WRONG_PLAYER_TURN',
+        message: 'Not this player turn.',
       },
     }
   }
@@ -131,8 +134,8 @@ export function submitRoundGuess(
     return {
       success: false,
       error: {
-        code: 'INVALID_GUESS',
-        message: 'El jugador no pertenece a esta sesión.',
+        code: 'PLAYER_NOT_IN_SESSION',
+        message: 'Player does not belong to session.',
       },
     }
   }
@@ -162,8 +165,8 @@ export function advanceToNextRoundOrFinish(session: GameSession): ApiResponse<Ga
     return {
       success: false,
       error: {
-        code: 'ROUND_NOT_ACTIVE',
-        message: 'Solo se puede avanzar mientras la partida está en curso.',
+        code: 'ADVANCE_NOT_PLAYING',
+        message: 'Advance only while game is playing.',
       },
     }
   }
@@ -173,8 +176,8 @@ export function advanceToNextRoundOrFinish(session: GameSession): ApiResponse<Ga
     return {
       success: false,
       error: {
-        code: 'ROUND_NOT_ACTIVE',
-        message: 'Índice de ronda fuera de rango.',
+        code: 'ADVANCE_ROUND_INDEX_INVALID',
+        message: 'Round index out of range.',
       },
     }
   }
@@ -184,8 +187,8 @@ export function advanceToNextRoundOrFinish(session: GameSession): ApiResponse<Ga
     return {
       success: false,
       error: {
-        code: 'INVALID_GUESS',
-        message: 'Respondé antes de avanzar de ronda.',
+        code: 'ADVANCE_ANSWER_REQUIRED',
+        message: 'Answer required before advancing.',
       },
     }
   }

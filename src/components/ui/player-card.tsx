@@ -1,4 +1,5 @@
 import type { HTMLAttributes } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { cn } from './cn'
 
@@ -43,6 +44,7 @@ export function PlayerCard({
   className,
   ...props
 }: PlayerCardProps) {
+  const { t } = useTranslation('game')
   const palette = density === 'card' ? cardStyles : compactStyles
   const padding = density === 'card' ? 'px-3 py-2' : 'min-h-[2.75rem] py-1.5 px-2'
 
@@ -69,13 +71,12 @@ export function PlayerCard({
             </p>
             {isActive ? (
               <span className="shrink-0 rounded-control border-2 border-wood-dark bg-action px-1.5 py-0.5 text-[10px] font-bold uppercase text-bone">
-                Turno
+                {t('turnBadge')}
               </span>
             ) : null}
           </div>
           <p className="mt-1 font-body text-xs text-ink-soft">
-            <span className="font-bold text-wood-dark">{score}</span> pts · ✓ {correctAnswers} · ✗{' '}
-            {wrongAnswers}
+            {t('playerStats', { score, correct: correctAnswers, wrong: wrongAnswers })}
           </p>
         </>
       ) : (
@@ -88,16 +89,13 @@ export function PlayerCard({
           </p>
           {isActive ? (
             <span className="shrink-0 rounded-control border-2 border-wood-dark bg-action px-1.5 py-0.5 text-[10px] font-bold uppercase text-bone">
-              Turno
+              {t('turnBadge')}
             </span>
           ) : (
             <span className="w-12 shrink-0" aria-hidden />
           )}
           <p className="shrink-0 whitespace-nowrap font-body text-[11px] leading-tight text-ink-soft sm:text-xs">
-            <span className="font-bold text-wood-dark">{score}</span>
-            <span className="text-ink-soft">pts</span>
-            <span className="text-ink-soft">·</span>✓{correctAnswers}
-            <span className="text-ink-soft">·</span>✗{wrongAnswers}
+            {t('playerStats', { score, correct: correctAnswers, wrong: wrongAnswers })}
           </p>
         </>
       )}

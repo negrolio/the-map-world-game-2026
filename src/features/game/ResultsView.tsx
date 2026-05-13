@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import { Alert, Badge, ChunkyButton, Panel } from '../../components/ui'
 import { datasetVersion } from '../../data'
 import { answerAccuracyPercent, buildGameResult } from '../../services'
@@ -18,6 +20,9 @@ export function ResultsView({
   onGoToSetup,
   onGoToHome,
 }: ResultsViewProps) {
+  const { t } = useTranslation('results')
+  const { t: tCommon } = useTranslation('common')
+
   const outcome = session.result ?? buildGameResult(session.players, session.rounds.length)
   const winnerPlayer = outcome.winnerPlayerId
     ? outcome.leaderboard.find((player) => player.id === outcome.winnerPlayerId)
@@ -27,36 +32,39 @@ export function ResultsView({
     <main className="min-h-screen bg-paper text-ink">
       <section className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-6 px-6 py-10">
         <header className="flex flex-col gap-2">
-          <Badge tone="warning">Resultados</Badge>
+          <Badge tone="warning">{t('badge')}</Badge>
           <h1 className="font-display text-3xl uppercase tracking-tight text-wood-dark md:text-4xl">
-            Partida terminada
+            {t('title')}
           </h1>
           <p className="font-body text-sm text-ink-soft" data-testid="game-finished-status">
-            Estado:{' '}
-            {session.status === 'aborted' ? 'abortada por anti-cheat' : 'finalizada por rondas'}.
-            {' '}
+            {t('statusLabel')}{' '}
+            {session.status === 'aborted' ? t('statusAborted') : t('statusFinished')}.{' '}
             {outcome.totalRounds}{' '}
-            {outcome.totalRounds === 1 ? 'ronda jugada' : 'rondas jugadas'}. Puntaje: +10 por
-            acierto, −5 por error. Dataset version: {datasetVersion}.
+            {outcome.totalRounds === 1 ? t('roundsOne') : t('roundsMany')}. {t('scoringNote')}{' '}
+            {tCommon('datasetVersionLabel')}: {datasetVersion}.
           </p>
           <p className="font-body text-sm text-ink-soft" data-testid="anti-cheat-incidents">
-            Incidentes anti-cheat registrados: {session.incidentCount}
+            {t('incidentsLabel')} {session.incidentCount}
           </p>
           {antiCheatNotice ? (
             <Alert tone="warning">{antiCheatNotice}</Alert>
           ) : null}
           {winnerPlayer ? (
             <Alert tone="info" data-testid="game-winner">
-              Mejor puntaje según la tabla: <strong>{winnerPlayer.name}</strong> (
-              {winnerPlayer.score} pts,{' '}
-              {answerAccuracyPercent(winnerPlayer.correctAnswers, winnerPlayer.wrongAnswers)}%
-              aciertos sobre respuestas dadas).
+              {t('winnerLead')} <strong>{winnerPlayer.name}</strong>{' '}
+              {t('winnerStats', {
+                score: winnerPlayer.score,
+                accuracy: answerAccuracyPercent(
+                  winnerPlayer.correctAnswers,
+                  winnerPlayer.wrongAnswers,
+                ),
+              })}
             </Alert>
           ) : null}
         </header>
         <Panel tone="paper" padding="md">
           <h2 className="mb-2 font-display text-xs uppercase tracking-wide text-ink-soft">
-            Tabla de posiciones
+            {t('leaderboardHeading')}
           </h2>
           <ol className="list-decimal space-y-3 pl-6 marker:font-display marker:text-wood-dark">
             {outcome.leaderboard.map((player, rankIndex) => (
@@ -70,11 +78,15 @@ export function ResultsView({
                     {player.name}
                   </span>
                   <span className="font-body text-sm text-ink-soft">
-                    <span className="font-bold text-wood-dark">{player.score}</span> pts · ✓{' '}
-                    {player.correctAnswers} · ✗ {player.wrongAnswers} ·{' '}
-                    <span className="text-wood">
-                      {answerAccuracyPercent(player.correctAnswers, player.wrongAnswers)}% precisión
-                    </span>
+                    {t('leaderboardStats', {
+                      score: player.score,
+                      correct: player.correctAnswers,
+                      wrong: player.wrongAnswers,
+                      accuracy: answerAccuracyPercent(
+                        player.correctAnswers,
+                        player.wrongAnswers,
+                      ),
+                    })}
                   </span>
                 </div>
               </li>
@@ -89,13 +101,13 @@ export function ResultsView({
             data-testid="replay-same-config-button"
             onClick={onReplaySameConfig}
           >
-            Rejugar misma configuración
+            {t('replay')}
           </ChunkyButton>
           <ChunkyButton type="button" tone="success" onClick={onGoToSetup}>
-            Nueva partida (setup)
+            {t('newGameSetup')}
           </ChunkyButton>
           <ChunkyButton type="button" tone="secondary" onClick={onGoToHome}>
-            Ir al home
+            {t('goHome')}
           </ChunkyButton>
         </div>
       </section>

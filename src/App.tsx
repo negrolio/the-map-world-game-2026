@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { componentShell } from './components'
 import { ChunkyButton } from './components/ui'
@@ -10,6 +11,8 @@ import { HomeView } from './features/home/HomeView'
 import { SetupView } from './features/setup/SetupView'
 import { gameFeatureShell } from './features/game'
 import { setupFeatureShell, validateSetupConfigSchema } from './features/setup'
+import { normalizeAppLocale } from './i18n/app-locale'
+import { translateApiErrorCode } from './i18n/translate-api-error'
 import { serviceShell } from './services'
 import {
   PRODUCT_RULES,
@@ -35,6 +38,11 @@ import type {
 type AppView = 'home' | 'setup' | 'game'
 
 export function App() {
+  const { t: tApp } = useTranslation('app')
+  const { t: tGame } = useTranslation('game')
+  const { t: tErr } = useTranslation('errors')
+  const { i18n } = useTranslation()
+
   const [currentView, setCurrentView] = useState<AppView>('home')
   const [playerCount, setPlayerCount] = useState<number>(1)
   const [players, setPlayers] = useState<readonly string[]>(['Jugador 1'])
@@ -89,22 +97,29 @@ export function App() {
   )
   const canStartGame = validationResult.isValid && schemaValidationResult.isValid
   const schemaOnlyErrors = useMemo(() => {
-    const domainMessages = new Set(validationResult.errors.map((error) => error.message))
-    return schemaValidationResult.errors.filter((errorMessage) => !domainMessages.has(errorMessage))
+    const domainKeys = new Set(validationResult.errors.map((error) => error.messageKey))
+    return schemaValidationResult.errors.filter((errorMessage) => !domainKeys.has(errorMessage))
   }, [schemaValidationResult.errors, validationResult.errors])
 
   function startGameWithConfig(config: GameConfig): void {
     const sessionResponse = createGameSession(config)
     if (!sessionResponse.success) {
-      setSetupSubmitMessage(sessionResponse.error.message)
+      setSetupSubmitMessage(
+        translateApiErrorCode(tErr, sessionResponse.error.code, {
+          min: PRODUCT_RULES.players.min,
+          max: PRODUCT_RULES.players.max,
+        }),
+      )
       return
     }
 
     const poolSeed = import.meta.env.MODE === 'test' ? 12_345 : Date.now()
+    const appLocale = normalizeAppLocale(i18n.language) ?? 'es'
     const pool = buildQuestionPool({
       countries: countriesCatalog,
       regionFilter: config.regionFilter,
       questionMode: config.questionMode,
+      locale: appLocale,
       requestedQuestionCount: config.questionCount,
       seed: poolSeed,
     })
@@ -136,7 +151,7 @@ export function App() {
 
       const expandedPlayers = [...currentPlayers]
       for (let index = currentPlayers.length; index < boundedCount; index += 1) {
-        expandedPlayers.push(`Jugador ${index + 1}`)
+        expandedPlayers.push(i18n.t('playerDefault', { ns: 'common', n: index + 1 }))
       }
 
       return expandedPlayers
@@ -164,7 +179,7 @@ export function App() {
 
   function handleStartGame(): void {
     if (!canStartGame) {
-      setSetupSubmitMessage('Corregí la configuración antes de iniciar la partida.')
+      setSetupSubmitMessage(tApp('fixConfigBeforeStart'))
       return
     }
     startGameWithConfig(setupDraft)
@@ -184,9 +199,7 @@ export function App() {
     if (sessionRegion !== 'world') {
       const continent = getContinentForIso2(iso2)
       if (continent !== sessionRegion) {
-        setGuessSubmitError(
-          'Ese país no pertenece al continente de esta partida. Elegí uno dentro de la región resaltada.',
-        )
+        setGuessSubmitError(tApp('wrongRegionGuess'))
         return
       }
     }
@@ -207,9 +220,9 @@ export function App() {
       setGuessSubmitError(null)
       setGameSession(response.data.session)
     } else {
-      setGuessSubmitError(response.error.message)
+      setGuessSubmitError(translateApiErrorCode(tErr, response.error.code))
     }
-  }, [gameSession])
+  }, [gameSession, tApp, tErr])
 
   function exitGameTo(view: AppView): void {
     setGameSession(null)
@@ -228,11 +241,11 @@ export function App() {
       setGuessSubmitError(null)
       setGameSession(response.data)
     } else {
-      setGuessSubmitError(response.error.message)
+      setGuessSubmitError(translateApiErrorCode(tErr, response.error.code))
     }
   }
 
-  function handleAntiCheatIncident(source: 'window_blur' | 'document_hidden'): void {
+  const handleAntiCheatIncident = useCallback((source: 'window_blur' | 'document_hidden'): void => {
     setGameSession((currentSession) => {
       if (!currentSession || currentSession.status !== 'playing') {
         return currentSession
@@ -241,13 +254,11 @@ export function App() {
       const policyResult = applyAntiCheatIncident(currentSession, source)
       setGuessSubmitError(null)
       setAntiCheatNotice(
-        policyResult.didAbortGame
-          ? 'Anti-cheat estricto: la partida fue abortada por pérdida de foco/visibilidad.'
-          : 'Anti-cheat normal: se registró un incidente por pérdida de foco/visibilidad.',
+        policyResult.didAbortGame ? tGame('antiCheatStrict') : tGame('antiCheatNormal'),
       )
       return policyResult.nextSession
     })
-  }
+  }, [tGame])
 
   useEffect(() => {
     if (!gameSession || gameSession.status !== 'playing') {
@@ -279,7 +290,7 @@ export function App() {
       window.removeEventListener('blur', handleWindowBlur)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
-  }, [gameSession])
+  }, [gameSession, handleAntiCheatIncident])
 
   // F2.1 — Shell de partida a pantalla completa: bloquear scroll del documento mientras
   // currentView === 'game' && status === 'playing'. La altura/ancho del shell se controla
@@ -307,10 +318,10 @@ export function App() {
         <main className="min-h-screen bg-paper text-ink">
           <section className="mx-auto flex min-h-screen max-w-lg flex-col justify-center gap-4 px-6 py-10">
             <p className="font-body text-ink-soft">
-              No hay sesión activa. Volvé al setup para iniciar una partida.
+              {tApp('noSession')}
             </p>
             <ChunkyButton type="button" tone="primary" onClick={() => exitGameTo('setup')}>
-              Ir al setup
+              {tApp('goSetup')}
             </ChunkyButton>
           </section>
         </main>

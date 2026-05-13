@@ -5,7 +5,7 @@ alwaysApply: false
 
 # Estado actual post-MVP — The Map World Game 2026
 
-**Estado de referencia:** 2026-05-13.
+**Estado de referencia:** 2026-05-13 (actualizado con cierre de **i18n ES/EN**).
 
 Este documento es el punto de entrada para entender dónde está hoy la app y cómo avanzar sin mezclar definiciones cerradas del MVP con nuevas features.
 
@@ -31,6 +31,13 @@ También está cerrada la iteración de **Rediseño visual integral** (paleta pe
 - [`05-prd-rediseno-visual-brief-diseno.mdc`](05-prd-rediseno-visual-brief-diseno.mdc): brief de diseño y criterios.
 - [`../../.cursor/plans/rediseno_visual_integral_259fcc38.plan.md`](../../.cursor/plans/rediseno_visual_integral_259fcc38.plan.md): plan operativo de la iteración.
 
+También está cerrada la iteración **Multilenguaje (i18n ES/EN)**:
+
+- [`../tasks/i18n-multilenguaje/README.md`](../tasks/i18n-multilenguaje/README.md): índice de la carpeta de iteración.
+- [`../tasks/i18n-multilenguaje/00-pdr-multilenguaje-i18n.md`](../tasks/i18n-multilenguaje/00-pdr-multilenguaje-i18n.md): PDR y requisitos.
+- [`../tasks/i18n-multilenguaje/01-decision-catalogo.md`](../tasks/i18n-multilenguaje/01-decision-catalogo.md): decisión de datos (nombres/capitales y `buildQuestionPool` con locale).
+- Plan operativo (referencia, no editar como fuente viva): [`../../.cursor/plans/i18n_por_fases_1671c705.plan.md`](../../.cursor/plans/i18n_por_fases_1671c705.plan.md).
+
 Estos archivos quedan como **documentación histórica y trazabilidad**. No conviene seguir agregando nuevas fases o features dentro de ellos salvo correcciones de estado, links o aclaraciones de decisiones ya tomadas.
 
 ---
@@ -50,6 +57,7 @@ La app ya cuenta con:
 - Tests unitarios Vitest y e2e Playwright para los flujos principales.
 - **Sistema visual unificado**: tokens (`src/styles/tokens.css`) con paleta madera + pergamino y tipografía Lilita One/Nunito locales (`src/styles/fonts/`), primitives (`src/components/ui/`: `ChunkyButton`, `Panel`, `Alert`, `Badge`, `FieldInput`, `FieldSelect`, `FieldRadioGroup`, `OverlayBand`, `PlayerCard`) y paleta del mapa centralizada en `src/components/world-map-palette.ts`.
 - **Vistas extraídas** desde `App.tsx`: `HomeView`, `SetupView`, `GameShell`, `ResultsView` viven en `src/features/<feature>/`.
+- **Internacionalización (ES/EN):** `i18next` + `react-i18next`; idioma inicial según `localStorage` (clave versionada) → navegador normalizado (`es`/`en`) → fallback **`es`**; persistencia al cambiar; `document.documentElement.lang` sincronizado; selector de idioma en **Setup** (`#app-locale`). Recursos en `src/i18n/` (namespaces `common`, `home`, `setup`, `game`, `results`, `aria`, `app`, `validation`, `errors`). Tests globales fijan `es` en `src/test/setup.ts`; errores de API y validación Zod se muestran por **código** → claves i18n. **Datos de preguntas:** prompts localizados vía `buildQuestionPool` con `locale` y capa `src/data/country-localization.ts` + `capital-es-map.json` (detalle en [`01-decision-catalogo.md`](../tasks/i18n-multilenguaje/01-decision-catalogo.md)). E2E ajustados a copy bilingüe y locale forzado donde hace falta.
 
 Pendientes deliberados que siguen siendo opcionales desde el cierre MVP:
 
@@ -87,7 +95,7 @@ El backlog actual de ideas vive en [`../tasks/ideas-features-backlog.md`](../tas
 - Claridad del CTA que abandona o reinicia una partida.
 - Persistencia local o remota de partidas/puntajes.
 - Tema claro/oscuro (los tokens visuales ya están preparados para variar `:root`).
-- i18n.
+- Ampliar i18n (más locales, contenido dinámico, revisión de copy por mercado) sobre la base ya entregada en [`../tasks/i18n-multilenguaje/`](../tasks/i18n-multilenguaje/).
 - Modo aprendizaje.
 
 Antes de implementar una de estas líneas, conviene convertirla en una iteración concreta con alcance, criterios de aceptación, riesgos y plan de test.

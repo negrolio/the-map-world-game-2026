@@ -1,7 +1,8 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import { App } from './App'
+import { renderWithI18n } from './test/render-with-i18n'
 
 /** Ancho de ventana inicial de jsdom (restaurar tras tests que cambian viewport). */
 const initialInnerWidth = window.innerWidth
@@ -20,7 +21,7 @@ describe('App', () => {
     restoreTestViewportWidth()
   })
   it('renderiza el titulo principal', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     expect(
       screen.getByRole('heading', { name: /The Map World Game 2026/i }),
@@ -28,26 +29,26 @@ describe('App', () => {
   })
 
   it('renderiza el boton base reutilizable', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     expect(screen.getAllByRole('button', { name: /Comenzar setup/i })).toHaveLength(1)
   })
 
   it('muestra la version de dataset en la vista dev', () => {
-    render(<App />)
-    expect(screen.getByText(/Dataset version:/i)).toBeInTheDocument()
+    renderWithI18n(<App />)
+    expect(screen.getByText(/Versión del dataset/i)).toBeInTheDocument()
   })
 
   it('navega desde home hacia setup al presionar el CTA', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
 
-    expect(screen.getByRole('heading', { name: /Game Setup Panel/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Panel de configuración/i })).toBeInTheDocument()
   })
 
   it('renderiza los controles base del setup panel', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
 
@@ -60,7 +61,7 @@ describe('App', () => {
   })
 
   it('bloquea iniciar partida y muestra feedback cuando la configuracion es invalida', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
 
@@ -68,12 +69,12 @@ describe('App', () => {
     fireEvent.change(firstPlayerInput, { target: { value: '   ' } })
 
     expect(screen.getByText(/Configuración inválida/i)).toBeInTheDocument()
-    expect(screen.getByText(/Player names cannot be empty\./i)).toBeInTheDocument()
+    expect(screen.getAllByText(/no pueden estar vacíos/i).length).toBeGreaterThanOrEqual(1)
     expect(screen.getByRole('button', { name: /Iniciar partida/i })).toBeDisabled()
   })
 
   it('marca accesibilidad basica cuando hay error en setup', () => {
-    render(<App />)
+    renderWithI18n(<App />)
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
 
     const firstPlayerInput = screen.getByDisplayValue('Jugador 1')
@@ -84,7 +85,7 @@ describe('App', () => {
   })
 
   it('navega a la vista de partida con mapa al iniciar con configuracion valida', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
@@ -94,7 +95,7 @@ describe('App', () => {
   })
 
   it('muestra la pregunta de la ronda activa al iniciar la partida', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
@@ -106,7 +107,7 @@ describe('App', () => {
 
   it('muestra HUD de jugadores y el turno activo en partida (escritorio)', () => {
     setTestViewportWidth(1200)
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
@@ -121,7 +122,7 @@ describe('App', () => {
 
   it('muestra lista compacta de jugadores y turno en viewport estrecho (MAP-UX-03)', () => {
     setTestViewportWidth(375)
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
@@ -134,7 +135,7 @@ describe('App', () => {
   })
 
   it('expone semantica accesible para el mapa interactivo', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
@@ -144,7 +145,7 @@ describe('App', () => {
   })
 
   it('en anti-cheat estricto aborta la partida al perder foco', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
     fireEvent.click(screen.getByRole('radio', { name: /Estricto/i }))
@@ -157,7 +158,7 @@ describe('App', () => {
   })
 
   it('permite rejugar desde resultados sin recargar la pagina', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
     fireEvent.click(screen.getByRole('radio', { name: /Estricto/i }))
@@ -173,7 +174,7 @@ describe('App', () => {
   })
 
   it('renderiza el shell de partida full-screen con bandas top y bottom (MAP-UX-02)', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
@@ -185,7 +186,7 @@ describe('App', () => {
   })
 
   it('expone navegacion compacta a Setup y Home en la banda superior (F2.4)', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
@@ -196,7 +197,7 @@ describe('App', () => {
   })
 
   it('quita el bloque debug "Ultimo clic ISO2" de la vista de partida (F2.8)', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
@@ -206,7 +207,7 @@ describe('App', () => {
   })
 
   it('rendera el mapa en modo full-bleed dentro del shell (F2.2)', () => {
-    render(<App />)
+    renderWithI18n(<App />)
 
     fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))

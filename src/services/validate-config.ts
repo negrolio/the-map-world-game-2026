@@ -3,7 +3,9 @@ import { PRODUCT_RULES, getQuestionCountLimits } from './product-rules'
 
 export interface ConfigValidationError {
   readonly field: 'players' | 'questionCount' | 'pool'
-  readonly message: string
+  /** Clave i18n (`validation.config.*`) */
+  readonly messageKey: string
+  readonly messageValues?: Readonly<Record<string, string | number>>
 }
 
 export interface ConfigValidationResult {
@@ -33,35 +35,38 @@ export function validateConfig(input: ValidateConfigInput): ConfigValidationResu
   if (config.players.length < PRODUCT_RULES.players.min) {
     errors.push({
       field: 'players',
-      message: `At least ${PRODUCT_RULES.players.min} player is required.`,
+      messageKey: 'validation.config.playersMin',
+      messageValues: { min: PRODUCT_RULES.players.min },
     })
   }
 
   if (config.players.length > PRODUCT_RULES.players.max) {
     errors.push({
       field: 'players',
-      message: `A maximum of ${PRODUCT_RULES.players.max} players is allowed.`,
+      messageKey: 'validation.config.playersMax',
+      messageValues: { max: PRODUCT_RULES.players.max },
     })
   }
 
   if (hasEmptyPlayerName) {
     errors.push({
       field: 'players',
-      message: 'Player names cannot be empty.',
+      messageKey: 'validation.config.playerNamesEmpty',
     })
   }
 
   if (poolSize <= 0) {
     errors.push({
       field: 'pool',
-      message: 'No questions are available for the selected filters.',
+      messageKey: 'validation.config.poolEmpty',
     })
   }
 
   if (config.questionCount < questionLimits.min || config.questionCount > questionLimits.max) {
     errors.push({
       field: 'questionCount',
-      message: `Question count must be between ${questionLimits.min} and ${questionLimits.max}.`,
+      messageKey: 'validation.config.questionCountRange',
+      messageValues: { min: questionLimits.min, max: questionLimits.max },
     })
   }
 

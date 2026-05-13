@@ -1,6 +1,8 @@
 import { cleanup } from '@testing-library/react'
 import '@testing-library/jest-dom/vitest'
-import { afterEach } from 'vitest'
+import { afterEach, beforeAll } from 'vitest'
+
+import { initI18n, i18n } from '../i18n/i18n'
 
 /**
  * jsdom no implementa `matchMedia`; varios componentes lo consultan (p. ej. HUD responsive,
@@ -27,6 +29,11 @@ if (typeof window.matchMedia !== 'function') {
     value: (query: string): MediaQueryList => createMediaQueryListStub(false, query),
   })
 }
+
+beforeAll(async () => {
+  await initI18n()
+  await i18n.changeLanguage('es')
+})
 
 afterEach(() => {
   cleanup()

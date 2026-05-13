@@ -40,7 +40,7 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
   - Idea / dirección: revisar contenido, jerarquía y CTA principal del Home; alinearlo con los modos y features ya existentes y dejar lugar para próximos (multilenguaje, modo aprendizaje, ranking si avanza el server). Definir qué se ve en primer pantallazo en mobile y desktop antes de tocar diseño.
   - Impacto estimado: UX · medio.
   - Esfuerzo estimado: medio (según alcance: copy + layout, o rediseño completo).
-  - Notas: pendiente de detalle. Cuando se promueva a tarea, decidir si el cambio es solo de copy/layout o también de arquitectura del estado de la app (`view === 'home'` en `src/App.tsx`). Considerar accesibilidad y consistencia visual con la partida y el setup.
+  - Notas: pendiente de detalle. Cuando se promueva a tarea, decidir si el cambio es solo de copy/layout o también de arquitectura del estado de la app (`view === 'home'` en `src/App.tsx`). Considerar accesibilidad y consistencia visual con la partida y el setup. La app ya tiene **i18n ES/EN** (textos en `src/i18n/resources/`); el rediseño del Home puede aprovechar claves `home` / `common` sin rearmar infraestructura.
 
 - **Anticheat: no persistir puntaje y mensaje explícito al usuario** — 2026-05-10
   - Contexto / problema: si existe detección de uso indebido (scripts, automatización, manipulación de cliente), persistir puntajes daría una tabla de clasificación injusta y puede frustrar a jugadores legítimos si no entienden por qué “desapareció” el resultado.
@@ -64,13 +64,6 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
   - Notas: archivos relevantes `src/components/WorldMap.tsx` y `src/components/world-map-baseline-viewport.ts`. Relación con MAP-UX-01.
 
 
-- **Multilenguaje (i18n) con selector de idioma** — 2026-05-10
-  - Contexto / problema: textos de UI hardcodeados en español; nombres y capitales del catálogo también.
-  - Idea / dirección: integrar una librería de i18n (ej. `react-i18next` u opción liviana equivalente), separar diccionarios de UI y decidir si los datos del catálogo se localizan o se mantienen en un idioma canónico con tabla de traducciones.
-  - Impacto estimado: UX / alcance · alto.
-  - Esfuerzo estimado: alto.
-  - Notas: definir idiomas iniciales (ES/EN al menos), evaluar impacto en `src/data/countries.ts` (campos `name`/`capital`) y en tests que comparan strings.
-
 - **Persistencia de puntajes en servidor** — 2026-05-10
   - Contexto / problema: los puntajes viven solo en memoria de la sesión; al cerrar la app se pierden.
   - Idea / dirección: investigar backend simple para guardar partidas y puntajes (Supabase, Firebase, Cloudflare D1, Vercel + Postgres, etc.). Definir esquema mínimo: jugador, modo, ronda, puntaje, fecha. Decidir auth (anónimo vs identificado) y política de privacidad (sin PII innecesaria).
@@ -83,7 +76,7 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
   - Idea / dirección: mensajes que aporten información útil (país correcto, capital, distancia o pista contextual) y un tono amable, breve y consistente. Variantes según tipo de error (clic fuera de región, país equivocado, etc.).
   - Impacto estimado: UX · medio.
   - Esfuerzo estimado: bajo.
-  - Notas: revisar copy actual del overlay de feedback (relacionado con MAP-UX-02 F2.4). Considerar i18n si avanza en paralelo.
+  - Notas: revisar copy actual del overlay de feedback (relacionado con MAP-UX-02 F2.4). La base i18n ES/EN ya está en repo; cualquier mejora de tono debe hacerse en recursos `src/i18n/resources/` y claves por idioma.
 
 - **Modo aprendizaje (explorar países sin penalizar)** — 2026-05-10
   - Contexto / problema: la app solo ofrece modo de adivinanza; no hay forma de explorar libremente para aprender.
@@ -95,6 +88,11 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
 ## Promovidas a tarea
 
 <!-- Cuando una idea pase a ejecutarse, mover acá con link a la task creada. -->
+
+- **Multilenguaje (i18n) con selector de idioma** — 2026-05-13 (**cerrado en repo**)
+  - Entregado: `i18next` + `react-i18next`; locales `es`/`en`; selector en Setup; persistencia en `localStorage` (clave versionada); `document.documentElement.lang`; errores API y validación por código → i18n; prompts de ronda según locale (`buildQuestionPool` + `country-localization` / `capital-es-map.json`). Estado del producto: [`docs/requirements/04-current-state-post-mvp.mdc`](../requirements/04-current-state-post-mvp.mdc) §1 y §2.
+  - Documentación: [`i18n-multilenguaje/README.md`](./i18n-multilenguaje/README.md) · PDR [`00-pdr-multilenguaje-i18n.md`](./i18n-multilenguaje/00-pdr-multilenguaje-i18n.md) · decisión datos [`01-decision-catalogo.md`](./i18n-multilenguaje/01-decision-catalogo.md).
+  - Notas: `npm install` del proyecto puede requerir `--legacy-peer-deps` por el peer de `react-simple-maps` con React 19; ver `package-lock.json` / README raíz si aplica.
 
 - **Vite: acceso desde dispositivo móvil real en red local** — 2026-05-10 (implementado en repo, sin task formal en carpeta de iteración)
   - Hecho: `server.host: true` en `vite.config.ts` para que `npm run dev` escuche en la LAN.

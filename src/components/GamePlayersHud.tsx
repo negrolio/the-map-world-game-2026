@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 import { getActivePlayerIdForRound, sortPlayersByTurnOrder } from '../services/turn-engine'
 import type { GameSession } from '../types'
 import { Panel, PlayerCard } from './ui'
@@ -15,22 +17,30 @@ export interface GamePlayersHudProps {
  * - Grilla 2-3 columnas en desktop.
  */
 export function GamePlayersHud({ session, roundAnswered }: GamePlayersHudProps) {
+  const { t } = useTranslation('game')
+  const { t: tAria } = useTranslation('aria')
+
   const ordered = sortPlayersByTurnOrder(session.players)
   const activeId = roundAnswered ? undefined : getActivePlayerIdForRound(session)
   const activePlayerName = activeId
     ? ordered.find((player) => player.id === activeId)?.name
     : undefined
 
+  const listAriaLabel =
+    ordered.length === 1
+      ? tAria('playersList', { count: ordered.length })
+      : tAria('playersListPlural', { count: ordered.length })
+
   return (
     <Panel
       tone="wood"
       padding="sm"
-      aria-label="Jugadores y puntajes"
+      aria-label={tAria('playersHud')}
       data-testid="game-players-hud"
       className="text-bone"
     >
       <p className="mb-2 font-display text-xs uppercase tracking-wide text-bone/80">
-        Jugadores
+        {t('hudPlayersHeading')}
       </p>
       <p
         className="sr-only"
@@ -39,15 +49,15 @@ export function GamePlayersHud({ session, roundAnswered }: GamePlayersHudProps) 
         data-testid="hud-active-player-announcement"
       >
         {activePlayerName
-          ? `Turno actual: ${activePlayerName}.`
-          : 'Ronda respondida. Esperando avance a la siguiente pregunta.'}
+          ? t('hudTurnAnnouncement', { name: activePlayerName })
+          : t('hudWaitingAdvance')}
       </p>
 
       {/* MAP-UX-03: lista compacta siempre visible debajo de md (sin acordeón). */}
       <div
         className="mb-3 max-h-[min(42vh,15rem)] divide-y-2 divide-bone/15 overflow-y-auto rounded-card border-2 border-wood-dark/40 bg-paper-mute/95 md:hidden"
         role="list"
-        aria-label={`Lista de ${ordered.length} jugador${ordered.length === 1 ? '' : 'es'}`}
+        aria-label={listAriaLabel}
       >
         {ordered.map((player, index) => {
           const isTurn = activeId === player.id

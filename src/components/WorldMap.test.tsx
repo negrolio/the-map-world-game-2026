@@ -1,8 +1,9 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor } from '@testing-library/react'
 import type { CSSProperties, KeyboardEventHandler, MouseEventHandler, ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { WorldMap } from './WorldMap'
+import { renderWithI18n } from '../test/render-with-i18n'
 
 const { mockGeographies } = vi.hoisted(() => ({
   mockGeographies: [
@@ -66,7 +67,7 @@ vi.mock('react-simple-maps', () => {
 
 describe('WorldMap', () => {
   it('expone controles de zoom y reset con etiquetas accesibles', () => {
-    render(<WorldMap />)
+    renderWithI18n(<WorldMap />)
 
     expect(screen.getByRole('button', { name: /Acercar mapa/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Alejar mapa/i })).toBeInTheDocument()
@@ -74,7 +75,7 @@ describe('WorldMap', () => {
   })
 
   it('actualiza el zoom en el estado del viewport al usar controles', () => {
-    render(<WorldMap />)
+    renderWithI18n(<WorldMap />)
     const root = screen.getByTestId('world-map-root')
     const viewport = screen.getByTestId('world-map-viewport')
     vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({
@@ -102,7 +103,7 @@ describe('WorldMap', () => {
   })
 
   it('sincroniza pan al arrastrar dentro del viewport (Pointer Events)', () => {
-    render(<WorldMap />)
+    renderWithI18n(<WorldMap />)
     const root = screen.getByTestId('world-map-root')
     const viewport = screen.getByTestId('world-map-viewport')
 
@@ -124,7 +125,7 @@ describe('WorldMap', () => {
   })
 
   it('aumenta el zoom con pinch simulado (dos punteros tactiles)', () => {
-    render(<WorldMap />)
+    renderWithI18n(<WorldMap />)
     const root = screen.getByTestId('world-map-root')
     const viewport = screen.getByTestId('world-map-viewport')
     vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({
@@ -162,13 +163,13 @@ describe('WorldMap', () => {
   })
 
   it('no aplica transicion CSS al transform del mapa (pan lineal respecto del puntero)', () => {
-    render(<WorldMap />)
+    renderWithI18n(<WorldMap />)
     const layer = screen.getByTestId('world-map-transform-layer')
     expect(layer.className).not.toMatch(/transition-transform/)
   })
 
   it('aplica zoom con la rueda del mouse dentro del mapa', async () => {
-    render(<WorldMap />)
+    renderWithI18n(<WorldMap />)
     const root = screen.getByTestId('world-map-root')
     const viewport = screen.getByTestId('world-map-viewport')
 
@@ -189,7 +190,7 @@ describe('WorldMap', () => {
 
   it('bloquea click de pais cuando answerLocked esta activo', () => {
     const onCountryClick = vi.fn()
-    render(<WorldMap answerLocked onCountryClick={onCountryClick} />)
+    renderWithI18n(<WorldMap answerLocked onCountryClick={onCountryClick} />)
 
     fireEvent.click(screen.getByTestId('geo-ar'))
 
@@ -198,7 +199,7 @@ describe('WorldMap', () => {
 
   it('dispara onCountryClick al seleccionar un pais con puntero tipo mouse', () => {
     const onCountryClick = vi.fn()
-    render(<WorldMap onCountryClick={onCountryClick} />)
+    renderWithI18n(<WorldMap onCountryClick={onCountryClick} />)
     const geo = screen.getByTestId('geo-ar')
     const ptr = { pointerId: 1, pointerType: 'mouse', button: 0, clientX: 8, clientY: 8 }
     fireEvent.pointerDown(geo, { ...ptr, buttons: 1 })
@@ -210,7 +211,7 @@ describe('WorldMap', () => {
 
   it('no selecciona pais si hubo drag desde el path (raton)', () => {
     const onCountryClick = vi.fn()
-    render(<WorldMap onCountryClick={onCountryClick} />)
+    renderWithI18n(<WorldMap onCountryClick={onCountryClick} />)
     const geo = screen.getByTestId('geo-ar')
     const viewport = screen.getByTestId('world-map-viewport')
     const ptr = { pointerId: 9, pointerType: 'mouse', button: 0, clientX: 10, clientY: 10 }
@@ -241,7 +242,7 @@ describe('WorldMap', () => {
     )
 
     try {
-      render(<WorldMap />)
+      renderWithI18n(<WorldMap />)
       const root = screen.getByTestId('world-map-root')
       const viewport = screen.getByTestId('world-map-viewport')
       vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({
@@ -268,7 +269,7 @@ describe('WorldMap', () => {
   })
 
   it('atenua paises fuera del continente activo cuando regionFilter no es world', () => {
-    render(<WorldMap regionFilter="europe" />)
+    renderWithI18n(<WorldMap regionFilter="europe" />)
     expect(screen.getByTestId('world-map-root')).toHaveAttribute('data-region-filter', 'europe')
 
     // MAP_ACTIVE_CONTINENT_PALETTE.default.fill = '#d4bf95'
@@ -278,7 +279,7 @@ describe('WorldMap', () => {
   })
 
   it('prioriza estilos de mapFeedback sobre el dimming regional', () => {
-    render(
+    renderWithI18n(
       <WorldMap
         regionFilter="europe"
         mapFeedback={{
@@ -296,13 +297,13 @@ describe('WorldMap', () => {
   })
 
   it('al cambiar regionFilter centra la proyeccion en el continente y deja pan/zoom en home', () => {
-    const { unmount } = render(<WorldMap key="region-world" regionFilter="world" />)
+    const { unmount } = renderWithI18n(<WorldMap key="region-world" regionFilter="world" />)
     const mapWorld = screen.getByTestId('composable-map')
     expect(mapWorld).toHaveAttribute('data-projection-scale', '147')
     expect(mapWorld).toHaveAttribute('data-projection-center', '0,0')
 
     unmount()
-    render(<WorldMap key="region-europe" regionFilter="europe" />)
+    renderWithI18n(<WorldMap key="region-europe" regionFilter="europe" />)
     const rootEurope = screen.getByTestId('world-map-root')
     const mapEurope = screen.getByTestId('composable-map')
     expect(rootEurope).toHaveAttribute('data-viewport-zoom', '1.00')
@@ -314,7 +315,7 @@ describe('WorldMap', () => {
   })
 
   it('Reset vuelve al centro del continente: pan/zoom en cero manteniendo la proyeccion regional', () => {
-    render(<WorldMap regionFilter="europe" />)
+    renderWithI18n(<WorldMap regionFilter="europe" />)
     const root = screen.getByTestId('world-map-root')
     const map = screen.getByTestId('composable-map')
     const viewport = screen.getByTestId('world-map-viewport')

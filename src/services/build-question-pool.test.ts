@@ -35,6 +35,7 @@ describe('buildQuestionPool', () => {
       countries: poolFixtureCountries,
       regionFilter: 'europe',
       questionMode: 'country',
+      locale: 'en',
       seed: 123,
     })
 
@@ -51,6 +52,7 @@ describe('buildQuestionPool', () => {
       countries: countriesCatalog,
       regionFilter: 'world',
       questionMode: 'country',
+      locale: 'en',
       seed: 123,
     })
 
@@ -62,6 +64,7 @@ describe('buildQuestionPool', () => {
       countries: poolFixtureCountries,
       regionFilter: 'africa',
       questionMode: 'country',
+      locale: 'en',
       requestedQuestionCount: 10,
       seed: 123,
     })
@@ -75,12 +78,14 @@ describe('buildQuestionPool', () => {
       countries: poolFixtureCountries,
       regionFilter: 'world',
       questionMode: 'capital',
+      locale: 'en',
       seed: 999,
     })
     const poolB = buildQuestionPool({
       countries: poolFixtureCountries,
       regionFilter: 'world',
       questionMode: 'capital',
+      locale: 'en',
       seed: 999,
     })
 

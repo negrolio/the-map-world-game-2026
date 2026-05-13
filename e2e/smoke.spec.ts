@@ -13,8 +13,10 @@ test('partida en pantalla completa: shell + overlay top/bottom + sin scroll de p
   await page.setViewportSize({ width: 1280, height: 800 })
   await page.goto('/')
 
-  await page.getByRole('button', { name: /Comenzar setup/i }).click()
-  await page.getByRole('button', { name: /Iniciar partida/i }).click()
+  await page.getByRole('button', { name: /Comenzar setup|Start setup/i }).click()
+  await page.waitForSelector('#app-locale')
+  await page.selectOption('#app-locale', 'es')
+  await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
 
   await expect(page.getByTestId('game-shell')).toBeVisible()
   await expect(page.getByTestId('game-overlay-top')).toBeVisible()

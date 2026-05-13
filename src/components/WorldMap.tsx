@@ -16,6 +16,7 @@ import type {
   MutableRefObject,
   PointerEvent as ReactPointerEvent,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import countriesTopologyUrl from 'world-atlas/countries-110m.json?url'
 import { getContinentForIso2 } from '../data/countries'
@@ -253,6 +254,8 @@ type WorldMapGeographyRowProps = {
   readonly regionFilter: RegionFilter
   readonly onCountryClick?: (iso2: IsoCountryCode | null) => void
   readonly draggedRef: MutableRefObject<boolean>
+  /** Para que el memo reaccione al cambio de idioma (aria-label traducido). */
+  readonly i18nLanguage: string
 }
 
 function mapFeedbackShallowEqual(a: MapAnswerFeedback | null, b: MapAnswerFeedback | null): boolean {
@@ -280,6 +283,7 @@ function worldMapGeographyRowPropsEqual(
     prev.regionFilter === next.regionFilter &&
     prev.onCountryClick === next.onCountryClick &&
     prev.draggedRef === next.draggedRef &&
+    prev.i18nLanguage === next.i18nLanguage &&
     mapFeedbackShallowEqual(prev.mapFeedback, next.mapFeedback)
   )
 }
@@ -293,12 +297,15 @@ const WorldMapGeographyRow = memo(function WorldMapGeographyRow({
   regionFilter,
   onCountryClick,
   draggedRef,
+  i18nLanguage: _i18nLanguage,
 }: WorldMapGeographyRowProps) {
+  void _i18nLanguage
+  const { t } = useTranslation('aria')
   const geoStyle = geographyStyleForIso(iso2, mapFeedback, locked, regionFilter)
   const ariaLabel =
     typeof geo.properties.name === 'string'
-      ? `Seleccionar ${geo.properties.name}`
-      : `Seleccionar país ${iso2 ?? 'sin código'}`
+      ? t('selectCountry', { name: geo.properties.name })
+      : t('selectCountryFallback', { code: iso2 ?? '—' })
 
   return (
     <Geography
@@ -364,6 +371,7 @@ function WorldMapInner({
   fullBleed = false,
   regionFilter = 'world',
 }: WorldMapProps) {
+  const { t, i18n } = useTranslation('aria')
   const projectionConfig = useMemo(() => {
     const c = getProjectionConfigForRegion(regionFilter)
     return { scale: c.scale, center: [c.center[0], c.center[1]] as [number, number] }
@@ -686,17 +694,12 @@ function WorldMapInner({
       data-map-projection-scale={String(projectionConfig.scale)}
       data-map-projection-center={`${projectionConfig.center[0]},${projectionConfig.center[1]}`}
       role="region"
-      aria-label="Mapa interactivo de países"
+      aria-label={t('mapInteractive')}
       aria-describedby={instructionsId}
       className={containerClass}
     >
       <p id={instructionsId} className="sr-only">
-        Usá Tab para navegar países y Enter o Barra espaciadora para seleccionar.
-        Si la interfaz superpone parte del mapa, podés acercar, alejar y mover la
-        vista con los controles del mapa, la rueda del mouse, arrastrando con el
-        cursor o, en pantallas táctiles, con un dedo para mover y dos para pellizcar
-        y hacer zoom hasta exponer el país que querés tocar. En táctil o pantallas
-        chicas podés acercar mucho más que con ratón para tocar países pequeños.
+        {t('mapInstructions')}
       </p>
       {/*
         F2.5 — Zoom +/-/Reset.
@@ -720,7 +723,7 @@ function WorldMapInner({
           type="button"
           tone="secondary"
           size="sm"
-          aria-label="Acercar mapa"
+          aria-label={t('zoomIn')}
           onClick={() => {
             const viewportRect = viewportRef.current?.getBoundingClientRect()
             const anchor = viewportRect
@@ -735,13 +738,13 @@ function WorldMapInner({
             )
           }}
         >
-          Zoom +
+          {t('zoomPlus')}
         </ChunkyButton>
         <ChunkyButton
           type="button"
           tone="secondary"
           size="sm"
-          aria-label="Alejar mapa"
+          aria-label={t('zoomOut')}
           onClick={() => {
             const viewportRect = viewportRef.current?.getBoundingClientRect()
             const anchor = viewportRect
@@ -756,13 +759,13 @@ function WorldMapInner({
             )
           }}
         >
-          Zoom -
+          {t('zoomMinus')}
         </ChunkyButton>
         <ChunkyButton
           type="button"
           tone="secondary"
           size="sm"
-          aria-label="Restablecer vista del mapa"
+          aria-label={t('resetView')}
           onClick={() => setViewport(getBaselineViewportForRegion(regionFilter))}
         >
           Reset
@@ -800,6 +803,7 @@ function WorldMapInner({
                     regionFilter={regionFilter}
                     onCountryClick={onCountryClick}
                     draggedRef={draggedRef}
+                    i18nLanguage={i18n.language}
                   />
                 )
               })

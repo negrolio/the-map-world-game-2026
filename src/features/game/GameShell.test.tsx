@@ -1,7 +1,8 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { GameConfig, GameSession, Player } from '../../types'
+import { renderWithI18n } from '../../test/render-with-i18n'
 import { GameShell } from './GameShell'
 
 const baseConfig: GameConfig = {
@@ -84,7 +85,7 @@ describe('GameShell — atajo avanzar ronda (desktop)', () => {
 
   it('con puntero fino y respuesta ya enviada, Enter global llama a onAdvanceRound', () => {
     const onAdvanceRound = vi.fn()
-    render(
+    renderWithI18n(
       <GameShell
         session={buildSessionWithGuess()}
         guessSubmitError={null}
@@ -102,7 +103,7 @@ describe('GameShell — atajo avanzar ronda (desktop)', () => {
 
   it('con puntero fino, barra espaciadora avanza', () => {
     const onAdvanceRound = vi.fn()
-    render(
+    renderWithI18n(
       <GameShell
         session={buildSessionWithGuess()}
         guessSubmitError={null}
@@ -122,7 +123,7 @@ describe('GameShell — atajo avanzar ronda (desktop)', () => {
     vi.mocked(window.matchMedia).mockImplementation((query: string) => mockMediaQueryList(false, query))
 
     const onAdvanceRound = vi.fn()
-    render(
+    renderWithI18n(
       <GameShell
         session={buildSessionWithGuess()}
         guessSubmitError={null}
@@ -140,7 +141,7 @@ describe('GameShell — atajo avanzar ronda (desktop)', () => {
 
   it('no intercepta Enter cuando el foco está en otro botón', () => {
     const onAdvanceRound = vi.fn()
-    render(
+    renderWithI18n(
       <GameShell
         session={buildSessionWithGuess()}
         guessSubmitError={null}
@@ -158,7 +159,7 @@ describe('GameShell — atajo avanzar ronda (desktop)', () => {
   })
 
   it('muestra leyenda de teclado solo con puntero fino', () => {
-    render(
+    renderWithI18n(
       <GameShell
         session={buildSessionWithGuess()}
         guessSubmitError={null}
@@ -176,7 +177,7 @@ describe('GameShell — atajo avanzar ronda (desktop)', () => {
   it('sin puntero fino no muestra leyenda ni aria-keyshortcuts', () => {
     vi.mocked(window.matchMedia).mockImplementation((query: string) => mockMediaQueryList(false, query))
 
-    render(
+    renderWithI18n(
       <GameShell
         session={buildSessionWithGuess()}
         guessSubmitError={null}

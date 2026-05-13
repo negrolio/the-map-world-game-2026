@@ -1,4 +1,6 @@
 import type { CountryRecord } from '../data'
+import { getLocalizedCapital, getLocalizedCountryName } from '../data/country-localization'
+import type { AppLocale } from '../i18n/app-locale'
 import type { IsoCountryCode, QuestionMode, RegionFilter } from '../types'
 
 export interface QuestionPoolItem {
@@ -12,6 +14,7 @@ export interface BuildQuestionPoolInput {
   readonly countries: readonly CountryRecord[]
   readonly regionFilter: RegionFilter
   readonly questionMode: QuestionMode
+  readonly locale: AppLocale
   readonly seed?: number
   readonly requestedQuestionCount?: number
 }
@@ -48,12 +51,12 @@ function shuffleDeterministic<T>(items: readonly T[], seed: number): readonly T[
   return result
 }
 
-function buildPrompt(country: CountryRecord, mode: QuestionMode): string {
+function buildPrompt(country: CountryRecord, mode: QuestionMode, locale: AppLocale): string {
   if (mode === 'capital') {
-    return country.capital
+    return getLocalizedCapital(country, locale)
   }
 
-  return country.name
+  return getLocalizedCountryName(country, locale)
 }
 
 export function buildQuestionPool(input: BuildQuestionPoolInput): BuildQuestionPoolResult {
@@ -65,7 +68,7 @@ export function buildQuestionPool(input: BuildQuestionPoolInput): BuildQuestionP
   const baseQuestions: readonly QuestionPoolItem[] = filteredCountries.map((country) => ({
     id: `${input.questionMode}-${country.iso2}`,
     answerCountryCode: country.iso2,
-    prompt: buildPrompt(country, input.questionMode),
+    prompt: buildPrompt(country, input.questionMode, input.locale),
     mode: input.questionMode,
   }))
 

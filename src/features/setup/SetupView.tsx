@@ -1,3 +1,7 @@
+import { useMemo } from 'react'
+import type { TFunction } from 'i18next'
+import { useTranslation } from 'react-i18next'
+
 import {
   Alert,
   Badge,
@@ -7,6 +11,8 @@ import {
   FieldSelect,
   Panel,
 } from '../../components/ui'
+import type { AppLocale } from '../../i18n/app-locale'
+import { SUPPORTED_LOCALES } from '../../i18n/app-locale'
 import { PRODUCT_RULES } from '../../services'
 import type {
   AntiCheatMode,
@@ -22,7 +28,8 @@ export interface SetupValidationLimits {
 
 export interface SetupValidationError {
   readonly field: string
-  readonly message: string
+  readonly messageKey: string
+  readonly messageValues?: Readonly<Record<string, string | number>>
 }
 
 export interface SetupValidationResult {
@@ -55,26 +62,22 @@ export interface SetupViewProps {
   readonly onBackToHome: () => void
 }
 
-const REGION_OPTIONS = [
-  { value: 'world', label: 'Mundo' },
-  { value: 'africa', label: 'África' },
-  { value: 'americas', label: 'Américas' },
-  { value: 'asia', label: 'Asia' },
-  { value: 'europe', label: 'Europa' },
-  { value: 'oceania', label: 'Oceanía' },
-] as const
+function translateDomainValidation(tVal: TFunction, error: SetupValidationError): string {
+  const path = error.messageKey.replace(/^validation\./, '')
+  return tVal(path, error.messageValues ?? {})
+}
 
-const QUESTION_MODE_OPTIONS = [
-  { value: 'country' as const, label: 'País' },
-  { value: 'capital' as const, label: 'Capital' },
-]
-
-const ANTI_CHEAT_OPTIONS = [
-  { value: 'normal' as const, label: 'Normal' },
-  { value: 'strict' as const, label: 'Estricto' },
-]
+function translateSchemaIssue(tVal: TFunction, messageKey: string): string {
+  return tVal(messageKey, {
+    min: PRODUCT_RULES.players.min,
+    max: PRODUCT_RULES.players.max,
+  })
+}
 
 export function SetupView(props: SetupViewProps) {
+  const { t, i18n } = useTranslation('setup')
+  const { t: tVal } = useTranslation('validation')
+
   const {
     playerCount,
     players,
@@ -99,16 +102,71 @@ export function SetupView(props: SetupViewProps) {
     onBackToHome,
   } = props
 
+  const regionOptions = useMemo(
+    () =>
+      (
+        [
+          ['world', 'regionWorld'],
+          ['africa', 'regionAfrica'],
+          ['americas', 'regionAmericas'],
+          ['asia', 'regionAsia'],
+          ['europe', 'regionEurope'],
+          ['oceania', 'regionOceania'],
+        ] as const
+      ).map(([value, labelKey]) => ({
+        value,
+        label: t(labelKey),
+      })),
+    [t],
+  )
+
+  const questionModeOptions = useMemo(
+    () =>
+      (
+        [
+          ['country', 'modeCountry'],
+          ['capital', 'modeCapital'],
+        ] as const
+      ).map(([value, labelKey]) => ({
+        value,
+        label: t(labelKey),
+      })),
+    [t],
+  )
+
+  const antiCheatOptions = useMemo(
+    () =>
+      (
+        [
+          ['normal', 'antiCheatNormal'],
+          ['strict', 'antiCheatStrict'],
+        ] as const
+      ).map(([value, labelKey]) => ({
+        value,
+        label: t(labelKey),
+      })),
+    [t],
+  )
+
+  const languageOptions = useMemo(
+    () =>
+      SUPPORTED_LOCALES.map((locale) => ({
+        value: locale,
+        label: locale === 'es' ? t('languageOptionEs') : t('languageOptionEn'),
+      })),
+    [t],
+  )
+
+  const activeLocale = (i18n.language.startsWith('en') ? 'en' : 'es') as AppLocale
+
   return (
     <main className="min-h-screen bg-paper text-ink">
       <section className="mx-auto flex min-h-screen w-full max-w-4xl flex-col justify-center gap-5 px-6 py-12">
-        <Badge tone="success">Setup de partida</Badge>
+        <Badge tone="success">{t('badge')}</Badge>
         <h1 className="font-display text-3xl uppercase tracking-tight text-wood-dark md:text-5xl">
-          Game Setup Panel
+          {t('title')}
         </h1>
-        <p className="max-w-2xl font-body text-sm text-ink-soft md:text-base">
-          Configurá jugadores y reglas base para preparar el inicio de la partida.
-        </p>
+        <p className="max-w-2xl font-body text-sm text-ink-soft md:text-base">{t('lead')}</p>
 
         <Panel tone="paper" padding="lg" className="setup-panel-background grid gap-4">
           <form
@@ -118,6 +176,16 @@ export function SetupView(props: SetupViewProps) {
               onStartGame()
             }}
           >
+            <FieldSelect
+              id="app-locale"
+              label={t('languageLabel')}
+              value={activeLocale}
+              onChange={(event) => {
+                void i18n.changeLanguage(event.target.value as AppLocale)
+              }}
+              options={languageOptions}
+            />
+
             <FieldInput
               id="player-count"
               type="number"
@@ -130,12 +198,12 @@ export function SetupView(props: SetupViewProps) {
                   Number.isNaN(nextValue) ? PRODUCT_RULES.players.min : nextValue,
                 )
               }}
-              label="Cantidad de jugadores (1-6)"
+              label={t('playerCountLabel')}
             />
 
             <div className="grid gap-2">
               <p className="font-display text-sm uppercase tracking-wide text-wood-dark">
-                Nombres de jugadores
+                {t('playerNamesHeading')}
               </p>
               <div className="grid gap-2">
                 {players.map((playerName, index) => (
@@ -145,7 +213,7 @@ export function SetupView(props: SetupViewProps) {
                     type="text"
                     value={playerName}
                     onChange={(event) => onPlayerNameChange(index, event.target.value)}
-                    label={`Jugador ${index + 1}`}
+                    label={t('playerLabel', { n: index + 1 })}
                     invalid={!schemaIsValid}
                   />
                 ))}
@@ -153,26 +221,26 @@ export function SetupView(props: SetupViewProps) {
             </div>
 
             <FieldRadioGroup
-              legend="Modo de preguntas"
+              legend={t('questionModeLegend')}
               name="question-mode"
               value={questionMode}
-              options={QUESTION_MODE_OPTIONS}
+              options={questionModeOptions}
               onChange={onQuestionModeChange}
             />
 
             <FieldSelect
               id="region-filter"
-              label="Cobertura geográfica"
+              label={t('regionLabel')}
               value={regionFilter}
               onChange={(event) => onRegionFilterChange(event.target.value as RegionFilter)}
-              options={REGION_OPTIONS}
+              options={regionOptions}
             />
 
             <FieldRadioGroup
-              legend="Anti-cheat"
+              legend={t('antiCheatLegend')}
               name="anti-cheat-mode"
               value={antiCheatMode}
-              options={ANTI_CHEAT_OPTIONS}
+              options={antiCheatOptions}
               onChange={onAntiCheatModeChange}
             />
 
@@ -188,46 +256,46 @@ export function SetupView(props: SetupViewProps) {
                   Number.isNaN(nextValue) ? validationResult.questionLimits.min : nextValue,
                 )
               }}
-              label="Número de preguntas"
+              label={t('questionCountLabel')}
               aria-invalid={!canStartGame}
               aria-describedby="setup-feedback"
             />
 
             <Panel tone="paper-soft" padding="sm" className="grid gap-1 text-xs text-ink-soft">
+              <p>{t('questionsAvailable', { count: availableQuestionsForRegion })}</p>
               <p>
-                Preguntas disponibles para este filtro: {availableQuestionsForRegion}
-              </p>
-              <p>
-                Rango permitido de preguntas: {validationResult.questionLimits.min} a{' '}
-                {validationResult.questionLimits.max}
+                {t('questionRange', {
+                  min: validationResult.questionLimits.min,
+                  max: validationResult.questionLimits.max,
+                })}
               </p>
             </Panel>
 
             {!validationResult.isValid ? (
-              <Alert id="setup-feedback" tone="error" heading="Configuración inválida">
+              <Alert id="setup-feedback" tone="error" heading={t('invalidConfigHeading')}>
                 <ul className="list-disc space-y-1 pl-5 text-xs">
                   {validationResult.errors.map((error, index) => (
-                    <li key={`${error.field}-${index}`}>{error.message}</li>
+                    <li key={`${error.field}-${index}`}>{translateDomainValidation(tVal, error)}</li>
                   ))}
                 </ul>
               </Alert>
             ) : (
               <Alert id="setup-feedback" tone="success">
-                Configuración válida para iniciar partida.
+                {t('validConfig')}
               </Alert>
             )}
 
             {schemaOnlyErrors.length > 0 ? (
               <Alert tone="error">
                 {schemaOnlyErrors.map((errorMessage, index) => (
-                  <p key={`${errorMessage}-${index}`}>{errorMessage}</p>
+                  <p key={`${errorMessage}-${index}`}>{translateSchemaIssue(tVal, errorMessage)}</p>
                 ))}
               </Alert>
             ) : null}
 
             <Panel tone="paper-soft" padding="sm">
               <p className="mb-2 font-display text-xs uppercase tracking-wide text-ink-soft">
-                Config listo para validar/iniciar
+                {t('configPreviewHeading')}
               </p>
               <pre className="overflow-x-auto font-body text-xs text-wood-dark">
                 {JSON.stringify(setupDraft, null, 2)}
@@ -244,10 +312,10 @@ export function SetupView(props: SetupViewProps) {
             disabled={!canStartGame}
             onClick={onStartGame}
           >
-            Iniciar partida
+            {t('startGame')}
           </ChunkyButton>
           <ChunkyButton type="button" tone="secondary" onClick={onBackToHome}>
-            Volver al home
+            {t('backHome')}
           </ChunkyButton>
         </div>
         {setupSubmitMessage ? (

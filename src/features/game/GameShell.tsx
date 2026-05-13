@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { GamePlayersHud, WorldMap } from '../../components'
 import { Alert, Badge, ChunkyButton, OverlayBand } from '../../components/ui'
@@ -48,6 +49,7 @@ export function GameShell({
   onExitToSetup,
   onExitToHome,
 }: GameShellProps) {
+  const { t } = useTranslation('game')
   const [desktopFinePointer, setDesktopFinePointer] = useState(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
       return false
@@ -111,21 +113,24 @@ export function GameShell({
       className="relative h-screen w-screen overflow-hidden bg-paper text-bone"
       style={{ height: '100dvh' }}
     >
-      <h1 className="sr-only">Mapa mundial — 110m</h1>
+      <h1 className="sr-only">{t('srTitle')}</h1>
 
       {/* F2.3 + F2.4 + F2.7 — Banda superior: navegación + ronda. Primer foco con Tab. */}
       <OverlayBand position="top" data-testid="game-overlay-top">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="info">Partida (mapa)</Badge>
+            <Badge tone="info">{t('badge')}</Badge>
             {activeRound ? (
               <Badge tone="paper" data-testid="round-counter">
-                Ronda {activeRound.roundNumber} / {session.rounds.length}
+                {t('roundCounter', {
+                  current: activeRound.roundNumber,
+                  total: session.rounds.length,
+                })}
               </Badge>
             ) : null}
           </div>
           <nav
-            aria-label="Navegación de partida"
+            aria-label={t('navAria')}
             className="flex items-center gap-2"
             data-testid="game-overlay-nav"
           >
@@ -134,18 +139,18 @@ export function GameShell({
               tone="secondary"
               size="sm"
               onClick={onExitToSetup}
-              aria-label="Volver al setup"
+              aria-label={t('setupAria')}
             >
-              Setup
+              {t('setupButton')}
             </ChunkyButton>
             <ChunkyButton
               type="button"
               tone="secondary"
               size="sm"
               onClick={onExitToHome}
-              aria-label="Ir al home"
+              aria-label={t('homeAria')}
             >
-              Home
+              {t('homeButton')}
             </ChunkyButton>
           </nav>
         </div>
@@ -155,19 +160,14 @@ export function GameShell({
             data-testid="round-prompt"
             data-target-iso2={activeRound.targetCountryCode}
           >
-            {session.config.questionMode === 'country'
-              ? '¿Dónde está '
-              : '¿Dónde queda la capital '}
-            <span className="text-warning">{activeRound.prompt}</span>?
+            {session.config.questionMode === 'country' ? t('promptCountry') : t('promptCapital')}
+            <span className="text-warning">{activeRound.prompt}</span>
+            {t('promptSuffix')}
           </p>
         ) : null}
         {turnPlayer && !roundGuess ? (
           <p className="font-body text-sm text-bone/90" data-testid="active-turn-player">
-            Turno de{' '}
-            <span className="font-display uppercase tracking-wide text-warning">
-              {turnPlayer.name}
-            </span>{' '}
-            — respondé tocando el mapa.
+            {t('turnLine', { name: turnPlayer.name })}
           </p>
         ) : null}
         {roundGuess ? (
@@ -182,9 +182,9 @@ export function GameShell({
             }
           >
             {roundGuess.isCorrect
-              ? 'Correcto.'
-              : `Incorrecto. El objetivo era el país con ISO2 ${activeRound?.targetCountryCode}.`}
-            {' · Respuesta de '}
+              ? t('feedbackCorrect')
+              : t('feedbackWrong', { iso2: activeRound?.targetCountryCode ?? '' })}
+            {t('feedbackAnswerBy')}
             <span className="text-bone">
               {session.players.find((player) => player.id === roundGuess.playerId)?.name ??
                 roundGuess.playerId}
@@ -228,13 +228,13 @@ export function GameShell({
               aria-keyshortcuts={desktopFinePointer ? 'Enter Space' : undefined}
             >
               <span className="flex flex-col items-center gap-0.5 leading-tight">
-                <span>{isLastRound ? 'Ver resultado final' : 'Siguiente pregunta'}</span>
+                <span>{isLastRound ? t('advanceFinal') : t('advanceNext')}</span>
                 {desktopFinePointer ? (
                   <span
                     className="max-w-[14rem] font-body text-[0.65rem] font-normal normal-case tracking-normal text-bone/85"
                     data-testid="advance-round-kbd-hint"
                   >
-                    También: Enter o barra espaciadora
+                    {t('kbdHint')}
                   </span>
                 ) : null}
               </span>

@@ -33,7 +33,9 @@ Para probar e2e, suele hacer falta tener instalados los navegadores de Playwrigh
 
 ## Estado del proyecto
 
-El **MVP frontend** del plan (fases 0–8) y la **iteración UX + datos** (mapa con zoom/pan, partida a pantalla completa, HUD móvil, catálogo amplio, foco por continente) están implementados. Opcional en backlog: persistencia de sesión en `sessionStorage` y pantalla *about* de fuentes y licencias del dataset (ver sección P2 en `docs/tasks/mvp-frontend-implementation-todos.mdc`).
+El **MVP frontend** del plan (fases 0–8), la **iteración UX + datos** y la **internacionalización ES/EN** (selector en Setup, persistencia, prompts localizados; ver [`docs/requirements/04-current-state-post-mvp.mdc`](docs/requirements/04-current-state-post-mvp.mdc) y [`docs/tasks/i18n-multilenguaje/`](docs/tasks/i18n-multilenguaje/)) están implementados. Opcional en backlog: persistencia de sesión en `sessionStorage` y pantalla *about* de fuentes y licencias del dataset (ver sección P2 en `docs/tasks/mvp-frontend-implementation-todos.mdc`).
+
+**Instalación:** si `npm install` falla por peer de `react-simple-maps` con React 19, probar `npm install --legacy-peer-deps` (ver `package-lock.json`).
 
 ## Estructura principal del código
 

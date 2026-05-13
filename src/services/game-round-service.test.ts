@@ -142,7 +142,7 @@ describe('submitRoundGuess', () => {
     if (second.success) {
       return
     }
-    expect(second.error.code).toBe('INVALID_GUESS')
+    expect(second.error.code).toBe('ROUND_ALREADY_ANSWERED')
   })
 
   it('rechaza selección sin ISO resuelto', () => {
@@ -158,7 +158,7 @@ describe('submitRoundGuess', () => {
     if (result.success) {
       return
     }
-    expect(result.error.code).toBe('INVALID_GUESS')
+    expect(result.error.code).toBe('MAP_SELECTION_UNRESOLVED')
   })
 
   it('rechaza respuestas cuando la partida ya finalizo', () => {
@@ -198,8 +198,7 @@ describe('submitRoundGuess', () => {
     if (result.success) {
       return
     }
-    expect(result.error.code).toBe('ROUND_NOT_ACTIVE')
-    expect(result.error.message).toMatch(/terminó/i)
+    expect(result.error.code).toBe('GAME_FINISHED_NO_MORE_GUESSES')
   })
 
   it('rechaza respuestas cuando la sesion no esta en playing', () => {
@@ -226,7 +225,7 @@ describe('submitRoundGuess', () => {
     if (result.success) {
       return
     }
-    expect(result.error.code).toBe('ROUND_NOT_ACTIVE')
+    expect(result.error.code).toBe('GAME_NOT_IN_PLAYING_STATE')
   })
 
   it('rechaza respuesta si no es el turno del jugador', () => {
@@ -268,7 +267,7 @@ describe('submitRoundGuess', () => {
     if (wrongTurn.success) {
       return
     }
-    expect(wrongTurn.error.code).toBe('INVALID_GUESS')
+    expect(wrongTurn.error.code).toBe('GUESS_WRONG_PLAYER_TURN')
 
     const ok = submitRoundGuess({
       session,
@@ -320,7 +319,7 @@ describe('advanceToNextRoundOrFinish', () => {
     if (result.success) {
       return
     }
-    expect(result.error.code).toBe('INVALID_GUESS')
+    expect(result.error.code).toBe('ADVANCE_ANSWER_REQUIRED')
   })
 
   it('avanza al siguiente índice cuando no es la última ronda', () => {

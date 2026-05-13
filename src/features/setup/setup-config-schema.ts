@@ -10,17 +10,21 @@ const antiCheatModeSchema = z.enum(['normal', 'strict'])
 const playerNameSchema = z
   .string()
   .trim()
-  .min(1, 'Player names cannot be empty.')
+  .min(1, { message: 'schema.playerNameEmpty' })
 
 export const setupConfigSchema = z.object({
   players: z
     .array(playerNameSchema)
-    .min(PRODUCT_RULES.players.min, `At least ${PRODUCT_RULES.players.min} player is required.`)
-    .max(PRODUCT_RULES.players.max, `A maximum of ${PRODUCT_RULES.players.max} players is allowed.`),
+    .min(PRODUCT_RULES.players.min, {
+      message: 'schema.playersMin',
+    })
+    .max(PRODUCT_RULES.players.max, {
+      message: 'schema.playersMax',
+    }),
   questionMode: questionModeSchema,
   regionFilter: regionFilterSchema,
   antiCheatMode: antiCheatModeSchema,
-  questionCount: z.number().int().min(1, 'Question count must be at least 1.'),
+  questionCount: z.number().int().min(1, { message: 'schema.questionCountMin' }),
 })
 
 export interface SetupSchemaValidationResult {

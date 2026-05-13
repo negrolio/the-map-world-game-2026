@@ -1,7 +1,8 @@
-import { render, screen, within } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import type { GameSession } from '../types'
+import { renderWithI18n } from '../test/render-with-i18n'
 import { GamePlayersHud } from './GamePlayersHud'
 
 const initialInnerWidth = window.innerWidth
@@ -48,7 +49,7 @@ describe('GamePlayersHud', () => {
 
   it('en movil muestra turno en la lista compacta sin acordeon', () => {
     setTestViewportWidth(375)
-    render(<GamePlayersHud session={baseSession} roundAnswered={false} />)
+    renderWithI18n(<GamePlayersHud session={baseSession} roundAnswered={false} />)
 
     const mobileRow = screen.getByTestId('player-hud-mobile-player-1')
     expect(mobileRow).toBeVisible()
@@ -58,7 +59,7 @@ describe('GamePlayersHud', () => {
 
   it('con roundAnswered no muestra badge de turno ni aria-current en movil', () => {
     setTestViewportWidth(375)
-    render(<GamePlayersHud session={baseSession} roundAnswered />)
+    renderWithI18n(<GamePlayersHud session={baseSession} roundAnswered />)
 
     const mobileRow = screen.getByTestId('player-hud-mobile-player-1')
     expect(within(mobileRow).queryByText('Turno')).not.toBeInTheDocument()
@@ -68,7 +69,7 @@ describe('GamePlayersHud', () => {
 
   it('en escritorio mantiene tarjeta con turno', () => {
     setTestViewportWidth(1200)
-    render(<GamePlayersHud session={baseSession} roundAnswered={false} />)
+    renderWithI18n(<GamePlayersHud session={baseSession} roundAnswered={false} />)
 
     const card = screen.getByTestId('player-hud-player-1')
     expect(card).toBeVisible()

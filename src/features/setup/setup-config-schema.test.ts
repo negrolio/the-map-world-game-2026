@@ -26,6 +26,6 @@ describe('validateSetupConfigSchema', () => {
     })
 
     expect(result.isValid).toBe(false)
-    expect(result.errors).toContain('Player names cannot be empty.')
+    expect(result.errors).toContain('schema.playerNameEmpty')
   })
 })
