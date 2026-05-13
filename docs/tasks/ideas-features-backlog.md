@@ -63,12 +63,6 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
   - Esfuerzo estimado: medio.
   - Notas: archivos relevantes `src/components/WorldMap.tsx` y `src/components/world-map-baseline-viewport.ts`. Relación con MAP-UX-01.
 
-- **Tema Dark / Light con switch de usuario** — 2026-05-10
-  - Contexto / problema: hoy la app es solo tema oscuro; no respeta preferencia del sistema ni permite cambio.
-  - Idea / dirección: introducir tema claro + toggle accesible (`aria-label`, foco visible). Tomar como default `prefers-color-scheme` y persistir la elección manual.
-  - Impacto estimado: UX / accesibilidad · medio.
-  - Esfuerzo estimado: medio.
-  - Notas: consolidar colores actuales del HUD/overlay en variables CSS o tokens de Tailwind antes de duplicar paletas.
 
 - **Multilenguaje (i18n) con selector de idioma** — 2026-05-10
   - Contexto / problema: textos de UI hardcodeados en español; nombres y capitales del catálogo también.
@@ -83,13 +77,6 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
   - Impacto estimado: feature / infra · alto.
   - Esfuerzo estimado: alto.
   - Notas: comparar costos, vendor-lock y flujos de despliegue antes de elegir. Pensar primero la API contractual y dejar la elección de proveedor por detrás.
-
-- **Atajos para “siguiente pregunta”: teclado en desktop, gesto en mobile** — 2026-05-10
-  - Contexto / problema: avanzar entre rondas requiere apuntar y clickear el botón.
-  - Idea / dirección: en desktop, atajo de teclado (`Enter` o `Espacio`) cuando `roundAnswered` lo permita. En mobile, gesto natural (ej. swipe horizontal o doble tap en zona segura del mapa). Mantener el botón visible.
-  - Impacto estimado: UX · medio.
-  - Esfuerzo estimado: bajo–medio.
-  - Notas: evitar conflictos con foco de inputs, con la navegación por teclado existente y con el pan/zoom del mapa. Revisar accesibilidad y feedback visible al disparar el atajo.
 
 - **Mensajes de error de respuesta más claros y empáticos** — 2026-05-10
   - Contexto / problema: el feedback al equivocarse de país es funcional pero plano.
@@ -117,6 +104,10 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
 - **Mapa en mobile: pan y zoom táctil (MAP-UX-06)** — 2026-05-13 (implementado en repo, sin task formal `NN-...md`)
   - Hecho: `src/components/WorldMap.tsx` — Pointer Events con `setPointerCapture`, pan con un dedo y pinch con dos; rueda y ratón sin regresión. Tests en `src/components/WorldMap.test.tsx`.
   - Documentación de estado: `docs/requirements/04-current-state-post-mvp.mdc` y nota en `docs/tasks/map-game-ux-and-data/01-mapa-zoom-pan-contenedor.md`. QA manual en dispositivo físico (Safari iOS / Chrome Android) sigue recomendable.
+
+- **Atajos para “siguiente pregunta” (solo desktop)** — 2026-05-13 (implementado en repo, sin task formal `NN-...md`)
+  - Alcance acordado: **solo teclado en desktop** (`Enter` / barra espaciadora) cuando ya hay respuesta en la ronda; **sin gestos extra en mobile** (el tap en el botón alcanza). Media query `(hover: hover) and (pointer: fine)` para no registrar el listener ni mostrar leyenda en táctil típico.
+  - Hecho: `src/features/game/GameShell.tsx` — listener global con guardas de foco (no robar Enter/Space de otros `button`/`input`/etc.; el propio CTA de avance delega en el comportamiento nativo del botón). Leyenda pequeña bajo el label y `aria-keyshortcuts` solo en ese caso. Tests: `src/features/game/GameShell.test.tsx`.
 
 ## Descartadas
 

@@ -208,6 +208,19 @@ describe('WorldMap', () => {
     expect(onCountryClick).toHaveBeenCalledWith('AR')
   })
 
+  it('no selecciona pais si hubo drag desde el path (raton)', () => {
+    const onCountryClick = vi.fn()
+    render(<WorldMap onCountryClick={onCountryClick} />)
+    const geo = screen.getByTestId('geo-ar')
+    const viewport = screen.getByTestId('world-map-viewport')
+    const ptr = { pointerId: 9, pointerType: 'mouse', button: 0, clientX: 10, clientY: 10 }
+    fireEvent.pointerDown(geo, { ...ptr, buttons: 1 })
+    fireEvent.pointerMove(viewport, { ...ptr, clientX: 30, clientY: 12, buttons: 1 })
+    fireEvent.pointerUp(viewport, { ...ptr, clientX: 30, clientY: 12, buttons: 0 })
+    fireEvent.click(geo)
+    expect(onCountryClick).not.toHaveBeenCalled()
+  })
+
   it('permite mayor zoom maximo en UI tactil o viewport estrecho', () => {
     vi.stubGlobal(
       'matchMedia',

@@ -313,21 +313,6 @@ const WorldMapGeographyRow = memo(function WorldMapGeographyRow({
           : 'cursor-pointer outline-none transition-[fill] duration-150 focus-visible:ring-2 focus-visible:ring-warning'
       }
       style={geoStyle}
-      /**
-       * MAP-UX — ratón / lápiz: el viewport usa `setPointerCapture` para pan.
-       * Si el `pointerdown` burbujea hasta ahí, el `pointerup` va al contenedor y
-       * el navegador no compone `click` sobre el path (el táctil suele seguir
-       * funcionando). Cortamos la burbuja solo con selección activa (`!locked`).
-       */
-      onPointerDown={(event: ReactPointerEvent<SVGPathElement>) => {
-        if (locked) {
-          return
-        }
-        if (event.pointerType === 'touch') {
-          return
-        }
-        event.stopPropagation()
-      }}
       onClick={(event: MouseEvent<SVGPathElement>) => {
         event.stopPropagation()
         if (draggedRef.current) {
@@ -576,7 +561,16 @@ function WorldMapInner({
     if (!node) {
       return
     }
-    trySetPointerCapture(node, event.pointerId)
+    /**
+     * MAP-UX — `setPointerCapture` en el viewport con ratón/lápiz hace que el
+     * `pointerup` no vuelva al `<path>` del país y el `click` de selección no
+     * se dispare. El táctil sí usa captura para pan/pellizco estables al salir
+     * del div; el clic país + “no contar como drag” sigue resolviendo con
+     * `draggedRef` en `onClick`.
+     */
+    if (event.pointerType === 'touch') {
+      trySetPointerCapture(node, event.pointerId)
+    }
 
     activePointersRef.current.set(event.pointerId, {
       clientX: event.clientX,

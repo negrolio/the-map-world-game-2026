@@ -1,7 +1,29 @@
+import { useEffect, useState } from 'react'
+
 import { GamePlayersHud, WorldMap } from '../../components'
 import { Alert, Badge, ChunkyButton, OverlayBand } from '../../components/ui'
 import { getActivePlayerForRound } from '../../services'
 import type { GameSession, IsoCountryCode } from '../../types'
+
+const DESKTOP_FINE_POINTER_MQ = '(hover: hover) and (pointer: fine)'
+
+function shouldIgnoreGlobalAdvanceHotkey(activeElement: Element | null): boolean {
+  if (!(activeElement instanceof HTMLElement)) {
+    return false
+  }
+  if (activeElement.closest('[data-testid="advance-round-button"]')) {
+    return true
+  }
+  const tag = activeElement.tagName
+  return (
+    tag === 'BUTTON' ||
+    tag === 'A' ||
+    tag === 'INPUT' ||
+    tag === 'SELECT' ||
+    tag === 'TEXTAREA' ||
+    activeElement.isContentEditable
+  )
+}
 
 export interface GameShellProps {
   readonly session: GameSession
@@ -26,6 +48,28 @@ export function GameShell({
   onExitToSetup,
   onExitToHome,
 }: GameShellProps) {
+  const [desktopFinePointer, setDesktopFinePointer] = useState(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return false
+    }
+    return window.matchMedia(DESKTOP_FINE_POINTER_MQ).matches
+  })
+
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') {
+      return
+    }
+    const mql = window.matchMedia(DESKTOP_FINE_POINTER_MQ)
+    const apply = (): void => {
+      setDesktopFinePointer(mql.matches)
+    }
+    apply()
+    mql.addEventListener('change', apply)
+    return () => {
+      mql.removeEventListener('change', apply)
+    }
+  }, [])
+
   const activeRound = session.rounds[session.activeRoundIndex]
   const turnPlayer = getActivePlayerForRound(session)
   const roundGuess = activeRound?.guess
@@ -38,6 +82,28 @@ export function GameShell({
         }
       : null
   const isLastRound = session.activeRoundIndex >= session.rounds.length - 1
+
+  useEffect(() => {
+    if (!roundGuess || !desktopFinePointer) {
+      return
+    }
+
+    const onKeyDown = (event: KeyboardEvent): void => {
+      if (event.key !== 'Enter' && event.key !== ' ') {
+        return
+      }
+      if (shouldIgnoreGlobalAdvanceHotkey(document.activeElement)) {
+        return
+      }
+      event.preventDefault()
+      onAdvanceRound()
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [roundGuess, desktopFinePointer, onAdvanceRound])
 
   return (
     <main
@@ -148,9 +214,8 @@ export function GameShell({
         />
       </div>
 
-      {/* F2.3 + F2.4 + F2.7 — Banda inferior: HUD + acción primaria. Último foco con Tab. */}
+      {/* F2.3 + F2.4 + F2.7 — Banda inferior: acción primaria encima del HUD de jugadores. */}
       <OverlayBand position="bottom" data-testid="game-overlay-bottom">
-        <GamePlayersHud session={session} roundAnswered={Boolean(roundGuess)} />
         {roundGuess ? (
           <div className="flex flex-wrap items-center justify-end gap-3">
             <ChunkyButton
@@ -159,11 +224,24 @@ export function GameShell({
               size="lg"
               data-testid="advance-round-button"
               onClick={onAdvanceRound}
+              className="whitespace-normal text-center"
+              aria-keyshortcuts={desktopFinePointer ? 'Enter Space' : undefined}
             >
-              {isLastRound ? 'Ver resultado final' : 'Siguiente pregunta'}
+              <span className="flex flex-col items-center gap-0.5 leading-tight">
+                <span>{isLastRound ? 'Ver resultado final' : 'Siguiente pregunta'}</span>
+                {desktopFinePointer ? (
+                  <span
+                    className="max-w-[14rem] font-body text-[0.65rem] font-normal normal-case tracking-normal text-bone/85"
+                    data-testid="advance-round-kbd-hint"
+                  >
+                    También: Enter o barra espaciadora
+                  </span>
+                ) : null}
+              </span>
             </ChunkyButton>
           </div>
         ) : null}
+        <GamePlayersHud session={session} roundAnswered={Boolean(roundGuess)} />
       </OverlayBand>
     </main>
   )
