@@ -114,6 +114,12 @@ describe('WorldMap', () => {
     expect(root).toHaveAttribute('data-viewport-center', '20.00,8.00')
   })
 
+  it('no aplica transicion CSS al transform del mapa (pan lineal respecto del puntero)', () => {
+    render(<WorldMap />)
+    const layer = screen.getByTestId('world-map-transform-layer')
+    expect(layer.className).not.toMatch(/transition-transform/)
+  })
+
   it('aplica zoom con la rueda del mouse dentro del mapa', () => {
     render(<WorldMap />)
     const root = screen.getByTestId('world-map-root')

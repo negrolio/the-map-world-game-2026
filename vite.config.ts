@@ -6,4 +6,8 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   base: '/the-map-world-game-2026/',
   plugins: [react(), tailwindcss()],
+  server: {
+    // Escuchar en LAN (celular / otra PC en el mismo WiFi), no solo localhost
+    host: true,
+  },
 })

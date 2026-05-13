@@ -324,9 +324,14 @@ function WorldMapInner({
     : 'max-h-[min(70vh,520px)] touch-none overflow-hidden overscroll-contain'
   const viewportClass = `${baseViewportClass} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`
 
+  /**
+   * Sin `transition-transform` en esta capa: el pan/zoom actualiza `transform` en
+   * cada evento de puntero; una transición CSS retrasa el mapa respecto del cursor
+   * y da sensación de “lag” o aceleración al final del gesto.
+   */
   const svgWrapperClass = fullBleed
-    ? 'flex h-full w-full origin-top-left items-center justify-center text-wood-dark transition-transform duration-150 [&_svg]:mx-auto [&_svg]:block [&_svg]:h-full [&_svg]:w-full'
-    : 'flex h-auto w-full origin-top-left justify-center text-wood-dark transition-transform duration-150 [&_svg]:mx-auto [&_svg]:block [&_svg]:h-auto [&_svg]:max-h-[min(70vh,520px)]'
+    ? 'flex h-full w-full origin-top-left items-center justify-center text-wood-dark [&_svg]:mx-auto [&_svg]:block [&_svg]:h-full [&_svg]:w-full'
+    : 'flex h-auto w-full origin-top-left justify-center text-wood-dark [&_svg]:mx-auto [&_svg]:block [&_svg]:h-auto [&_svg]:max-h-[min(70vh,520px)]'
 
   return (
     <div
@@ -457,6 +462,7 @@ function WorldMapInner({
         }}
       >
         <div
+          data-testid="world-map-transform-layer"
           className={svgWrapperClass}
           style={{
             transform: `translate(${viewport.offset[0]}px, ${viewport.offset[1]}px) scale(${viewport.zoom})`,
