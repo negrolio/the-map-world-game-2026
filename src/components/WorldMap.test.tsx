@@ -101,17 +101,64 @@ describe('WorldMap', () => {
     expect(root).toHaveAttribute('data-viewport-center', '0.00,0.00')
   })
 
-  it('sincroniza pan al arrastrar dentro del viewport', () => {
+  it('sincroniza pan al arrastrar dentro del viewport (Pointer Events)', () => {
     render(<WorldMap />)
     const root = screen.getByTestId('world-map-root')
     const viewport = screen.getByTestId('world-map-viewport')
 
-    fireEvent.mouseDown(viewport, { clientX: 10, clientY: 10 })
-    fireEvent.mouseMove(viewport, { clientX: 30, clientY: 18 })
-    fireEvent.mouseUp(viewport)
+    const ptrMouse = (x: number, y: number, pointerId: number, down: boolean) => ({
+      clientX: x,
+      clientY: y,
+      pointerId,
+      pointerType: 'mouse',
+      button: 0,
+      buttons: down ? 1 : 0,
+    })
+
+    fireEvent.pointerDown(viewport, ptrMouse(10, 10, 1, true))
+    fireEvent.pointerMove(viewport, ptrMouse(30, 18, 1, true))
+    fireEvent.pointerUp(viewport, ptrMouse(30, 18, 1, false))
 
     expect(root).toHaveAttribute('data-viewport-zoom', '1.00')
     expect(root).toHaveAttribute('data-viewport-center', '20.00,8.00')
+  })
+
+  it('aumenta el zoom con pinch simulado (dos punteros tactiles)', () => {
+    render(<WorldMap />)
+    const root = screen.getByTestId('world-map-root')
+    const viewport = screen.getByTestId('world-map-viewport')
+    vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      width: 200,
+      height: 100,
+      top: 0,
+      right: 200,
+      bottom: 100,
+      left: 0,
+      toJSON: () => ({}),
+    })
+
+    const ptrTouch = (x: number, y: number, pointerId: number, down: boolean) => ({
+      clientX: x,
+      clientY: y,
+      pointerId,
+      pointerType: 'touch',
+      button: 0,
+      buttons: down ? 1 : 0,
+    })
+
+    expect(root).toHaveAttribute('data-viewport-zoom', '1.00')
+
+    fireEvent.pointerDown(viewport, ptrTouch(80, 50, 10, true))
+    fireEvent.pointerDown(viewport, ptrTouch(120, 50, 11, true))
+    fireEvent.pointerMove(viewport, ptrTouch(50, 50, 10, true))
+    fireEvent.pointerMove(viewport, ptrTouch(150, 50, 11, true))
+
+    fireEvent.pointerUp(viewport, { ...ptrTouch(50, 50, 10, false), buttons: 0 })
+    fireEvent.pointerUp(viewport, { ...ptrTouch(150, 50, 11, false), buttons: 0 })
+
+    expect(root).toHaveAttribute('data-viewport-zoom', '2.50')
   })
 
   it('no aplica transicion CSS al transform del mapa (pan lineal respecto del puntero)', () => {

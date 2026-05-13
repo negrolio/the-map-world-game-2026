@@ -70,6 +70,10 @@ Pasada en **2026-05-08** con app en `npm run dev` (`http://127.0.0.1:5173/`), fl
 7. **Teclado:** Tab hasta un país; **Enter** o **espacio** dispara la misma resolución que el clic (solo si no está locked).
 8. **Móvil real (opcional):** Probar **pinch** y **pan con un dedo** en dispositivo físico; el MCP de escritorio no sustituye tacto.
 
+### Extensión MAP-UX-06 — touch (2026-05-13)
+
+Implementación cerrada en código: el viewport del mapa usa **Pointer Events** (`onPointerDown` / `Move` / `Up` / `Cancel`) con `setPointerCapture`, pan con un puntero y zoom por **pellizco** a dos dedos (misma base matemática que zoom con rueda: `applyZoomAroundPoint` + `clampZoom`). Regresión automatizada: tests de pan con puntero y pinch simulado en `WorldMap.test.tsx`.
+
 ### Automatizado
 
 - `npm run test` (incluye `src/components/WorldMap.test.tsx` y `App.test.tsx`).

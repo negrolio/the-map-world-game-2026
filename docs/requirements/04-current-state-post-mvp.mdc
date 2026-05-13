@@ -5,7 +5,7 @@ alwaysApply: false
 
 # Estado actual post-MVP — The Map World Game 2026
 
-**Estado de referencia:** 2026-05-11.
+**Estado de referencia:** 2026-05-13.
 
 Este documento es el punto de entrada para entender dónde está hoy la app y cómo avanzar sin mezclar definiciones cerradas del MVP con nuevas features.
 
@@ -42,7 +42,7 @@ La app ya cuenta con:
 - Setup de partida para 1–6 jugadores.
 - Modo país/capital.
 - Filtro mundo/continente.
-- Mapa interactivo con zoom, pan, reset, selección por país y reacción visual por continente.
+- Mapa interactivo con zoom, pan, reset, selección por país y reacción visual por continente; **pan y pinch-zoom táctiles** (Pointer Events en `WorldMap`, MAP-UX-06, 2026-05-13).
 - Turnos locales, HUD responsive, puntaje, ranking y fin de partida.
 - Política anti-cheat normal/estricta.
 - Reinicio y nueva partida.
@@ -83,7 +83,6 @@ docs/tasks/<nombre-iteracion>/
 
 El backlog actual de ideas vive en [`../tasks/ideas-features-backlog.md`](../tasks/ideas-features-backlog.md). Algunas líneas posibles para priorizar:
 
-- Correcciones mobile/touch del mapa.
 - Mejora del Home.
 - Claridad del CTA que abandona o reinicia una partida.
 - Persistencia local o remota de partidas/puntajes.

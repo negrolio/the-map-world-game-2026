@@ -35,20 +35,6 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
   - Notas: al promover, ubicar el componente del HUD que renderiza el botón y el handler que cambia `view` o estado de partida; alinear tono con el resto de la UI.
   - Tener en cuenta que en docs/requirements/01-prd-mvp-producto-y-requerimientos.mdc se especifica este boton, al actualizar tmb actualizar ese PRD
 
-- **Vite: acceso desde dispositivo móvil real en red local** — 2026-05-10
-  - Contexto / problema: al levantar el dev server en la máquina de desarrollo, por defecto suele escuchar solo en `localhost`, así que no se puede abrir la URL desde un teléfono o tablet en la misma Wi‑Fi para probar touch, viewport y rendimiento reales.
-  - Idea / dirección: configurar `vite.config` (`server.host` en `true` o `0.0.0.0`, y si hace falta `strictPort` / `port` documentado) para exponer el servidor en la LAN; documentar en README la URL tipo `http://<IP-local>:<puerto>` y recordar firewall / HTTPS mixto si aplica.
-  - Impacto estimado: infra / DX · bajo.
-  - Esfuerzo estimado: bajo.
-  - Notas: no comprometer seguridad en producción (solo dev). Si Vite avisa de `allowedHosts`, ajustar según versión del proyecto.
-
-- **Mapa en mobile: pan y zoom no funcionan** — 2026-05-10
-  - Contexto / problema: en dispositivos táctiles, el arrastre (pan) y el zoom del mapa no responden como en desktop; la partida en mobile queda degradada o bloqueada para explorar el mapa.
-  - Idea / dirección: auditar handlers de puntero vs touch (`pointerdown`/`touch-action`, `preventDefault` en listeners pasivos, conflicto con scroll del contenedor), pinch-zoom y coherencia con el viewport del mapa (`WorldMap`, baseline de viewport). Probar en iOS Safari y Chrome Android tras habilitar acceso LAN (ver tarea relacionada de Vite arriba).
-  - Impacto estimado: UX · alto.
-  - Esfuerzo estimado: medio.
-  - Notas: enlaza con **Pan del mapa: curva de movimiento poco natural al arrastrar** (misma zona de código); esta entrada se centra en **funcionalidad rota en touch**, no solo en la sensación del movimiento.
-
 - **Actualizar el Home** — 2026-05-10
   - Contexto / problema: la pantalla de Home actual quedó atrás respecto a la evolución del juego (modos, catálogo ampliado, partida full-screen, etc.) y conviene refrescarla para reflejar mejor el producto y guiar al jugador nuevo.
   - Idea / dirección: revisar contenido, jerarquía y CTA principal del Home; alinearlo con los modos y features ya existentes y dejar lugar para próximos (multilenguaje, modo aprendizaje, ranking si avanza el server). Definir qué se ve en primer pantallazo en mobile y desktop antes de tocar diseño.
@@ -123,7 +109,14 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
 
 <!-- Cuando una idea pase a ejecutarse, mover acá con link a la task creada. -->
 
-_Sin promociones todavía._
+- **Vite: acceso desde dispositivo móvil real en red local** — 2026-05-10 (implementado en repo, sin task formal en carpeta de iteración)
+  - Hecho: `server.host: true` en `vite.config.ts` para que `npm run dev` escuche en la LAN.
+  - Pendiente opcional del backlog original: añadir al README la URL `http://<IP-local>:5173` (o el puerto que muestre Vite), firewall y avisos de red no confiable.
+  - Seguridad: solo afecta al servidor de desarrollo de Vite, no al build de producción (`vite build`). No se configuró `server.allowedHosts: true` (evitar rebinding amplio).
+
+- **Mapa en mobile: pan y zoom táctil (MAP-UX-06)** — 2026-05-13 (implementado en repo, sin task formal `NN-...md`)
+  - Hecho: `src/components/WorldMap.tsx` — Pointer Events con `setPointerCapture`, pan con un dedo y pinch con dos; rueda y ratón sin regresión. Tests en `src/components/WorldMap.test.tsx`.
+  - Documentación de estado: `docs/requirements/04-current-state-post-mvp.mdc` y nota en `docs/tasks/map-game-ux-and-data/01-mapa-zoom-pan-contenedor.md`. QA manual en dispositivo físico (Safari iOS / Chrome Android) sigue recomendable.
 
 ## Descartadas
 

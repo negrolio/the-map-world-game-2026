@@ -1,7 +1,7 @@
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
 import type { GeographyRenderObject } from 'react-simple-maps'
 import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { KeyboardEvent, MouseEvent, MutableRefObject } from 'react'
+import type { KeyboardEvent, MouseEvent, MutableRefObject, PointerEvent as ReactPointerEvent } from 'react'
 
 import countriesTopologyUrl from 'world-atlas/countries-110m.json?url'
 import { getContinentForIso2 } from '../data/countries'
@@ -89,6 +89,46 @@ function applyZoomAroundPoint(
   return {
     zoom: nextZoom,
     offset: [nextOffsetX, nextOffsetY],
+  }
+}
+
+const MIN_PINCH_SEPARATION_PX = 1e-3
+
+type ClientPoint = { readonly clientX: number; readonly clientY: number }
+
+function euclideanDistance(a: ClientPoint, b: ClientPoint): number {
+  return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY)
+}
+
+function midpointClient(a: ClientPoint, b: ClientPoint): { readonly x: number; readonly y: number } {
+  return {
+    x: (a.clientX + b.clientX) / 2,
+    y: (a.clientY + b.clientY) / 2,
+  }
+}
+
+function clientMidToViewportLocal(
+  rect: DOMRect,
+  midClient: { readonly x: number; readonly y: number },
+): { x: number; y: number } {
+  return { x: midClient.x - rect.left, y: midClient.y - rect.top }
+}
+
+function trySetPointerCapture(node: HTMLDivElement, pointerId: number): void {
+  try {
+    node.setPointerCapture(pointerId)
+  } catch {
+    // Nodo desconectado o puntero no elegible para captura.
+  }
+}
+
+function tryReleasePointerCapture(node: HTMLDivElement, pointerId: number): void {
+  try {
+    if (node.hasPointerCapture(pointerId)) {
+      node.releasePointerCapture(pointerId)
+    }
+  } catch {
+    // Liberación redundante o puntero ya invalidado.
   }
 }
 
@@ -260,7 +300,8 @@ const WorldMapGeographyRow = memo(function WorldMapGeographyRow({
  *  ocupa una banda superior y otra inferior sobre el mapa. Si un país objetivo
  *  queda parcialmente cubierto por esas bandas, el usuario debe poder
  *  *desplazar* (pan) o *acercar* (zoom) la vista usando los controles de zoom
- *  +/-/reset, la rueda del mouse, o arrastrando el mapa con el dedo / cursor.
+ *  +/-/reset, la rueda del mouse, o arrastrando el mapa con el dedo / cursor
+ *  (Pointer Events: un dedo pan, dos dedos pellizco).
  *  Esto está habilitado siempre, incluso con `answerLocked` (post-respuesta),
  *  porque pan/zoom no responden la pregunta: solo modifican la vista.
  */
@@ -291,6 +332,10 @@ function WorldMapInner({
     readonly offsetY: number
   } | null>(null)
   const draggedRef = useRef(false)
+  /** MAP-UX-06 — punteros activos en el viewport (touch/mouse/pen). */
+  const activePointersRef = useRef(new Map<number, { clientX: number; clientY: number }>())
+  /** Separación entre los dos dedos en el último frame de pinch (ratio incremental). */
+  const pinchLastDistanceRef = useRef<number | null>(null)
   const locked = answerLocked || Boolean(mapFeedback)
   const instructionsId = 'world-map-instructions'
 
@@ -380,6 +425,164 @@ function WorldMapInner({
     ? 'flex h-full w-full origin-top-left items-center justify-center text-wood-dark [&_svg]:mx-auto [&_svg]:block [&_svg]:h-full [&_svg]:w-full'
     : 'flex h-auto w-full origin-top-left justify-center text-wood-dark [&_svg]:mx-auto [&_svg]:block [&_svg]:h-auto [&_svg]:max-h-[min(70vh,520px)]'
 
+  const finalizePointerEnd = (event: ReactPointerEvent<HTMLDivElement>): void => {
+    const node = viewportRef.current
+    if (node) {
+      tryReleasePointerCapture(node, event.pointerId)
+    }
+    if (!activePointersRef.current.has(event.pointerId)) {
+      return
+    }
+    activePointersRef.current.delete(event.pointerId)
+    const remaining = activePointersRef.current.size
+
+    if (remaining === 0) {
+      const live = viewportLiveRef.current
+      if (live) {
+        setViewport(live)
+      }
+      panStartRef.current = null
+      pinchLastDistanceRef.current = null
+      setIsDragging(false)
+      return
+    }
+
+    if (remaining === 1) {
+      pinchLastDistanceRef.current = null
+      const live = viewportLiveRef.current
+      const pts = [...activePointersRef.current.values()]
+      const pt = pts[0]
+      if (live && pt) {
+        setViewport(live)
+        viewportLiveRef.current = {
+          zoom: live.zoom,
+          offset: [live.offset[0], live.offset[1]],
+        }
+        panStartRef.current = {
+          pointerX: pt.clientX,
+          pointerY: pt.clientY,
+          offsetX: live.offset[0],
+          offsetY: live.offset[1],
+        }
+      }
+      setIsDragging(true)
+    }
+  }
+
+  const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>): void => {
+    if (event.pointerType === 'mouse' && event.button !== 0) {
+      return
+    }
+    const node = viewportRef.current
+    if (!node) {
+      return
+    }
+    trySetPointerCapture(node, event.pointerId)
+
+    activePointersRef.current.set(event.pointerId, {
+      clientX: event.clientX,
+      clientY: event.clientY,
+    })
+
+    const count = activePointersRef.current.size
+
+    if (count === 2) {
+      panStartRef.current = null
+      const positions = [...activePointersRef.current.values()]
+      if (positions.length === 2) {
+        const d = Math.max(euclideanDistance(positions[0], positions[1]), MIN_PINCH_SEPARATION_PX)
+        pinchLastDistanceRef.current = d
+        draggedRef.current = true
+      }
+      setIsDragging(true)
+      return
+    }
+
+    if (count === 1) {
+      pinchLastDistanceRef.current = null
+      const base = viewportLiveRef.current ?? viewport
+      viewportLiveRef.current = {
+        zoom: base.zoom,
+        offset: [base.offset[0], base.offset[1]],
+      }
+      panStartRef.current = {
+        pointerX: event.clientX,
+        pointerY: event.clientY,
+        offsetX: base.offset[0],
+        offsetY: base.offset[1],
+      }
+      setIsDragging(true)
+      draggedRef.current = false
+    }
+  }
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>): void => {
+    if (!activePointersRef.current.has(event.pointerId)) {
+      return
+    }
+    activePointersRef.current.set(event.pointerId, {
+      clientX: event.clientX,
+      clientY: event.clientY,
+    })
+
+    const node = viewportRef.current
+    if (!node) {
+      return
+    }
+
+    const count = activePointersRef.current.size
+
+    if (count === 2) {
+      const positions = [...activePointersRef.current.values()]
+      if (positions.length !== 2) {
+        return
+      }
+      const d = Math.max(euclideanDistance(positions[0], positions[1]), MIN_PINCH_SEPARATION_PX)
+      const prev = viewportLiveRef.current
+      if (!prev) {
+        return
+      }
+      if (pinchLastDistanceRef.current == null) {
+        pinchLastDistanceRef.current = d
+        return
+      }
+      const rect = node.getBoundingClientRect()
+      const midClient = midpointClient(positions[0], positions[1])
+      const anchor = clientMidToViewportLocal(rect, midClient)
+      const ratio = d / pinchLastDistanceRef.current
+      const nextZoom = clampZoom(prev.zoom * ratio)
+      const next = applyZoomAroundPoint(prev, nextZoom, anchor)
+      pinchLastDistanceRef.current = d
+      viewportLiveRef.current = next
+      draggedRef.current = true
+      const layer = transformLayerRef.current
+      if (layer) {
+        layer.style.transform = mapViewportToTransformCss(next)
+      }
+      return
+    }
+
+    if (count === 1 && panStartRef.current) {
+      const panStart = panStartRef.current
+      const deltaX = event.clientX - panStart.pointerX
+      const deltaY = event.clientY - panStart.pointerY
+      if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
+        draggedRef.current = true
+      }
+      const live = viewportLiveRef.current
+      const zoom = live?.zoom ?? viewport.zoom
+      const next: MapViewport = {
+        zoom,
+        offset: [panStart.offsetX + deltaX, panStart.offsetY + deltaY],
+      }
+      viewportLiveRef.current = next
+      const layer = transformLayerRef.current
+      if (layer) {
+        layer.style.transform = mapViewportToTransformCss(next)
+      }
+    }
+  }
+
   return (
     <div
       data-testid="world-map-root"
@@ -397,8 +600,9 @@ function WorldMapInner({
       <p id={instructionsId} className="sr-only">
         Usá Tab para navegar países y Enter o Barra espaciadora para seleccionar.
         Si la interfaz superpone parte del mapa, podés acercar, alejar y mover la
-        vista con los controles del mapa o con la rueda del mouse hasta exponer el
-        país que querés tocar.
+        vista con los controles del mapa, la rueda del mouse, arrastrando con el
+        cursor o, en pantallas táctiles, con un dedo para mover y dos para pellizcar
+        y hacer zoom hasta exponer el país que querés tocar.
       </p>
       {/*
         F2.5 — Zoom +/-/Reset.
@@ -474,59 +678,10 @@ function WorldMapInner({
         ref={viewportRef}
         data-testid="world-map-viewport"
         className={viewportClass}
-        onMouseDown={(event) => {
-          const base = viewportLiveRef.current ?? viewport
-          viewportLiveRef.current = {
-            zoom: base.zoom,
-            offset: [base.offset[0], base.offset[1]],
-          }
-          panStartRef.current = {
-            pointerX: event.clientX,
-            pointerY: event.clientY,
-            offsetX: base.offset[0],
-            offsetY: base.offset[1],
-          }
-          setIsDragging(true)
-          draggedRef.current = false
-        }}
-        onMouseMove={(event) => {
-          const panStart = panStartRef.current
-          if (!panStart) {
-            return
-          }
-          const deltaX = event.clientX - panStart.pointerX
-          const deltaY = event.clientY - panStart.pointerY
-          if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
-            draggedRef.current = true
-          }
-          const live = viewportLiveRef.current
-          const zoom = live?.zoom ?? viewport.zoom
-          const next: MapViewport = {
-            zoom,
-            offset: [panStart.offsetX + deltaX, panStart.offsetY + deltaY],
-          }
-          viewportLiveRef.current = next
-          const layer = transformLayerRef.current
-          if (layer) {
-            layer.style.transform = mapViewportToTransformCss(next)
-          }
-        }}
-        onMouseUp={() => {
-          const live = viewportLiveRef.current
-          if (panStartRef.current && live) {
-            setViewport(live)
-          }
-          panStartRef.current = null
-          setIsDragging(false)
-        }}
-        onMouseLeave={() => {
-          const live = viewportLiveRef.current
-          if (panStartRef.current && live) {
-            setViewport(live)
-          }
-          panStartRef.current = null
-          setIsDragging(false)
-        }}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={finalizePointerEnd}
+        onPointerCancel={finalizePointerEnd}
       >
         <div
           ref={transformLayerRef}
