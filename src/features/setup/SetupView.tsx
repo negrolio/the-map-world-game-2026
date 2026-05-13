@@ -110,7 +110,7 @@ export function SetupView(props: SetupViewProps) {
           Configurá jugadores y reglas base para preparar el inicio de la partida.
         </p>
 
-        <Panel tone="paper" padding="lg" className="grid gap-4">
+        <Panel tone="paper" padding="lg" className="setup-panel-background grid gap-4">
           <form
             className="grid gap-4"
             onSubmit={(event) => {

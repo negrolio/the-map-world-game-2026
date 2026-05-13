@@ -1,7 +1,21 @@
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
 import type { GeographyRenderObject } from 'react-simple-maps'
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
-import type { KeyboardEvent, MouseEvent, MutableRefObject, PointerEvent as ReactPointerEvent } from 'react'
+import {
+  memo,
+  useEffect,
+  useInsertionEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
+import type {
+  KeyboardEvent,
+  MouseEvent,
+  MutableRefObject,
+  PointerEvent as ReactPointerEvent,
+} from 'react'
 
 import countriesTopologyUrl from 'world-atlas/countries-110m.json?url'
 import { getContinentForIso2 } from '../data/countries'
@@ -52,24 +66,61 @@ type MapViewport = WorldMapBaselineViewport
 const VIEWPORT_LIMITS = {
   zoom: {
     min: 1,
+    /** Ratón / ventana “escritorio” (sin heurística táctil). */
     max: 4,
+    /**
+     * Tope alto cuando la UI es táctil o el viewport es estrecho (móvil, tablet,
+     * landscape ancho con dedo): países 110m quedan muy chicos sin mucho zoom.
+     */
+    maxTouchUi: 22,
     step: 0.35,
+    /** Paso mayor en Zoom +/− cuando aplica `maxTouchUi` (menos toques hasta el tope). */
+    stepTouchUi: 0.6,
   },
   offset: {
     default: [0, 0] as const,
   },
 } as const
 
-function clampZoom(zoom: number): number {
-  return Math.min(VIEWPORT_LIMITS.zoom.max, Math.max(VIEWPORT_LIMITS.zoom.min, zoom))
+/** Tailwind `lg` (1024px): tablets en vertical y muchos móviles en horizontal. */
+const TOUCH_UI_MAX_WIDTH_MEDIA_QUERY = '(max-width: 1023px)'
+/** Tablets / teléfonos aunque el viewport CSS sea ancho (p. ej. iPad landscape). */
+const TOUCH_UI_POINTER_COARSE_MEDIA_QUERY = '(pointer: coarse)'
+
+function subscribeTouchUiZoomMatch(onChange: () => void): () => void {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return () => {}
+  }
+  const mqWidth = window.matchMedia(TOUCH_UI_MAX_WIDTH_MEDIA_QUERY)
+  const mqCoarse = window.matchMedia(TOUCH_UI_POINTER_COARSE_MEDIA_QUERY)
+  mqWidth.addEventListener('change', onChange)
+  mqCoarse.addEventListener('change', onChange)
+  return () => {
+    mqWidth.removeEventListener('change', onChange)
+    mqCoarse.removeEventListener('change', onChange)
+  }
 }
 
-function wheelDeltaToZoomStep(deltaY: number): number {
+function getTouchUiZoomSnapshot(): boolean {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false
+  }
+  return (
+    window.matchMedia(TOUCH_UI_MAX_WIDTH_MEDIA_QUERY).matches ||
+    window.matchMedia(TOUCH_UI_POINTER_COARSE_MEDIA_QUERY).matches
+  )
+}
+
+function clampZoomToMax(zoom: number, maxZoom: number): number {
+  return Math.min(maxZoom, Math.max(VIEWPORT_LIMITS.zoom.min, zoom))
+}
+
+function wheelDeltaToZoomStep(deltaY: number, stepCap: number = VIEWPORT_LIMITS.zoom.step): number {
   const direction = deltaY < 0 ? 1 : -1
   const magnitude = Math.min(Math.abs(deltaY), 120)
   const normalized = magnitude / 120
-  const minStep = 0.08
-  const maxStep = VIEWPORT_LIMITS.zoom.step
+  const minStep = stepCap >= VIEWPORT_LIMITS.zoom.stepTouchUi ? 0.12 : 0.08
+  const maxStep = stepCap
   return direction * (minStep + (maxStep - minStep) * normalized)
 }
 
@@ -262,6 +313,21 @@ const WorldMapGeographyRow = memo(function WorldMapGeographyRow({
           : 'cursor-pointer outline-none transition-[fill] duration-150 focus-visible:ring-2 focus-visible:ring-warning'
       }
       style={geoStyle}
+      /**
+       * MAP-UX — ratón / lápiz: el viewport usa `setPointerCapture` para pan.
+       * Si el `pointerdown` burbujea hasta ahí, el `pointerup` va al contenedor y
+       * el navegador no compone `click` sobre el path (el táctil suele seguir
+       * funcionando). Cortamos la burbuja solo con selección activa (`!locked`).
+       */
+      onPointerDown={(event: ReactPointerEvent<SVGPathElement>) => {
+        if (locked) {
+          return
+        }
+        if (event.pointerType === 'touch') {
+          return
+        }
+        event.stopPropagation()
+      }}
       onClick={(event: MouseEvent<SVGPathElement>) => {
         event.stopPropagation()
         if (draggedRef.current) {
@@ -339,6 +405,36 @@ function WorldMapInner({
   const locked = answerLocked || Boolean(mapFeedback)
   const instructionsId = 'world-map-instructions'
 
+  const touchUiZoom = useSyncExternalStore(
+    subscribeTouchUiZoomMatch,
+    getTouchUiZoomSnapshot,
+    () => false,
+  )
+  const zoomClampMax = touchUiZoom ? VIEWPORT_LIMITS.zoom.maxTouchUi : VIEWPORT_LIMITS.zoom.max
+  const zoomStepButtons = touchUiZoom ? VIEWPORT_LIMITS.zoom.stepTouchUi : VIEWPORT_LIMITS.zoom.step
+  const zoomClampMaxRef = useRef<number>(VIEWPORT_LIMITS.zoom.max)
+  const touchUiZoomRef = useRef(false)
+  useInsertionEffect(() => {
+    zoomClampMaxRef.current = zoomClampMax
+    touchUiZoomRef.current = touchUiZoom
+  }, [zoomClampMax, touchUiZoom])
+
+  useLayoutEffect(() => {
+    // Al pasar de UI táctil a escritorio (u orientación) hay que bajar el zoom si superaba el máximo de escritorio.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- el tope viene de `matchMedia`, no de props React
+    setViewport((v) => {
+      const z = clampZoomToMax(v.zoom, zoomClampMax)
+      return z === v.zoom ? v : { ...v, zoom: z }
+    })
+    const live = viewportLiveRef.current
+    if (live) {
+      const z = clampZoomToMax(live.zoom, zoomClampMax)
+      if (z !== live.zoom) {
+        viewportLiveRef.current = { ...live, zoom: z }
+      }
+    }
+  }, [zoomClampMax])
+
   useLayoutEffect(() => {
     viewportLiveRef.current = viewport
     const layer = transformLayerRef.current
@@ -369,14 +465,17 @@ function WorldMapInner({
     const handleWheel = (event: WheelEvent): void => {
       event.preventDefault()
       event.stopPropagation()
-      const zoomDelta = wheelDeltaToZoomStep(event.deltaY)
+      const zoomDelta = wheelDeltaToZoomStep(
+        event.deltaY,
+        touchUiZoomRef.current ? VIEWPORT_LIMITS.zoom.stepTouchUi : VIEWPORT_LIMITS.zoom.step,
+      )
 
       const current = viewportLiveRef.current
       if (!current) {
         return
       }
 
-      const nextZoom = clampZoom(current.zoom + zoomDelta)
+      const nextZoom = clampZoomToMax(current.zoom + zoomDelta, zoomClampMaxRef.current)
       const viewportRect = viewportNode.getBoundingClientRect()
       const next = applyZoomAroundPoint(current, nextZoom, {
         x: event.clientX - viewportRect.left,
@@ -550,7 +649,7 @@ function WorldMapInner({
       const midClient = midpointClient(positions[0], positions[1])
       const anchor = clientMidToViewportLocal(rect, midClient)
       const ratio = d / pinchLastDistanceRef.current
-      const nextZoom = clampZoom(prev.zoom * ratio)
+      const nextZoom = clampZoomToMax(prev.zoom * ratio, zoomClampMaxRef.current)
       const next = applyZoomAroundPoint(prev, nextZoom, anchor)
       pinchLastDistanceRef.current = d
       viewportLiveRef.current = next
@@ -602,7 +701,8 @@ function WorldMapInner({
         Si la interfaz superpone parte del mapa, podés acercar, alejar y mover la
         vista con los controles del mapa, la rueda del mouse, arrastrando con el
         cursor o, en pantallas táctiles, con un dedo para mover y dos para pellizcar
-        y hacer zoom hasta exponer el país que querés tocar.
+        y hacer zoom hasta exponer el país que querés tocar. En táctil o pantallas
+        chicas podés acercar mucho más que con ratón para tocar países pequeños.
       </p>
       {/*
         F2.5 — Zoom +/-/Reset.
@@ -635,7 +735,7 @@ function WorldMapInner({
             setViewport((current) =>
               applyZoomAroundPoint(
                 current,
-                clampZoom(current.zoom + VIEWPORT_LIMITS.zoom.step),
+                clampZoomToMax(current.zoom + zoomStepButtons, zoomClampMax),
                 anchor,
               ),
             )
@@ -656,7 +756,7 @@ function WorldMapInner({
             setViewport((current) =>
               applyZoomAroundPoint(
                 current,
-                clampZoom(current.zoom - VIEWPORT_LIMITS.zoom.step),
+                clampZoomToMax(current.zoom - zoomStepButtons, zoomClampMax),
                 anchor,
               ),
             )

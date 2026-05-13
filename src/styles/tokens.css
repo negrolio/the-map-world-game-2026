@@ -74,8 +74,62 @@ body {
 }
 
 body {
+  position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: '';
+  background-image: url('/antique-map-background.jpg');
+  background-position: center;
+  background-size: cover;
+  opacity: 0.18;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+main.bg-paper {
+  background-color: transparent;
+}
+
+.setup-panel-background {
+  overflow: hidden;
+}
+
+.setup-panel-background::before {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: '';
+  background-image: url('/setup-parchment-background.jpg');
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.setup-panel-background > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  body::before {
+    inset: auto;
+    top: 50%;
+    left: 50%;
+    width: 100vh;
+    height: 100vw;
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
 }
 
 h1,

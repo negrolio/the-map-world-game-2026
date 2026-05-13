@@ -196,6 +196,64 @@ describe('WorldMap', () => {
     expect(onCountryClick).not.toHaveBeenCalled()
   })
 
+  it('dispara onCountryClick al seleccionar un pais con puntero tipo mouse', () => {
+    const onCountryClick = vi.fn()
+    render(<WorldMap onCountryClick={onCountryClick} />)
+    const geo = screen.getByTestId('geo-ar')
+    const ptr = { pointerId: 1, pointerType: 'mouse', button: 0, clientX: 8, clientY: 8 }
+    fireEvent.pointerDown(geo, { ...ptr, buttons: 1 })
+    fireEvent.pointerUp(geo, { ...ptr, buttons: 0 })
+    fireEvent.click(geo)
+    expect(onCountryClick).toHaveBeenCalledTimes(1)
+    expect(onCountryClick).toHaveBeenCalledWith('AR')
+  })
+
+  it('permite mayor zoom maximo en UI tactil o viewport estrecho', () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn((query: unknown) => {
+        const q = String(query)
+        const matches = q.includes('1023') || q.includes('coarse')
+        return {
+          matches,
+          media: q,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+        } as MediaQueryList
+      }),
+    )
+
+    try {
+      render(<WorldMap />)
+      const root = screen.getByTestId('world-map-root')
+      const viewport = screen.getByTestId('world-map-viewport')
+      vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({
+        x: 0,
+        y: 0,
+        width: 200,
+        height: 100,
+        top: 0,
+        right: 200,
+        bottom: 100,
+        left: 0,
+        toJSON: () => ({}),
+      })
+
+      for (let i = 0; i < 40; i += 1) {
+        fireEvent.click(screen.getByRole('button', { name: /Acercar mapa/i }))
+      }
+      const zoom = Number.parseFloat(root.getAttribute('data-viewport-zoom') ?? '0')
+      expect(zoom).toBeGreaterThan(4)
+      expect(zoom).toBeLessThanOrEqual(22)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('atenua paises fuera del continente activo cuando regionFilter no es world', () => {
     render(<WorldMap regionFilter="europe" />)
     expect(screen.getByTestId('world-map-root')).toHaveAttribute('data-region-filter', 'europe')
