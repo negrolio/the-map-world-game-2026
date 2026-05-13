@@ -1,6 +1,6 @@
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
 import type { GeographyRenderObject } from 'react-simple-maps'
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { KeyboardEvent, MouseEvent, MutableRefObject } from 'react'
 
 import countriesTopologyUrl from 'world-atlas/countries-110m.json?url'
@@ -90,6 +90,11 @@ function applyZoomAroundPoint(
     zoom: nextZoom,
     offset: [nextOffsetX, nextOffsetY],
   }
+}
+
+/** `translate3d` para composición GPU; mismo formato en layout effect y en actualizaciones imperativas. */
+function mapViewportToTransformCss(v: MapViewport): string {
+  return `translate3d(${v.offset[0]}px, ${v.offset[1]}px, 0) scale(${v.zoom})`
 }
 
 type GeographyCssStyle = {
@@ -275,6 +280,10 @@ function WorldMapInner({
   const [viewport, setViewport] = useState<MapViewport>(() => getBaselineViewportForRegion(regionFilter))
   const [isDragging, setIsDragging] = useState(false)
   const viewportRef = useRef<HTMLDivElement | null>(null)
+  const transformLayerRef = useRef<HTMLDivElement | null>(null)
+  /** Último pan/zoom aplicado al DOM; se alinea con `viewport` en layout effect y tras gestos. */
+  const viewportLiveRef = useRef<MapViewport | null>(null)
+  const wheelFlushRafRef = useRef<number | null>(null)
   const panStartRef = useRef<{
     readonly pointerX: number
     readonly pointerY: number
@@ -285,31 +294,69 @@ function WorldMapInner({
   const locked = answerLocked || Boolean(mapFeedback)
   const instructionsId = 'world-map-instructions'
 
+  useLayoutEffect(() => {
+    viewportLiveRef.current = viewport
+    const layer = transformLayerRef.current
+    if (layer) {
+      layer.style.transform = mapViewportToTransformCss(viewport)
+    }
+  }, [viewport])
+
   useEffect(() => {
     const viewportNode = viewportRef.current
     if (!viewportNode) {
       return
     }
 
-    const handleWheel = (event: WheelEvent) => {
+    let cancelled = false
+
+    const flushWheelToReact = (): void => {
+      wheelFlushRafRef.current = null
+      if (cancelled) {
+        return
+      }
+      const live = viewportLiveRef.current
+      if (live) {
+        setViewport(live)
+      }
+    }
+
+    const handleWheel = (event: WheelEvent): void => {
       event.preventDefault()
       event.stopPropagation()
       const zoomDelta = wheelDeltaToZoomStep(event.deltaY)
 
-      setViewport((current) => {
-        const nextZoom = clampZoom(current.zoom + zoomDelta)
+      const current = viewportLiveRef.current
+      if (!current) {
+        return
+      }
 
-        const viewportRect = viewportNode.getBoundingClientRect()
-        return applyZoomAroundPoint(current, nextZoom, {
-          x: event.clientX - viewportRect.left,
-          y: event.clientY - viewportRect.top,
-        })
+      const nextZoom = clampZoom(current.zoom + zoomDelta)
+      const viewportRect = viewportNode.getBoundingClientRect()
+      const next = applyZoomAroundPoint(current, nextZoom, {
+        x: event.clientX - viewportRect.left,
+        y: event.clientY - viewportRect.top,
       })
+      viewportLiveRef.current = next
+
+      const layer = transformLayerRef.current
+      if (layer) {
+        layer.style.transform = mapViewportToTransformCss(next)
+      }
+
+      if (wheelFlushRafRef.current == null) {
+        wheelFlushRafRef.current = requestAnimationFrame(flushWheelToReact)
+      }
     }
 
     viewportNode.addEventListener('wheel', handleWheel, { passive: false })
 
     return () => {
+      cancelled = true
+      if (wheelFlushRafRef.current != null) {
+        cancelAnimationFrame(wheelFlushRafRef.current)
+        wheelFlushRafRef.current = null
+      }
       viewportNode.removeEventListener('wheel', handleWheel)
     }
   }, [])
@@ -428,11 +475,16 @@ function WorldMapInner({
         data-testid="world-map-viewport"
         className={viewportClass}
         onMouseDown={(event) => {
+          const base = viewportLiveRef.current ?? viewport
+          viewportLiveRef.current = {
+            zoom: base.zoom,
+            offset: [base.offset[0], base.offset[1]],
+          }
           panStartRef.current = {
             pointerX: event.clientX,
             pointerY: event.clientY,
-            offsetX: viewport.offset[0],
-            offsetY: viewport.offset[1],
+            offsetX: base.offset[0],
+            offsetY: base.offset[1],
           }
           setIsDragging(true)
           draggedRef.current = false
@@ -447,26 +499,39 @@ function WorldMapInner({
           if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
             draggedRef.current = true
           }
-          setViewport((current) => ({
-            ...current,
+          const live = viewportLiveRef.current
+          const zoom = live?.zoom ?? viewport.zoom
+          const next: MapViewport = {
+            zoom,
             offset: [panStart.offsetX + deltaX, panStart.offsetY + deltaY],
-          }))
+          }
+          viewportLiveRef.current = next
+          const layer = transformLayerRef.current
+          if (layer) {
+            layer.style.transform = mapViewportToTransformCss(next)
+          }
         }}
         onMouseUp={() => {
+          const live = viewportLiveRef.current
+          if (panStartRef.current && live) {
+            setViewport(live)
+          }
           panStartRef.current = null
           setIsDragging(false)
         }}
         onMouseLeave={() => {
+          const live = viewportLiveRef.current
+          if (panStartRef.current && live) {
+            setViewport(live)
+          }
           panStartRef.current = null
           setIsDragging(false)
         }}
       >
         <div
+          ref={transformLayerRef}
           data-testid="world-map-transform-layer"
           className={svgWrapperClass}
-          style={{
-            transform: `translate(${viewport.offset[0]}px, ${viewport.offset[1]}px) scale(${viewport.zoom})`,
-          }}
         >
           <ComposableMap projectionConfig={projectionConfig}>
           {/* Regla: con `locked` se bloquea responder país, pero pan/zoom siguen habilitados para explorar el mapa. */}

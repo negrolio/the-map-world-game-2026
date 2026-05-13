@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { CSSProperties, KeyboardEventHandler, MouseEventHandler, ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -120,7 +120,7 @@ describe('WorldMap', () => {
     expect(layer.className).not.toMatch(/transition-transform/)
   })
 
-  it('aplica zoom con la rueda del mouse dentro del mapa', () => {
+  it('aplica zoom con la rueda del mouse dentro del mapa', async () => {
     render(<WorldMap />)
     const root = screen.getByTestId('world-map-root')
     const viewport = screen.getByTestId('world-map-viewport')
@@ -128,11 +128,15 @@ describe('WorldMap', () => {
     expect(root).toHaveAttribute('data-viewport-zoom', '1.00')
 
     fireEvent.wheel(viewport, { deltaY: -100, clientX: 50, clientY: 40 })
-    expect(root).toHaveAttribute('data-viewport-zoom', '1.30')
+    await waitFor(() => {
+      expect(root).toHaveAttribute('data-viewport-zoom', '1.30')
+    })
     expect(root).toHaveAttribute('data-viewport-center', '-15.25,-12.20')
 
     fireEvent.wheel(viewport, { deltaY: 100, clientX: 50, clientY: 40 })
-    expect(root).toHaveAttribute('data-viewport-zoom', '1.00')
+    await waitFor(() => {
+      expect(root).toHaveAttribute('data-viewport-zoom', '1.00')
+    })
     expect(root).toHaveAttribute('data-viewport-center', '0.00,0.00')
   })
 
