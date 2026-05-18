@@ -48,4 +48,11 @@ Respetar la política de User-Agent (ver [02-dev-local-p0.md](./02-dev-local-p0.
 
 ## Troubleshooting: `FUNCTION_INVOCATION_FAILED` en `/learn`
 
-Si `/api/v1/health` responde `200` pero `/api/v1/countries/XX/learn` devuelve **500** con `FUNCTION_INVOCATION_FAILED`, revisar los logs de la función en Vercel. Causa habitual en este repo: imports JSON en `server/` sin atributo ESM (`with { type: 'json' }`) — Node en Vercel no usa el bundler de Vite; el crash ocurre al **cargar** el módulo, antes de ejecutar la lógica.
+Si `/api/v1/health` responde `200` pero `/api/v1/countries/XX/learn` devuelve **500** con `FUNCTION_INVOCATION_FAILED`, revisar los logs de la función en Vercel.
+
+Causas habituales en este repo:
+
+1. **Imports relativos sin extensión `.js`** en `api/`, `server/` y `shared/` — Vercel transpila a ESM (`"type": "module"`); Node en runtime exige `from './foo.js'`. `health` no importa nada y por eso puede funcionar mientras `/learn` falla al cargar.
+2. **JSON / `i18n-iso-countries` en el servidor** — usar `createRequire` en `server/learn/` (ver `countries-catalog.ts`, `resolve-localized-country-name.ts`) en lugar de `import … from '*.json'` sin bundler.
+
+`tsconfig.api.json` usa `"module": "NodeNext"` para alinear tipos con el runtime. Tras cambios en `api/` o `server/`, comprobar localmente: `npx vercel build --yes` y ejecutar el handler desde `.vercel/output/functions/.../learn.func/`.

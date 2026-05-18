@@ -1,4 +1,4 @@
-import type { VercelRequest, VercelResponse } from './vercel-types'
+import type { VercelRequest, VercelResponse } from './vercel-types.js'
 
 const CORS_ALLOW_METHODS = 'GET, OPTIONS'
 const CORS_ALLOW_HEADERS = 'Content-Type'

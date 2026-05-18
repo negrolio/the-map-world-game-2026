@@ -1,11 +1,11 @@
-import { getClientIp } from './client-ip'
-import { sendJson } from './json-response'
+import { getClientIp } from './client-ip.js'
+import { sendJson } from './json-response.js'
 import {
   checkRateLimit,
   isRateLimitEnabled,
   parseRateLimitConfig,
-} from './rate-limit'
-import type { VercelRequest, VercelResponse } from './vercel-types'
+} from './rate-limit.js'
+import type { VercelRequest, VercelResponse } from './vercel-types.js'
 
 /**
  * Devuelve true si la petición fue bloqueada (respuesta 429 ya enviada).

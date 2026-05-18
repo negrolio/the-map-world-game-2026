@@ -1,13 +1,13 @@
-import { applyLearnRateLimitIfNeeded } from '../../../_lib/apply-learn-rate-limit'
+import { applyLearnRateLimitIfNeeded } from '../../../_lib/apply-learn-rate-limit.js'
 import {
   applyCorsHeaders,
   handleCorsPreflightIfNeeded,
   parseAllowedOrigins,
-} from '../../../_lib/cors'
-import { handleLearnGet } from '../../../_lib/handle-learn-get'
-import { sendJson } from '../../../_lib/json-response'
-import type { VercelRequest, VercelResponse } from '../../../_lib/vercel-types'
-import { getDefaultLearnDeps } from '../../../../server/learn/create-default-learn-deps'
+} from '../../../_lib/cors.js'
+import { handleLearnGet } from '../../../_lib/handle-learn-get.js'
+import { sendJson } from '../../../_lib/json-response.js'
+import type { VercelRequest, VercelResponse } from '../../../_lib/vercel-types.js'
+import { getDefaultLearnDeps } from '../../../../server/learn/create-default-learn-deps.js'
 
 function readQueryParam(
   query: VercelRequest['query'],

@@ -1,4 +1,4 @@
-import { assertWikipediaRequestUrl } from './wikipedia-url'
+import { assertWikipediaRequestUrl } from './wikipedia-url.js'
 
 export type WikipediaHttpResult<T> =
   | { readonly ok: true; readonly data: T }

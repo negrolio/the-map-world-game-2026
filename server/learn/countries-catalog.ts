@@ -1,4 +1,4 @@
-import countriesCatalogJson from '../../src/data/countries-catalog.json' with { type: 'json' }
+import { createRequire } from 'node:module'
 
 export interface CatalogCountry {
   readonly iso2: string
@@ -8,7 +8,11 @@ export interface CatalogCountry {
   readonly capital: string
 }
 
-export const countriesCatalog = countriesCatalogJson as readonly CatalogCountry[]
+const require = createRequire(import.meta.url)
+
+const countriesCatalogJson = require('../../src/data/countries-catalog.json') as readonly CatalogCountry[]
+
+export const countriesCatalog = countriesCatalogJson
 
 const iso2Index = new Map<string, CatalogCountry>(
   countriesCatalog.map((country) => [country.iso2, country]),

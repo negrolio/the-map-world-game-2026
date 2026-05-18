@@ -1,5 +1,5 @@
-import { getIsoWikipediaTitleOverride } from './iso-wikipedia-title-overrides'
-import { toWikiTitlePathSegment } from './wikipedia-url'
+import { getIsoWikipediaTitleOverride } from './iso-wikipedia-title-overrides.js'
+import { toWikiTitlePathSegment } from './wikipedia-url.js'
 
 export function buildArticleTitleCandidates(
   iso2: string,

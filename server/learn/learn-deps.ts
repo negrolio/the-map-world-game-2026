@@ -1,5 +1,5 @@
-import type { AppLocale } from '../../shared/app-locale'
-import type { LearnProfile } from '../../shared/learn-types'
+import type { AppLocale } from '../../shared/app-locale.js'
+import type { LearnProfile } from '../../shared/learn-types.js'
 
 export interface WikipediaLearnContent {
   readonly locale: AppLocale

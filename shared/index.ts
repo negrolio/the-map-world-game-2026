@@ -1,5 +1,5 @@
-export type { AppLocale } from './app-locale'
-export { isAppLocale, SUPPORTED_APP_LOCALES } from './app-locale'
+export type { AppLocale } from './app-locale.js'
+export { isAppLocale, SUPPORTED_APP_LOCALES } from './app-locale.js'
 export type {
   ApiErrorPayload,
   LearnApiErrorCode,
@@ -7,5 +7,5 @@ export type {
   LearnProfile,
   LearnResult,
   LearnSuccess,
-} from './learn-types'
-export { learnErrorHttpStatus, learnFailure } from './learn-types'
+} from './learn-types.js'
+export { learnErrorHttpStatus, learnFailure } from './learn-types.js'

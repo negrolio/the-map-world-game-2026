@@ -1,4 +1,4 @@
-import type { VercelRequest } from './vercel-types'
+import type { VercelRequest } from './vercel-types.js'
 
 function firstForwardedIp(value: string): string {
   const first = value.split(',')[0]?.trim()

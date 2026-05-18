@@ -1,5 +1,5 @@
-import type { LearnProfile } from '../../shared/learn-types'
-import type { LearnCache, LearnCacheKey } from './learn-deps'
+import type { LearnProfile } from '../../shared/learn-types.js'
+import type { LearnCache, LearnCacheKey } from './learn-deps.js'
 
 const DEFAULT_TTL_MS = 24 * 60 * 60 * 1000
 

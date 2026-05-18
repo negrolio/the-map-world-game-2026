@@ -1,22 +1,22 @@
-import type { AppLocale } from '../../shared/app-locale'
-import { buildArticleTitleCandidates } from './resolve-article-title'
+import type { AppLocale } from '../../shared/app-locale.js'
+import { buildArticleTitleCandidates } from './resolve-article-title.js'
 import type {
   WikipediaClient,
   WikipediaFetchResult,
   WikipediaLearnContent,
-} from './learn-deps'
-import { mapWikipediaSummaryToLearnContent } from './map-wikipedia-summary'
-import type { WikipediaSummaryResponse } from './map-wikipedia-summary'
-import { WIKIPEDIA_USER_AGENT } from './wikipedia-user-agent'
+} from './learn-deps.js'
+import { mapWikipediaSummaryToLearnContent } from './map-wikipedia-summary.js'
+import type { WikipediaSummaryResponse } from './map-wikipedia-summary.js'
+import { WIKIPEDIA_USER_AGENT } from './wikipedia-user-agent.js'
 import {
   isWikipediaUpstreamFailure,
   wikipediaFetchJson,
-} from './wikipedia-http'
+} from './wikipedia-http.js'
 import {
   buildSummaryUrl,
   buildTitleSearchUrl,
   toWikiTitlePathSegment,
-} from './wikipedia-url'
+} from './wikipedia-url.js'
 
 const DEFAULT_TIMEOUT_MS = 8_000
 

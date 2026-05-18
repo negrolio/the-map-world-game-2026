@@ -1,6 +1,6 @@
-import type { AppLocale } from '../../shared/app-locale'
-import type { WikipediaLearnContent } from './learn-deps'
-import { isAllowedWikimediaAssetUrl, isAllowedWikipediaPageUrl } from './wikipedia-url'
+import type { AppLocale } from '../../shared/app-locale.js'
+import type { WikipediaLearnContent } from './learn-deps.js'
+import { isAllowedWikimediaAssetUrl, isAllowedWikipediaPageUrl } from './wikipedia-url.js'
 
 export interface WikipediaSummaryResponse {
   readonly title?: string

@@ -1,4 +1,4 @@
-import type { AppLocale } from './app-locale'
+import type { AppLocale } from './app-locale.js'
 
 export type LearnApiErrorCode =
   | 'INVALID_LOCALE'

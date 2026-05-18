@@ -1,4 +1,4 @@
-import type { AppLocale } from '../../shared/app-locale'
+import type { AppLocale } from '../../shared/app-locale.js'
 
 export function wikipediaSiteOrigin(locale: AppLocale): string {
   return `https://${locale}.wikipedia.org`

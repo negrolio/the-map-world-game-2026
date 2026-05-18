@@ -1,12 +1,12 @@
-import type { AppLocale } from '../../shared/app-locale'
-import { learnFailure, type LearnProfile, type LearnResult } from '../../shared/learn-types'
-import type { CatalogCountry } from './countries-catalog'
+import type { AppLocale } from '../../shared/app-locale.js'
+import { learnFailure, type LearnProfile, type LearnResult } from '../../shared/learn-types.js'
+import type { CatalogCountry } from './countries-catalog.js'
 import type {
   GetCountryLearnProfileDeps,
   WikipediaFetchResult,
   WikipediaLearnContent,
-} from './learn-deps'
-import { validateLearnRequest } from './validate-learn-request'
+} from './learn-deps.js'
+import { validateLearnRequest } from './validate-learn-request.js'
 
 function toLearnProfile(
   iso2: string,

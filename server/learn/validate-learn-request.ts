@@ -1,7 +1,7 @@
-import { isAppLocale } from '../../shared/app-locale'
-import type { AppLocale } from '../../shared/app-locale'
-import { learnFailure, type LearnResult } from '../../shared/learn-types'
-import { findCountryByIso2, type CatalogCountry } from './countries-catalog'
+import { isAppLocale } from '../../shared/app-locale.js'
+import type { AppLocale } from '../../shared/app-locale.js'
+import { learnFailure, type LearnResult } from '../../shared/learn-types.js'
+import { findCountryByIso2, type CatalogCountry } from './countries-catalog.js'
 
 export interface ValidatedLearnRequest {
   readonly iso2: string
