@@ -17,8 +17,8 @@ export function LearnMapView({ onExitToHome, onExitToSetup }: LearnMapViewProps)
   const { modalState, isModalOpen, requestedLocale, openCountry, closeModal, retry } =
     useCountryLearn()
 
-  const handleCountryClick = (iso2: IsoCountryCode) => {
-    if (isModalOpen) {
+  const handleCountryClick = (iso2: IsoCountryCode | null) => {
+    if (isModalOpen || iso2 === null) {
       return
     }
     void openCountry(iso2)
