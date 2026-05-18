@@ -2,8 +2,7 @@ import { assertWikipediaRequestUrl } from './wikipedia-url'
 
 export type WikipediaHttpResult<T> =
   | { readonly ok: true; readonly data: T }
-  | { readonly ok: false; readonly status: number }
-  | { readonly ok: false; readonly status: 'network' }
+  | { readonly ok: false; readonly status: number | 'network' }
 
 export async function wikipediaFetchJson<T>(
   url: string,
@@ -47,11 +46,13 @@ export function isWikipediaUpstreamFailure(
   if (result.ok) {
     return false
   }
-  if (result.status === 'network') {
+
+  const { status } = result
+  if (status === 'network') {
     return true
   }
-  if (result.status === 404) {
+  if (status === 404) {
     return false
   }
-  return result.status >= 500 || result.status === 429
+  return status >= 500 || status === 429
 }

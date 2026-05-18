@@ -4,7 +4,6 @@ import esLocale from 'i18n-iso-countries/langs/es.json'
 import type { LocaleData } from 'i18n-iso-countries'
 
 import type { AppLocale } from '../../shared/app-locale'
-import type { CatalogCountry } from './countries-catalog'
 
 let localesRegistered = false
 
@@ -19,7 +18,7 @@ function ensureLocalesRegistered(): void {
 
 /** Mismo algoritmo que `src/data/country-localization.ts` (sin React). */
 export function resolveLocalizedCountryName(
-  country: CatalogCountry,
+  country: { readonly iso2: string; readonly name: string },
   locale: AppLocale,
 ): string {
   ensureLocalesRegistered()
