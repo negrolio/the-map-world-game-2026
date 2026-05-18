@@ -16,6 +16,7 @@ const NAMESPACES = [
   'app',
   'validation',
   'errors',
+  'learn',
 ] as const
 
 function readPersistedLocale(): string | null {

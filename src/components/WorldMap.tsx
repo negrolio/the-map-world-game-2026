@@ -51,6 +51,8 @@ export interface WorldMapProps {
   readonly mapFeedback?: MapAnswerFeedback | null
   /** Mientras hay feedback de ronda, se bloquea el clic y el cursor. */
   readonly answerLocked?: boolean
+  /** Modo aprendizaje: bloquea clic en país, pan y zoom (p. ej. modal abierto). */
+  readonly mapInteractionLocked?: boolean
   /**
    * F2.2 — Cuando es `true`, el mapa se renderiza edge-to-edge dentro de su
    * contenedor padre (h-full / w-full) y descarta los límites visuales propios
@@ -368,6 +370,7 @@ function WorldMapInner({
   onCountryClick,
   mapFeedback = null,
   answerLocked = false,
+  mapInteractionLocked = false,
   fullBleed = false,
   regionFilter = 'world',
 }: WorldMapProps) {
@@ -395,8 +398,9 @@ function WorldMapInner({
   const activePointersRef = useRef(new Map<number, { clientX: number; clientY: number }>())
   /** Separación entre los dos dedos en el último frame de pinch (ratio incremental). */
   const pinchLastDistanceRef = useRef<number | null>(null)
-  const locked = answerLocked || Boolean(mapFeedback)
+  const locked = answerLocked || Boolean(mapFeedback) || mapInteractionLocked
   const instructionsId = 'world-map-instructions'
+  const mapInteractionLockedRef = useRef(mapInteractionLocked)
 
   const touchUiZoom = useSyncExternalStore(
     subscribeTouchUiZoomMatch,
@@ -410,7 +414,8 @@ function WorldMapInner({
   useInsertionEffect(() => {
     zoomClampMaxRef.current = zoomClampMax
     touchUiZoomRef.current = touchUiZoom
-  }, [zoomClampMax, touchUiZoom])
+    mapInteractionLockedRef.current = mapInteractionLocked
+  }, [zoomClampMax, touchUiZoom, mapInteractionLocked])
 
   useLayoutEffect(() => {
     // Al pasar de UI táctil a escritorio (u orientación) hay que bajar el zoom si superaba el máximo de escritorio.
@@ -456,6 +461,9 @@ function WorldMapInner({
     }
 
     const handleWheel = (event: WheelEvent): void => {
+      if (mapInteractionLockedRef.current) {
+        return
+      }
       event.preventDefault()
       event.stopPropagation()
       const zoomDelta = wheelDeltaToZoomStep(
@@ -506,7 +514,13 @@ function WorldMapInner({
   const baseViewportClass = fullBleed
     ? 'h-full w-full touch-none overflow-hidden overscroll-contain'
     : 'max-h-[min(70vh,520px)] touch-none overflow-hidden overscroll-contain'
-  const viewportClass = `${baseViewportClass} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`
+  const viewportClass = `${baseViewportClass} ${
+    mapInteractionLocked
+      ? 'cursor-default'
+      : isDragging
+        ? 'cursor-grabbing'
+        : 'cursor-grab'
+  }`
 
   /**
    * Sin `transition-transform` en esta capa: el pan/zoom actualiza `transform` en
@@ -562,6 +576,9 @@ function WorldMapInner({
   }
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>): void => {
+    if (mapInteractionLocked) {
+      return
+    }
     if (event.pointerType === 'mouse' && event.button !== 0) {
       return
     }
@@ -618,6 +635,9 @@ function WorldMapInner({
   }
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>): void => {
+    if (mapInteractionLocked) {
+      return
+    }
     if (!activePointersRef.current.has(event.pointerId)) {
       return
     }
@@ -691,6 +711,7 @@ function WorldMapInner({
       data-viewport-center={`${viewport.offset[0].toFixed(2)},${viewport.offset[1].toFixed(2)}`}
       data-fullbleed={fullBleed ? 'true' : undefined}
       data-region-filter={regionFilter}
+      data-map-interaction-locked={mapInteractionLocked ? 'true' : undefined}
       data-map-projection-scale={String(projectionConfig.scale)}
       data-map-projection-center={`${projectionConfig.center[0]},${projectionConfig.center[1]}`}
       role="region"
@@ -715,8 +736,12 @@ function WorldMapInner({
         data-testid="world-map-controls"
         className={
           fullBleed
-            ? 'pointer-events-auto absolute right-3 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-2'
-            : 'absolute right-3 top-3 z-10 flex gap-2'
+            ? `absolute right-3 top-1/2 z-20 flex -translate-y-1/2 flex-col gap-2 ${
+                mapInteractionLocked ? 'pointer-events-none opacity-50' : 'pointer-events-auto'
+              }`
+            : `absolute right-3 top-3 z-10 flex gap-2 ${
+                mapInteractionLocked ? 'pointer-events-none opacity-50' : ''
+              }`
         }
       >
         <ChunkyButton
@@ -724,7 +749,11 @@ function WorldMapInner({
           tone="secondary"
           size="sm"
           aria-label={t('zoomIn')}
+          disabled={mapInteractionLocked}
           onClick={() => {
+            if (mapInteractionLocked) {
+              return
+            }
             const viewportRect = viewportRef.current?.getBoundingClientRect()
             const anchor = viewportRect
               ? { x: viewportRect.width / 2, y: viewportRect.height / 2 }
@@ -745,7 +774,11 @@ function WorldMapInner({
           tone="secondary"
           size="sm"
           aria-label={t('zoomOut')}
+          disabled={mapInteractionLocked}
           onClick={() => {
+            if (mapInteractionLocked) {
+              return
+            }
             const viewportRect = viewportRef.current?.getBoundingClientRect()
             const anchor = viewportRect
               ? { x: viewportRect.width / 2, y: viewportRect.height / 2 }
@@ -766,7 +799,13 @@ function WorldMapInner({
           tone="secondary"
           size="sm"
           aria-label={t('resetView')}
-          onClick={() => setViewport(getBaselineViewportForRegion(regionFilter))}
+          disabled={mapInteractionLocked}
+          onClick={() => {
+            if (mapInteractionLocked) {
+              return
+            }
+            setViewport(getBaselineViewportForRegion(regionFilter))
+          }}
         >
           Reset
         </ChunkyButton>

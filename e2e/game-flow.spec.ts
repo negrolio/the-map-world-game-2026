@@ -1,11 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-async function goToSetup(page: import('@playwright/test').Page): Promise<void> {
-  await page.goto('/')
-  await page.getByRole('button', { name: /Comenzar setup|Start setup/i }).click()
-  await page.waitForSelector('#app-locale')
-  await page.selectOption('#app-locale', 'es')
-}
+import { goToSetup } from './helpers'
 
 test.describe('F8.2 — flujo e2e', () => {
   test('setup inválido: nombre vacío bloquea inicio y muestra error de schema', async ({ page }) => {

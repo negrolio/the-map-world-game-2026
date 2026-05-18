@@ -13,6 +13,7 @@ export const esNamespaces = {
     lead:
       'Una partida de geografía sobre un mapa interactivo. Configurá jugadores, modo país o capital, cobertura por continente y empezá la expedición.',
     startSetup: 'Comenzar setup',
+    startLearn: 'Modo aprendizaje',
     viewTechnical: 'Ver estado técnico',
   },
   setup: {
@@ -130,8 +131,25 @@ export const esNamespaces = {
       questionCountMin: 'La cantidad de preguntas debe ser al menos 1.',
     },
   },
+  learn: {
+    badge: 'Modo aprendizaje',
+    loading: 'Cargando ficha…',
+    retry: 'Reintentar',
+    close: 'Cerrar',
+    readOnWikipedia: 'Leer en Wikipedia',
+    offlineNotice: 'Sin conexión. Mostrando la última ficha guardada.',
+    contentInEnglishBadge: 'Contenido en inglés',
+    loadErrorLead: 'No pudimos cargar la ficha de este país.',
+    flagAlt: 'Bandera de {{country}}',
+  },
   errors: {
     UNKNOWN: 'Algo salió mal.',
+    INVALID_LOCALE: 'Idioma no soportado. Elegí español o inglés.',
+    COUNTRY_NOT_FOUND: 'Ese país no está en el catálogo del juego.',
+    WIKIPEDIA_PAGE_NOT_FOUND: 'No encontramos un artículo de Wikipedia para este país.',
+    WIKIPEDIA_UNAVAILABLE: 'Wikipedia no está disponible ahora. Probá de nuevo en un momento.',
+    RATE_LIMITED: 'Demasiadas solicitudes. Esperá un momento e intentá otra vez.',
+    INTERNAL_ERROR: 'Ocurrió un error al cargar la información.',
     INVALID_CONFIG: 'La cantidad de jugadores debe estar entre {{min}} y {{max}}.',
     GAME_FINISHED_NO_MORE_GUESSES: 'La partida ya terminó; no se pueden registrar más respuestas.',
     GAME_NOT_IN_PLAYING_STATE: 'No hay una ronda activa para registrar la respuesta.',

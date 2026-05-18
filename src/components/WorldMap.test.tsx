@@ -345,4 +345,19 @@ describe('WorldMap', () => {
     expect(map).toHaveAttribute('data-projection-scale', '147')
     expect(map).toHaveAttribute('data-projection-center', '15,52')
   })
+
+  it('bloquea zoom y clics cuando mapInteractionLocked es true', () => {
+    const onCountryClick = vi.fn()
+    renderWithI18n(<WorldMap mapInteractionLocked onCountryClick={onCountryClick} />)
+
+    const root = screen.getByTestId('world-map-root')
+    expect(root).toHaveAttribute('data-map-interaction-locked', 'true')
+
+    const zoomBefore = root.getAttribute('data-viewport-zoom')
+    fireEvent.click(screen.getByRole('button', { name: /Acercar mapa/i }))
+    expect(root).toHaveAttribute('data-viewport-zoom', zoomBefore ?? '1.00')
+
+    fireEvent.click(screen.getByTestId('geo-ar'))
+    expect(onCountryClick).not.toHaveBeenCalled()
+  })
 })

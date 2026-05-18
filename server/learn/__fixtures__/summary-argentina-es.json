@@ -1,0 +1,12 @@
+{
+  "title": "Argentina",
+  "extract": "Argentina, oficialmente República Argentina, es un país soberano de América del Sur.",
+  "thumbnail": {
+    "source": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Flag_of_Argentina.svg/320px-Flag_of_Argentina.svg.png"
+  },
+  "content_urls": {
+    "desktop": {
+      "page": "https://es.wikipedia.org/wiki/Argentina"
+    }
+  }
+}

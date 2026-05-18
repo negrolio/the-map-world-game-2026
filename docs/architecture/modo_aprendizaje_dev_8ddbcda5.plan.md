@@ -4,28 +4,28 @@ overview: Plan de implementación en 8 bloques de desarrollo (fase 1 del PRD) m�
 todos:
   - id: p0-infra
     content: "P0: vercel.json, api/health, .env.example, doc User-Agent, vercel dev smoke"
-    status: pending
+    status: completed
   - id: p1-core
     content: "P1: shared types + server/learn validate + orchestrator + Vitest mocks"
-    status: pending
+    status: completed
   - id: p2-wikipedia
     content: "P2: WikipediaClient, resolve title, fallback en, mapper + tests fixtures"
-    status: pending
+    status: completed
   - id: p3-handler
     content: "P3: learn-cache TTL + api handler CORS + curl/manual tests"
-    status: pending
+    status: completed
   - id: p4-client-i18n
     content: "P4: learn-api-client + errors/learn i18n + unit tests"
-    status: pending
+    status: completed
   - id: p5-home
     content: "P5: Home locale + CTA + App view learn + regresión quiz e2e"
-    status: pending
+    status: completed
   - id: p6-learn-ui
     content: "P6: LearnMapView, modal, WorldMap lock props, hook caché cliente"
-    status: pending
+    status: completed
   - id: p7-e2e-close
     content: "P7: e2e learn-flow mock API + lint/test/e2e + doc cierre fase 1"
-    status: pending
+    status: completed
   - id: p8-phase2
     content: "P8 (opcional): deploy Vercel + rate limit + smoke HTTPS"
     status: pending

@@ -39,6 +39,15 @@ describe('App', () => {
     expect(screen.getByText(/Versión del dataset/i)).toBeInTheDocument()
   })
 
+  it('navega desde home hacia modo aprendizaje al presionar el CTA', () => {
+    renderWithI18n(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: /Modo aprendizaje/i }))
+
+    expect(screen.getByTestId('learn-map-view')).toBeInTheDocument()
+    expect(screen.getByTestId('world-map-root')).toBeInTheDocument()
+  })
+
   it('navega desde home hacia setup al presionar el CTA', () => {
     renderWithI18n(<App />)
 

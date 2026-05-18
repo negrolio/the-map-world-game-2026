@@ -8,6 +8,7 @@ import { getContinentForIso2 } from './data/countries'
 import { GameShell } from './features/game/GameShell'
 import { ResultsView } from './features/game/ResultsView'
 import { HomeView } from './features/home/HomeView'
+import { LearnMapView } from './features/learn'
 import { SetupView } from './features/setup/SetupView'
 import { gameFeatureShell } from './features/game'
 import { setupFeatureShell, validateSetupConfigSchema } from './features/setup'
@@ -35,7 +36,7 @@ import type {
   RegionFilter,
 } from './types'
 
-type AppView = 'home' | 'setup' | 'game'
+type AppView = 'home' | 'setup' | 'game' | 'learn'
 
 export function App() {
   const { t: tApp } = useTranslation('app')
@@ -353,6 +354,15 @@ export function App() {
     )
   }
 
+  if (currentView === 'learn') {
+    return (
+      <LearnMapView
+        onExitToHome={() => setCurrentView('home')}
+        onExitToSetup={() => setCurrentView('setup')}
+      />
+    )
+  }
+
   if (currentView === 'setup') {
     return (
       <SetupView
@@ -386,6 +396,7 @@ export function App() {
       shellModules={shellModules}
       datasetVersion={datasetVersion}
       onStartSetup={() => setCurrentView('setup')}
+      onStartLearn={() => setCurrentView('learn')}
     />
   )
 }

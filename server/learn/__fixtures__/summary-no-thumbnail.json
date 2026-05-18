@@ -1,0 +1,9 @@
+{
+  "title": "Exampleland",
+  "extract": "A country without a thumbnail in the summary payload.",
+  "content_urls": {
+    "desktop": {
+      "page": "https://en.wikipedia.org/wiki/Exampleland"
+    }
+  }
+}

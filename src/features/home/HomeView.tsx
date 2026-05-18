@@ -1,21 +1,42 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Badge, ChunkyButton, Panel } from '../../components/ui'
+import { Badge, ChunkyButton, FieldSelect, Panel } from '../../components/ui'
+import type { AppLocale } from '../../i18n/app-locale'
+import { SUPPORTED_LOCALES, normalizeAppLocale } from '../../i18n/app-locale'
 import type { FeatureShell } from '../../types'
 
 export interface HomeViewProps {
   readonly shellModules: readonly FeatureShell[]
   readonly datasetVersion: string
   readonly onStartSetup: () => void
+  readonly onStartLearn: () => void
 }
 
 /**
  * Portada del juego. Comunica el nombre, una promesa breve y el CTA primario.
  * El listado de módulos queda como nota técnica secundaria en el pie.
  */
-export function HomeView({ shellModules, datasetVersion, onStartSetup }: HomeViewProps) {
-  const { t } = useTranslation('home')
+export function HomeView({
+  shellModules,
+  datasetVersion,
+  onStartSetup,
+  onStartLearn,
+}: HomeViewProps) {
+  const { t, i18n } = useTranslation('home')
   const { t: tCommon } = useTranslation('common')
+  const { t: tSetup } = useTranslation('setup')
+
+  const activeLocale = normalizeAppLocale(i18n.language) ?? 'es'
+
+  const languageOptions = useMemo(
+    () =>
+      SUPPORTED_LOCALES.map((locale) => ({
+        value: locale,
+        label: locale === 'es' ? tSetup('languageOptionEs') : tSetup('languageOptionEn'),
+      })),
+    [tSetup],
+  )
 
   return (
     <main className="min-h-screen bg-paper text-ink">
@@ -26,8 +47,23 @@ export function HomeView({ shellModules, datasetVersion, onStartSetup }: HomeVie
         </h1>
         <p className="max-w-2xl font-body text-base text-ink-soft md:text-lg">{t('lead')}</p>
 
+        <Panel tone="paper-soft" padding="md" className="w-full max-w-md text-left">
+          <FieldSelect
+            id="app-locale"
+            label={tSetup('languageLabel')}
+            value={activeLocale}
+            onChange={(event) => {
+              void i18n.changeLanguage(event.target.value as AppLocale)
+            }}
+            options={languageOptions}
+          />
+        </Panel>
+
         <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-          <ChunkyButton type="button" tone="primary" size="lg" onClick={onStartSetup}>
+          <ChunkyButton type="button" tone="primary" size="lg" onClick={onStartLearn}>
+            {t('startLearn')}
+          </ChunkyButton>
+          <ChunkyButton type="button" tone="secondary" size="lg" onClick={onStartSetup}>
             {t('startSetup')}
           </ChunkyButton>
           <ChunkyButton type="button" tone="secondary" size="lg">

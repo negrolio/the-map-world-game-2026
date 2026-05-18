@@ -1,6 +1,6 @@
 # Iteración: backend API (Vercel) — planificación
 
-**Estado:** planificación / decisión tomada; **sin implementación** en repo al crear esta carpeta.
+**Estado:** **Fase 1 cerrada** + **rate limit (P8) en repo**. Deploy/smoke HTTPS: [`modo-aprendizaje/04-fase-2-deploy.md`](./modo-aprendizaje/04-fase-2-deploy.md). Checklist: [`03-fase-1-checklist.md`](./modo-aprendizaje/03-fase-1-checklist.md).
 
 Documentación de contexto para que un agente (o humano) pueda **planificar tareas** sin re-leer el hilo de diseño. Cuando se empiece a ejecutar, promover entradas del backlog y crear `01-…`, `02-…` según fases.
 

@@ -13,6 +13,7 @@ export const enNamespaces = {
     lead:
       'A geography game on an interactive map. Set up players, country or capital mode, coverage by continent, and start the expedition.',
     startSetup: 'Start setup',
+    startLearn: 'Learning mode',
     viewTechnical: 'View technical status',
   },
   setup: {
@@ -130,8 +131,25 @@ export const enNamespaces = {
       questionCountMin: 'Question count must be at least 1.',
     },
   },
+  learn: {
+    badge: 'Learning mode',
+    loading: 'Loading country card…',
+    retry: 'Retry',
+    close: 'Close',
+    readOnWikipedia: 'Read on Wikipedia',
+    offlineNotice: 'You are offline. Showing the last saved country card.',
+    contentInEnglishBadge: 'Content in English',
+    loadErrorLead: 'We could not load this country card.',
+    flagAlt: 'Flag of {{country}}',
+  },
   errors: {
     UNKNOWN: 'Something went wrong.',
+    INVALID_LOCALE: 'Unsupported language. Choose Spanish or English.',
+    COUNTRY_NOT_FOUND: 'That country is not in the game catalog.',
+    WIKIPEDIA_PAGE_NOT_FOUND: 'We could not find a Wikipedia article for this country.',
+    WIKIPEDIA_UNAVAILABLE: 'Wikipedia is unavailable right now. Please try again shortly.',
+    RATE_LIMITED: 'Too many requests. Wait a moment and try again.',
+    INTERNAL_ERROR: 'An error occurred while loading the information.',
     INVALID_CONFIG: 'Player count must be between {{min}} and {{max}}.',
     GAME_FINISHED_NO_MORE_GUESSES: 'The game has ended; no more answers can be submitted.',
     GAME_NOT_IN_PLAYING_STATE: 'There is no active round to submit an answer.',
