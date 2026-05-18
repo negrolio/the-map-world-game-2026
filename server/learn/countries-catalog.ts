@@ -1,4 +1,4 @@
-import countriesCatalogJson from '../../src/data/countries-catalog.json'
+import countriesCatalogJson from '../../src/data/countries-catalog.json' with { type: 'json' }
 
 export interface CatalogCountry {
   readonly iso2: string

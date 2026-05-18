@@ -45,3 +45,7 @@ Desde el navegador: Home → Modo aprendizaje → clic en un país (CORS debe in
 ## Wikipedia en producción
 
 Respetar la política de User-Agent (ver [02-dev-local-p0.md](./02-dev-local-p0.md)). Monitorizar `503` / `WIKIPEDIA_UNAVAILABLE` si Wikipedia limita el origen del datacenter.
+
+## Troubleshooting: `FUNCTION_INVOCATION_FAILED` en `/learn`
+
+Si `/api/v1/health` responde `200` pero `/api/v1/countries/XX/learn` devuelve **500** con `FUNCTION_INVOCATION_FAILED`, revisar los logs de la función en Vercel. Causa habitual en este repo: imports JSON en `server/` sin atributo ESM (`with { type: 'json' }`) — Node en Vercel no usa el bundler de Vite; el crash ocurre al **cargar** el módulo, antes de ejecutar la lógica.

@@ -1,6 +1,6 @@
 import countries from 'i18n-iso-countries'
-import enLocale from 'i18n-iso-countries/langs/en.json'
-import esLocale from 'i18n-iso-countries/langs/es.json'
+import enLocale from 'i18n-iso-countries/langs/en.json' with { type: 'json' }
+import esLocale from 'i18n-iso-countries/langs/es.json' with { type: 'json' }
 import type { LocaleData } from 'i18n-iso-countries'
 
 import type { AppLocale } from '../../shared/app-locale'
