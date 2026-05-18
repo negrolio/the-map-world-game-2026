@@ -1,0 +1,47 @@
+---
+description: Cliente HTTP del front hacia la API Vercel e i18n de errores
+globs: ["src/services/**/*-api-client.ts", "src/services/**/*-api*.ts", "src/types/api-contract.ts", "src/i18n/translate-api-error.ts", "src/i18n/resources/**/errors*"]
+alwaysApply: false
+---
+
+# Integración frontend ↔ API
+
+## Clientes HTTP
+
+- Un módulo por dominio: `learn-api-client.ts`, `prompts-api-client.ts`, etc. en `src/services/`
+- Base URL: `import.meta.env.VITE_API_BASE_URL` (sin barra final duplicada al concatenar rutas)
+- Rutas: `${base}/api/v1/...`
+- Enviar `locale` (`AppLocale`) en query o body según contrato
+- Usar `fetch` + parse JSON; tipar respuestas con tipos de `shared/` o `src/types/` cuando existan
+
+## Errores
+
+- El servidor devuelve `{ error: { code, message } }`
+- En UI usar **`translateApiErrorCode`** (`src/i18n/translate-api-error.ts`) con namespace `errors`
+- Añadir clave i18n por cada `code` nuevo del backend (ES + EN)
+- No mostrar `message` crudo del servidor al usuario si existe traducción por `code`
+
+## Separación de capas
+
+| Capa | Responsabilidad |
+|------|-----------------|
+| `*-api-client.ts` | HTTP, status codes, parseo |
+| `src/services/` (sin sufijo api) | Lógica de juego **local** (sesión, rondas, pool) |
+| Features | Estado UI, modales, loading, caché de última ficha (learn) |
+
+No mezclar `fetch` a Vercel dentro de componentes; exponer hooks o funciones desde services/features.
+
+## Estados UX (patrones learn / futuras APIs)
+
+- Loading: skeleton o indicador explícito
+- Error: mensaje i18n + **Reintentar** cuando tenga sentido
+- Offline: caché cliente de último éxito si el PRD lo define
+
+## Tests
+
+- Vitest: mockear `global.fetch` en clientes API
+- Playwright: mock de red o fixture JSON; no depender de Wikipedia/Gemini en CI
+
+## Contrato local existente
+
+`ApiResponse<T>` en `src/types/api-contract.ts` es para **servicios de dominio del juego en memoria**, no necesariamente el shape HTTP del backend. No forzar el wrapper `{ success, data }` en respuestas HTTP salvo decisión de contrato unificada.

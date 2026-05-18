@@ -1,31 +1,69 @@
 ---
-description: Core project standards that apply to all code
+description: Estándares del monorepo (Vite + React + API Vercel serverless)
 alwaysApply: true
 ---
 
-# Project: [Your Project Name]
+# The Map World Game 2026
 
-## Tech Stack
-- Runtime: Node.js 20 with TypeScript 5.x (strict mode)
-- Framework: React 19.2 or Latest version
-- Testing: Vitest for unit tests, Playwright for e2e
-- Styling: Tailwind CSS
+Monorepo: **frontend** (Vite + React) + **API serverless** (Vercel Functions) + núcleo de negocio compartible.
 
-## Code Conventions
-- Use const by default, let only when reassignment is needed, never var
-- Prefer async/await over .then() chains
-- Use named exports, not default exports
-- Error handling: always use typed errors, never throw raw strings
-- File naming: kebab-case for files, PascalCase for components
+Documentación de arquitectura backend: `docs/tasks/backend-api-vercel/00-decision-resumen-planificacion-backend.md`
 
-## Architecture
-- API routes go in src/api/
-- Business logic lives in src/services/
-- Shared types go in src/types/
-- Reuse existing patterns -- check for similar implementations before creating new ones
+## Tech stack
 
-## What NOT to Do
-- Do not install new dependencies without asking first
-- Do not modify configuration files (.env, tsconfig, package.json) without explicit request
-- Do not remove existing tests
-- Do not use any as a type -- use unknown and narrow appropriately
+| Capa | Stack |
+|------|--------|
+| Frontend | React 19, TypeScript strict, Vite, Tailwind, i18next |
+| API (borde) | Vercel Serverless Functions en `api/` |
+| Lógica servidor | TypeScript puro en `server/` (sin `Request`/`Response` de Vercel) |
+| Tipos compartidos | `shared/` (opcional; sin imports de React) |
+| Tests | Vitest (unit), Playwright (e2e) |
+| Local API | `vercel dev` (no Express ad-hoc en otro puerto) |
+
+**No** migrar a Next.js. **No** repo backend separado salvo decisión explícita.
+
+## Estructura de carpetas
+
+```
+api/              → Handlers HTTP delgados (Vercel)
+server/           → Casos de uso: learn/, prompts/, scores/
+shared/           → DTOs, códigos de error, schemas (front + server)
+src/              → Solo frontend (features, services, components, i18n)
+```
+
+| Qué | Dónde |
+|-----|--------|
+| UI y estado de pantallas | `src/features/` |
+| Lógica de juego **local** (rondas, pool, scoring) | `src/services/` |
+| Cliente HTTP al backend | `src/services/*-api-client.ts` |
+| Tipos de dominio del juego en cliente | `src/types/` |
+| Handlers y CORS | `api/` |
+| Wikipedia, Gemini, DB, caché | `server/` + adaptadores |
+
+## Convenciones de código
+
+- `const` por defecto; `let` solo si hay reasignación; nunca `var`
+- `async/await` preferido sobre `.then()`
+- **Named exports** (no default exports)
+- Errores tipados; no `throw` de strings sueltos
+- Archivos en **kebab-case**; componentes React en **PascalCase**
+- Sin `any`; usar `unknown` y estrechar
+
+## Secretos y entorno
+
+- Claves (Gemini, DB, etc.) **solo** en env del servidor (Vercel / `.env.local` para `vercel dev`)
+- Frontend: solo variables `VITE_*` no sensibles (p. ej. `VITE_API_BASE_URL`)
+- No commitear `.env`, `.env.local`, `.vercel/` con tokens
+
+## Qué NO hacer
+
+- No instalar dependencias ni tocar `package.json` / lockfiles sin permiso explícito (ver `dependency-security.mdc`)
+- No poner API keys en código ni en el bundle del navegador
+- No meter lógica de negocio en handlers de `api/` (solo parseo HTTP, CORS, status, JSON)
+- No importar React desde `server/` o `shared/`
+- No eliminar tests existentes
+- No modificar `tsconfig`, `vercel.json`, `.env*` sin solicitud explícita del usuario
+
+## Antes de implementar backend
+
+Leer el PRD/tarea de la iteración (p. ej. `docs/tasks/backend-api-vercel/01-prd-modo-aprendizaje.md`) y respetar fases (local vs deploy, rate limit, etc.).

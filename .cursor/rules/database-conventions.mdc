@@ -1,13 +1,37 @@
 ---
-description: Database and ORM conventions
-globs: ["src/db/**/*.ts", "drizzle/**/*", "prisma/**/*"]
+description: Persistencia y repositorios (scores / futuro)
+globs: ["server/scores/**/*.ts", "server/**/*repository*.ts", "server/**/*-repository.ts"]
+alwaysApply: false
 ---
 
-# Database Rules
+# Base de datos (futuro — módulo `scores/`)
 
-- All schema changes go through migrations, never manual ALTER statements
-- Use transactions for multi-table writes
-- Add indexes for columns used in WHERE clauses and JOINs
-- Implement soft deletes (deletedAt column) for user-facing data
-- Table names: plural snake_case (user_profiles, not UserProfile)
-- Column names: snake_case (created_at, not createdAt)
+Aún **no implementado**. Cuando se añada persistencia de puntajes:
+
+## Principios
+
+- DB **externa** a Vercel (Neon, Supabase, D1, etc.); URL solo en env servidor
+- Lógica de acceso detrás de **`ScoreRepository`** (puerto en `server/scores/`, implementación intercambiable)
+- Handlers en `api/` no ejecutan SQL directo
+
+## Esquema y migraciones
+
+- Cambios de esquema solo vía **migraciones** versionadas (herramienta elegida con el usuario)
+- Sin `ALTER` manual en producción
+- Transacciones para escrituras multi-tabla
+
+## Naming
+
+- Tablas: `snake_case` plural (`game_scores`)
+- Columnas: `snake_case` (`created_at`, `player_display_name`)
+- Índices en columnas de filtro y orden del leaderboard
+
+## Producto
+
+- No persistir partidas **inválidas** (anticheat)
+- Minimizar PII; preferir identificadores anónimos o nicknames locales
+- Validar payload en `server/scores/` antes de insertar
+
+## Tests
+
+- Vitest con repositorio en memoria o DB de test; no depender de Vercel en unit tests

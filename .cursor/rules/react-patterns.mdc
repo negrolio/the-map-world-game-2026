@@ -1,16 +1,42 @@
 ---
-description: React component standards
-globs: ["src/components/**/*.tsx", "src/app/**/*.tsx"]
+description: Componentes React, features y UI del frontend
+globs: ["src/components/**/*.tsx", "src/features/**/*.tsx", "src/App.tsx"]
+alwaysApply: false
 ---
 
-# React Component Rules
+# React (solo `src/`)
 
-- Use functional components with explicit TypeScript props interface
-- Extract complex logic into custom hooks in the same directory
-- Keep components under 150 lines -- split into sub-components if larger
-- Use CSS modules or Tailwind utility classes, never inline styles
-- Include aria-labels for interactive elements
+El backend **no** vive aquí. Llamadas HTTP → `src/services/*-api-client.ts`.
 
-## Component Template
-Refer to @src/components/Button.tsx as the canonical example
-for prop typing, error boundaries, and test structure.
+## Estructura
+
+- Vistas por feature: `src/features/<feature>/` (`HomeView`, `SetupView`, `GameShell`, `LearnMapView`, …)
+- UI reutilizable: `src/components/ui/` (`ChunkyButton`, `Panel`, `Alert`, …)
+- Hooks de feature colocados junto al feature o en `hooks/` del mismo directorio
+
+## Componentes
+
+- Funcionales con props tipadas (`interface XxxProps`)
+- Máximo ~150 líneas por componente; extraer subcomponentes si crece
+- Tailwind / tokens (`src/styles/tokens.css`); evitar `style={{}}` salvo casos dinámicos inevitables
+- `aria-label` en controles interactivos; modales con `role="dialog"` y foco gestionado
+
+## Referencia de estilo
+
+Usar `src/components/ui/chunky-button.tsx` y `panel.tsx` como referencia de tonos, tamaños y props.
+
+## i18n
+
+- Copy de producto en `src/i18n/resources/` (namespaces por vista)
+- No hardcodear strings visibles al usuario en español/inglés mezclados
+- Errores de API remota: códigos → `translateApiErrorCode`
+
+## Integración con API
+
+- `VITE_API_BASE_URL` para entornos local vs producción
+- Loading/error/retry en la feature (modal learn, setup con prompts IA futuro)
+- No importar módulos de `server/` o `api/` en componentes
+
+## Mapa
+
+- `WorldMap`: reutilizar para quiz y aprendizaje; props para deshabilitar zoom/clics cuando un modal bloquee interacción

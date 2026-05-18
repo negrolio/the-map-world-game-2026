@@ -1,0 +1,77 @@
+---
+description: Seguridad en instalación de dependencias, cadena de suministro y límites del workspace
+alwaysApply: true
+---
+
+# Seguridad de dependencias y cadena de suministro
+
+## Prohibiciones absolutas
+
+- **No ejecutar** `npm install`, `pnpm add`, `yarn add`, `npm i <pkg>` ni equivalentes de forma directa sin el consentimiento explícito del usuario tras completar la verificación previa.
+- **No leer** archivos fuera del espacio de trabajo del proyecto: `~/.ssh`, `~/.aws`, `~/.npmrc` global, `.env` en rutas fuera del repo, ni otros secretos del sistema.
+- **No modificar** `package.json`, lockfiles ni configuración de paquetes sin solicitud explícita del usuario (complementa `core.mdc`).
+
+## Flujo obligatorio antes de instalar
+
+Cuando el usuario pida instalar o actualizar una dependencia:
+
+### 1. Validar el nombre (typosquatting)
+
+- Confirmar que el nombre coincide **exactamente** con el paquete oficial (ej. `react-router`, no `react-routerr`).
+- Si hay duda, comparar con la documentación oficial o el registro npm antes de continuar.
+
+### 2. Inspeccionar el paquete en el registro
+
+Ejecutar (solo lectura, sin instalar):
+
+```bash
+npm view <paquete> --json
+```
+
+Revisar:
+
+- `name`, `version`, `time` (fecha de publicación de la versión propuesta).
+- Scripts de ciclo de vida: `scripts.preinstall`, `scripts.postinstall`, `scripts.prepare`, `scripts.install`.
+- Si algún script invoca archivos JS externos, URLs remotas, `curl`/`wget`, eval, o contenido ofuscado → **detener** y advertir al usuario. No proponer instalación hasta resolver.
+
+### 3. Versión reciente (< 7 días)
+
+Si la versión sugerida se publicó hace **menos de 7 días**, detener el proceso y advertir del riesgo de cadena de suministro. Ofrecer una versión estable anterior salvo que el usuario acepte el riesgo por escrito.
+
+### 4. Vulnerabilidades conocidas
+
+Antes de instalar, verificar el paquete (y la versión concreta) contra bases públicas de vulnerabilidades, por ejemplo:
+
+- [Socket.dev](https://socket.dev/) — búsqueda `https://socket.dev/npm/package/<paquete>`
+- [Snyk Advisor](https://snyk.io/advisor/) o `snyk test` si está disponible en el entorno
+
+Si hay CVEs críticos sin mitigación clara, no proponer la instalación sin explicar el hallazgo.
+
+### 5. Consentimiento del usuario
+
+Presentar un resumen: nombre exacto, versión, hallazgos (scripts, antigüedad, vulnerabilidades) y el comando propuesto. **Esperar confirmación** antes de ejecutar cualquier instalación.
+
+## Comandos de instalación (cuando el usuario apruebe)
+
+Incluir **siempre** flags de endurecimiento en la propuesta y en la ejecución:
+
+| Gestor | Ejemplo |
+|--------|---------|
+| npm | `npm install <paquete>@<versión> --ignore-scripts --allow-git=none` |
+| pnpm | `pnpm add <paquete>@<versión> --ignore-scripts` |
+| yarn | `yarn add <paquete>@<versión> --ignore-scripts` |
+
+- Usar `--ignore-scripts` también durante fases de **evaluación** o dry-run cuando el gestor lo permita.
+- Tras instalar con scripts deshabilitados, si el paquete legítimo requiere un `postinstall` conocido y seguro, ejecutarlo solo tras revisión explícita con el usuario.
+
+## Qué hacer en lugar de instalar sin permiso
+
+- Sugerir la dependencia con justificación técnica.
+- Mostrar el comando completo con flags de seguridad.
+- Indicar alternativas si el paquete tiene scripts sospechosos, versión muy nueva o vulnerabilidades reportadas.
+
+## Paquetes habituales en este repo
+
+- **`vercel` (CLI):** devDependency para `vercel dev` y deploy; mismo flujo de verificación y consentimiento.
+- Evitar dependencias pesadas en handlers `api/`; preferir `fetch` nativo y lógica en `server/`.
+- SDKs de IA/DB: instalar solo el paquete oficial del proveedor acordado (Gemini, `@supabase/supabase-js`, etc.).

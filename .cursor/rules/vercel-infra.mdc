@@ -1,0 +1,49 @@
+---
+description: Vercel dev, deploy, vercel.json y variables de entorno
+globs: ["api/**/*", "vercel.json", ".env.example"]
+alwaysApply: false
+---
+
+# Infraestructura Vercel
+
+## Qué es Vercel en este proyecto
+
+- **Hosting** del build estático de Vite (`dist/`)
+- **Ejecución** de cada archivo en `api/` como función serverless (sin proceso Node 24/7)
+- **No** sustituye a una DB: puntajes usarán proveedor externo (Neon, Supabase, etc.)
+
+## Desarrollo local
+
+- Probar la API con **`npx vercel dev`** (alineado con producción)
+- Evitar un servidor Express paralelo que haya que reescribir después
+- Front: `VITE_API_BASE_URL` apuntando al origen de `vercel dev` (típ. `http://localhost:3000`)
+- Secretos locales: `.env.local` (gitignored); nunca commitear
+
+## `vercel.json` (orientación)
+
+- `buildCommand` / `outputDirectory` para Vite
+- `devCommand`: `npm run dev` para que `vercel dev` delegue el front a Vite cuando aplique
+- Rewrites: rutas SPA del front → `index.html`; `/api/*` → funciones
+
+## Variables de entorno
+
+| Variable | Dónde | Uso |
+|----------|--------|-----|
+| `GEMINI_API_KEY` | Solo servidor | `prompts/` (futuro) |
+| `ALLOWED_ORIGINS` | Servidor | CORS |
+| `VITE_API_BASE_URL` | Build Vite | Base URL del cliente |
+| DB URL | Servidor | `scores/` (futuro) |
+
+Fase de producto puede omitir deploy a nube; igualmente usar `vercel dev` en local.
+
+## Deploy (cuando el usuario lo pida)
+
+- Cuenta + proyecto enlazado al repo; `vercel link` genera `.vercel/` (no commitear)
+- Variables en dashboard por entorno (Preview / Production)
+- Rate limiting en endpoints públicos antes de producción abierta (fase 2 en PRD aprendizaje)
+- Instalar paquete `vercel` (CLI) sigue `dependency-security.mdc`
+
+## Handlers
+
+- Export por defecto o `export { GET, POST }` según convención Vercel del runtime elegido en el proyecto
+- Mantener handlers **delgados**; ver `api-conventions.mdc`

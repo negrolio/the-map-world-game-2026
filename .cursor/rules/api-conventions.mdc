@@ -1,23 +1,73 @@
 ---
-description: API route patterns
-globs: ["src/api/**/*.ts", "src/pages/api/**/*.ts"]
+description: Handlers Vercel, núcleo server/ y contrato HTTP /v1
+globs: ["api/**/*.ts", "server/**/*.ts", "shared/**/*.ts"]
+alwaysApply: false
 ---
 
-# API Route Standards
+# API y servidor (`api/` + `server/`)
 
-- Validate all inputs with Zod schemas
-- Return consistent response shape: { success, data?, error? }
-- Include rate limiting on write endpoints
-- Log all errors with structured context (requestId, userId, endpoint)
-- Never expose internal error details to clients
+## Capas
 
-## Error Response Format
+1. **`api/*.ts`** — Handler Vercel: método, query/body, CORS, `Response.json`, códigos HTTP. **Sin** reglas de negocio.
+2. **`server/<módulo>/`** — Casos de uso puros, testeables con Vitest sin levantar Vercel.
+3. **Adaptadores** — `WikipediaClient`, `GeminiClient`, `ScoreRepository`, caché: interfaces en `server/`, mocks en tests.
+
+```
+api/v1/countries/[iso2]/learn.ts  →  server/learn/get-country-learn-profile.ts
+```
+
+## Rutas y versión
+
+- Prefijo: **`/api/v1/...`** (archivos bajo `api/v1/`)
+- Métodos y semántica REST habituales; JSON UTF-8
+- `locale` en query cuando aplique (`es` | `en`); validar y devolver `400` + `INVALID_LOCALE`
+
+## Respuestas HTTP
+
+**Éxito (200):** cuerpo = DTO de datos (sin envolver en `{ success: true }` salvo que el contrato del endpoint lo exija).
+
+**Error (4xx/5xx):**
+
 ```json
 {
-  "success": false,
   "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Email format is invalid"
+    "code": "WIKIPEDIA_UNAVAILABLE",
+    "message": "Short technical message for logs"
   }
 }
 ```
+
+- `code`: estable, enumerable; el front lo mapea a i18n (`errors` namespace)
+- `message`: no exponer stacks ni detalles internos de terceros
+- Códigos comunes: `INVALID_LOCALE`, `COUNTRY_NOT_FOUND`, `WIKIPEDIA_PAGE_NOT_FOUND`, `WIKIPEDIA_UNAVAILABLE`, `RATE_LIMITED`, `INTERNAL_ERROR`
+
+## Validación
+
+- Validar `iso2` contra el catálogo interno (allowlist), no confiar en el cliente
+- Preferir validación explícita o Zod en el borde del caso de uso; schemas compartidos en `shared/` si el front los necesita
+
+## CORS
+
+- Orígenes desde `ALLOWED_ORIGINS` (env, lista separada por comas)
+- Incluir origen de Vite en dev (`http://localhost:5173`) y el de `vercel dev`
+
+## Servicios externos
+
+- Wikipedia: User-Agent identificable (documentar en README antes del primer request)
+- Timeouts en `fetch` hacia terceros; mapear fallos a `WIKIPEDIA_UNAVAILABLE` / `503`
+- **Caché** en servidor por clave estable (p. ej. `learn:${iso2}:${locale}`) con TTL acordado en la tarea
+
+## Tests
+
+- Vitest sobre `server/**` con clientes mockeados
+- Handlers: smoke con `vercel dev` + `curl`; en CI preferir tests del núcleo, no depender de Wikipedia live
+
+## Módulos previstos
+
+| Módulo | Ruta ejemplo | Notas |
+|--------|----------------|-------|
+| `learn/` | `GET .../countries/:iso2/learn` | Wikipedia + caché |
+| `prompts/` | `POST .../prompts/generate` | Gemini; key solo en servidor |
+| `scores/` | `POST/GET .../scores` | DB externa; anticheat antes de persistir |
+
+No mezclar responsabilidades entre módulos; reutilizar `learn` desde `prompts` vía función compartida, no duplicar fetch a Wikipedia.

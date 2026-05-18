@@ -1,11 +1,33 @@
 ---
-description: Security and privacy standards
+description: Seguridad, privacidad y secretos (cliente y servidor)
 alwaysApply: true
 ---
 
-# Privacy Requirements
+# Privacidad y seguridad
 
-- Never include API keys, tokens, or secrets in generated code
-- Use environment variables for all sensitive configuration
-- Do not log personally identifiable information (PII)
-- Exclude .env files, credentials, and private keys from any file operations
+## Secretos
+
+- Nunca incluir API keys, tokens ni secretos en código generado ni en commits
+- **Gemini**, DB y credenciales de terceros: solo variables de entorno en **servidor** (Vercel / `.env.local`)
+- El bundle del navegador solo expone `VITE_*` no sensibles (p. ej. URL base de la API)
+
+## Datos y logs
+
+- No registrar PII (nombres de jugadores en logs de servidor, emails, IPs completas en producción salvo necesidad de rate limit documentada)
+- No loguear cuerpos completos de respuestas de Wikipedia/Gemini ni query strings con datos personales
+- Errores al cliente: `code` estable + mensaje genérico; detalle técnico solo en logs servidor si hace falta depurar
+
+## Archivos prohibidos en operaciones del agente
+
+- `.env`, `.env.local`, `.env.production`, credenciales JSON, claves privadas
+- Carpeta `.vercel/` si contiene tokens de proyecto
+
+## Puntajes (futuro)
+
+- Sin PII innecesaria en persistencia de leaderboard
+- No guardar partidas marcadas inválidas por anticheat (ver backlog / PRD scores)
+
+## Frontend
+
+- `localStorage`: solo datos no sensibles (p. ej. locale); no tokens de API
+- Enlaces externos (Wikipedia): `rel="noopener noreferrer"` y HTTPS
