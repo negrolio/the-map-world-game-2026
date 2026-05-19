@@ -1,0 +1,1213 @@
+{
+  "AE": {
+    "wikidataId": "Q878",
+    "titles": {
+      "en": "United Arab Emirates",
+      "es": "Emiratos Árabes Unidos"
+    }
+  },
+  "AF": {
+    "wikidataId": "Q889",
+    "titles": {
+      "en": "Afghanistan",
+      "es": "Afganistán"
+    }
+  },
+  "AL": {
+    "wikidataId": "Q222",
+    "titles": {
+      "en": "Albania",
+      "es": "Albania"
+    }
+  },
+  "AM": {
+    "wikidataId": "Q399",
+    "titles": {
+      "en": "Armenia",
+      "es": "Armenia"
+    }
+  },
+  "AO": {
+    "wikidataId": "Q916",
+    "titles": {
+      "en": "Angola",
+      "es": "Angola"
+    }
+  },
+  "AR": {
+    "wikidataId": "Q414",
+    "titles": {
+      "en": "Argentina",
+      "es": "Argentina"
+    }
+  },
+  "AT": {
+    "wikidataId": "Q40",
+    "titles": {
+      "en": "Austria",
+      "es": "Austria"
+    }
+  },
+  "AU": {
+    "wikidataId": "Q408",
+    "titles": {
+      "en": "Australia",
+      "es": "Australia"
+    }
+  },
+  "AZ": {
+    "wikidataId": "Q227",
+    "titles": {
+      "en": "Azerbaijan",
+      "es": "Azerbaiyán"
+    }
+  },
+  "BA": {
+    "wikidataId": "Q225",
+    "titles": {
+      "en": "Bosnia and Herzegovina",
+      "es": "Bosnia y Herzegovina"
+    }
+  },
+  "BD": {
+    "wikidataId": "Q902",
+    "titles": {
+      "en": "Bangladesh",
+      "es": "Bangladés"
+    }
+  },
+  "BE": {
+    "wikidataId": "Q31",
+    "titles": {
+      "en": "Belgium",
+      "es": "Bélgica"
+    }
+  },
+  "BF": {
+    "wikidataId": "Q965",
+    "titles": {
+      "en": "Burkina Faso",
+      "es": "Burkina Faso"
+    }
+  },
+  "BG": {
+    "wikidataId": "Q219",
+    "titles": {
+      "en": "Bulgaria",
+      "es": "Bulgaria"
+    }
+  },
+  "BI": {
+    "wikidataId": "Q967",
+    "titles": {
+      "en": "Burundi",
+      "es": "Burundi"
+    }
+  },
+  "BJ": {
+    "wikidataId": "Q962",
+    "titles": {
+      "en": "Benin",
+      "es": "Benín"
+    }
+  },
+  "BN": {
+    "wikidataId": "Q921",
+    "titles": {
+      "en": "Brunei",
+      "es": "Brunéi"
+    }
+  },
+  "BO": {
+    "wikidataId": "Q750",
+    "titles": {
+      "en": "Bolivia",
+      "es": "Bolivia"
+    }
+  },
+  "BR": {
+    "wikidataId": "Q155",
+    "titles": {
+      "en": "Brazil",
+      "es": "Brasil"
+    }
+  },
+  "BS": {
+    "wikidataId": "Q778",
+    "titles": {
+      "en": "The Bahamas",
+      "es": "Bahamas"
+    }
+  },
+  "BT": {
+    "wikidataId": "Q917",
+    "titles": {
+      "en": "Bhutan",
+      "es": "Bután"
+    }
+  },
+  "BW": {
+    "wikidataId": "Q963",
+    "titles": {
+      "en": "Botswana",
+      "es": "Botsuana"
+    }
+  },
+  "BY": {
+    "wikidataId": "Q184",
+    "titles": {
+      "en": "Belarus",
+      "es": "Bielorrusia"
+    }
+  },
+  "BZ": {
+    "wikidataId": "Q242",
+    "titles": {
+      "en": "Belize",
+      "es": "Belice"
+    }
+  },
+  "CA": {
+    "wikidataId": "Q16",
+    "titles": {
+      "en": "Canada",
+      "es": "Canadá"
+    }
+  },
+  "CD": {
+    "wikidataId": "Q974",
+    "titles": {
+      "en": "Democratic Republic of the Congo",
+      "es": "República Democrática del Congo"
+    }
+  },
+  "CF": {
+    "wikidataId": "Q929",
+    "titles": {
+      "en": "Central African Republic",
+      "es": "República Centroafricana"
+    }
+  },
+  "CG": {
+    "wikidataId": "Q971",
+    "titles": {
+      "en": "Republic of the Congo",
+      "es": "República del Congo"
+    }
+  },
+  "CH": {
+    "wikidataId": "Q39",
+    "titles": {
+      "en": "Switzerland",
+      "es": "Suiza"
+    }
+  },
+  "CI": {
+    "wikidataId": "Q1008",
+    "titles": {
+      "en": "Ivory Coast",
+      "es": "Costa de Marfil"
+    }
+  },
+  "CL": {
+    "wikidataId": "Q298",
+    "titles": {
+      "en": "Chile",
+      "es": "Chile"
+    }
+  },
+  "CM": {
+    "wikidataId": "Q1009",
+    "titles": {
+      "en": "Cameroon",
+      "es": "Camerún"
+    }
+  },
+  "CN": {
+    "wikidataId": "Q148",
+    "titles": {
+      "en": "China",
+      "es": "República Popular China"
+    }
+  },
+  "CO": {
+    "wikidataId": "Q739",
+    "titles": {
+      "en": "Colombia",
+      "es": "Colombia"
+    }
+  },
+  "CR": {
+    "wikidataId": "Q800",
+    "titles": {
+      "en": "Costa Rica",
+      "es": "Costa Rica"
+    }
+  },
+  "CU": {
+    "wikidataId": "Q241",
+    "titles": {
+      "en": "Cuba",
+      "es": "Cuba"
+    }
+  },
+  "CY": {
+    "wikidataId": "Q644636",
+    "titles": {
+      "en": "Geography of Cyprus",
+      "es": "Isla de Chipre"
+    }
+  },
+  "CZ": {
+    "wikidataId": "Q213",
+    "titles": {
+      "en": "Czech Republic",
+      "es": "República Checa"
+    }
+  },
+  "DE": {
+    "wikidataId": "Q183",
+    "titles": {
+      "en": "Germany",
+      "es": "Alemania"
+    }
+  },
+  "DJ": {
+    "wikidataId": "Q977",
+    "titles": {
+      "en": "Djibouti",
+      "es": "Yibuti"
+    }
+  },
+  "DK": {
+    "wikidataId": "Q35",
+    "titles": {
+      "en": "Denmark",
+      "es": "Dinamarca"
+    }
+  },
+  "DO": {
+    "wikidataId": "Q786",
+    "titles": {
+      "en": "Dominican Republic",
+      "es": "República Dominicana"
+    }
+  },
+  "DZ": {
+    "wikidataId": "Q262",
+    "titles": {
+      "en": "Algeria",
+      "es": "Argelia"
+    }
+  },
+  "EC": {
+    "wikidataId": "Q736",
+    "titles": {
+      "en": "Ecuador",
+      "es": "Ecuador"
+    }
+  },
+  "EE": {
+    "wikidataId": "Q191",
+    "titles": {
+      "en": "Estonia",
+      "es": "Estonia"
+    }
+  },
+  "EG": {
+    "wikidataId": "Q79",
+    "titles": {
+      "en": "Egypt",
+      "es": "Egipto"
+    }
+  },
+  "EH": {
+    "wikidataId": "Q6250",
+    "titles": {
+      "en": "Western Sahara",
+      "es": "Sahara Occidental"
+    }
+  },
+  "ER": {
+    "wikidataId": "Q986",
+    "titles": {
+      "en": "Eritrea",
+      "es": "Eritrea"
+    }
+  },
+  "ES": {
+    "wikidataId": "Q29",
+    "titles": {
+      "en": "Spain",
+      "es": "España"
+    }
+  },
+  "ET": {
+    "wikidataId": "Q115",
+    "titles": {
+      "en": "Ethiopia",
+      "es": "Etiopía"
+    }
+  },
+  "FI": {
+    "wikidataId": "Q33",
+    "titles": {
+      "en": "Finland",
+      "es": "Finlandia"
+    }
+  },
+  "FJ": {
+    "wikidataId": "Q712",
+    "titles": {
+      "en": "Fiji",
+      "es": "Fiyi"
+    }
+  },
+  "FK": {
+    "wikidataId": "Q9648",
+    "titles": {
+      "en": "Falkland Islands",
+      "es": "Islas Malvinas (territorio británico de ultramar)"
+    }
+  },
+  "FR": {
+    "wikidataId": "Q142",
+    "titles": {
+      "en": "France",
+      "es": "Francia"
+    }
+  },
+  "GA": {
+    "wikidataId": "Q1000",
+    "titles": {
+      "en": "Gabon",
+      "es": "Gabón"
+    }
+  },
+  "GB": {
+    "wikidataId": "Q145",
+    "titles": {
+      "en": "United Kingdom",
+      "es": "Reino Unido"
+    }
+  },
+  "GE": {
+    "wikidataId": "Q230",
+    "titles": {
+      "en": "Georgia (country)",
+      "es": "Georgia"
+    }
+  },
+  "GH": {
+    "wikidataId": "Q117",
+    "titles": {
+      "en": "Ghana",
+      "es": "Ghana"
+    }
+  },
+  "GL": {
+    "wikidataId": "Q223",
+    "titles": {
+      "en": "Greenland",
+      "es": "Groenlandia"
+    }
+  },
+  "GM": {
+    "wikidataId": "Q1005",
+    "titles": {
+      "en": "The Gambia",
+      "es": "Gambia"
+    }
+  },
+  "GN": {
+    "wikidataId": "Q1006",
+    "titles": {
+      "en": "Guinea",
+      "es": "Guinea"
+    }
+  },
+  "GQ": {
+    "wikidataId": "Q983",
+    "titles": {
+      "en": "Equatorial Guinea",
+      "es": "Guinea Ecuatorial"
+    }
+  },
+  "GR": {
+    "wikidataId": "Q41",
+    "titles": {
+      "en": "Greece",
+      "es": "Grecia"
+    }
+  },
+  "GT": {
+    "wikidataId": "Q774",
+    "titles": {
+      "en": "Guatemala",
+      "es": "Guatemala"
+    }
+  },
+  "GW": {
+    "wikidataId": "Q1007",
+    "titles": {
+      "en": "Guinea-Bissau",
+      "es": "Guinea-Bisáu"
+    }
+  },
+  "GY": {
+    "wikidataId": "Q734",
+    "titles": {
+      "en": "Guyana",
+      "es": "Guyana"
+    }
+  },
+  "HN": {
+    "wikidataId": "Q783",
+    "titles": {
+      "en": "Honduras",
+      "es": "Honduras"
+    }
+  },
+  "HR": {
+    "wikidataId": "Q224",
+    "titles": {
+      "en": "Croatia",
+      "es": "Croacia"
+    }
+  },
+  "HT": {
+    "wikidataId": "Q790",
+    "titles": {
+      "en": "Haiti",
+      "es": "Haití"
+    }
+  },
+  "HU": {
+    "wikidataId": "Q28",
+    "titles": {
+      "en": "Hungary",
+      "es": "Hungría"
+    }
+  },
+  "ID": {
+    "wikidataId": "Q252",
+    "titles": {
+      "en": "Indonesia",
+      "es": "Indonesia"
+    }
+  },
+  "IE": {
+    "wikidataId": "Q27",
+    "titles": {
+      "en": "Republic of Ireland",
+      "es": "Irlanda"
+    }
+  },
+  "IL": {
+    "wikidataId": "Q801",
+    "titles": {
+      "en": "Israel",
+      "es": "Israel"
+    }
+  },
+  "IN": {
+    "wikidataId": "Q668",
+    "titles": {
+      "en": "India",
+      "es": "India"
+    }
+  },
+  "IQ": {
+    "wikidataId": "Q796",
+    "titles": {
+      "en": "Iraq",
+      "es": "Irak"
+    }
+  },
+  "IR": {
+    "wikidataId": "Q794",
+    "titles": {
+      "en": "Iran",
+      "es": "Irán"
+    }
+  },
+  "IS": {
+    "wikidataId": "Q189",
+    "titles": {
+      "en": "Iceland",
+      "es": "Islandia"
+    }
+  },
+  "IT": {
+    "wikidataId": "Q38",
+    "titles": {
+      "en": "Italy",
+      "es": "Italia"
+    }
+  },
+  "JM": {
+    "wikidataId": "Q766",
+    "titles": {
+      "en": "Jamaica",
+      "es": "Jamaica"
+    }
+  },
+  "JO": {
+    "wikidataId": "Q810",
+    "titles": {
+      "en": "Jordan",
+      "es": "Jordania"
+    }
+  },
+  "JP": {
+    "wikidataId": "Q17",
+    "titles": {
+      "en": "Japan",
+      "es": "Japón"
+    }
+  },
+  "KE": {
+    "wikidataId": "Q114",
+    "titles": {
+      "en": "Kenya",
+      "es": "Kenia"
+    }
+  },
+  "KG": {
+    "wikidataId": "Q813",
+    "titles": {
+      "en": "Kyrgyzstan",
+      "es": "Kirguistán"
+    }
+  },
+  "KH": {
+    "wikidataId": "Q424",
+    "titles": {
+      "en": "Cambodia",
+      "es": "Camboya"
+    }
+  },
+  "KP": {
+    "wikidataId": "Q423",
+    "titles": {
+      "en": "North Korea",
+      "es": "Corea del Norte"
+    }
+  },
+  "KR": {
+    "wikidataId": "Q884",
+    "titles": {
+      "en": "South Korea",
+      "es": "Corea del Sur"
+    }
+  },
+  "KW": {
+    "wikidataId": "Q817",
+    "titles": {
+      "en": "Kuwait",
+      "es": "Kuwait"
+    }
+  },
+  "KZ": {
+    "wikidataId": "Q232",
+    "titles": {
+      "en": "Kazakhstan",
+      "es": "Kazajistán"
+    }
+  },
+  "LA": {
+    "wikidataId": "Q819",
+    "titles": {
+      "en": "Laos",
+      "es": "Laos"
+    }
+  },
+  "LB": {
+    "wikidataId": "Q822",
+    "titles": {
+      "en": "Lebanon",
+      "es": "Líbano"
+    }
+  },
+  "LK": {
+    "wikidataId": "Q854",
+    "titles": {
+      "en": "Sri Lanka",
+      "es": "Sri Lanka"
+    }
+  },
+  "LR": {
+    "wikidataId": "Q1014",
+    "titles": {
+      "en": "Liberia",
+      "es": "Liberia"
+    }
+  },
+  "LS": {
+    "wikidataId": "Q1013",
+    "titles": {
+      "en": "Lesotho",
+      "es": "Lesoto"
+    }
+  },
+  "LT": {
+    "wikidataId": "Q37",
+    "titles": {
+      "en": "Lithuania",
+      "es": "Lituania"
+    }
+  },
+  "LU": {
+    "wikidataId": "Q32",
+    "titles": {
+      "en": "Luxembourg",
+      "es": "Luxemburgo"
+    }
+  },
+  "LV": {
+    "wikidataId": "Q211",
+    "titles": {
+      "en": "Latvia",
+      "es": "Letonia"
+    }
+  },
+  "LY": {
+    "wikidataId": "Q1016",
+    "titles": {
+      "en": "Libya",
+      "es": "Libia"
+    }
+  },
+  "MA": {
+    "wikidataId": "Q1028",
+    "titles": {
+      "en": "Morocco",
+      "es": "Marruecos"
+    }
+  },
+  "MD": {
+    "wikidataId": "Q217",
+    "titles": {
+      "en": "Moldova",
+      "es": "Moldavia"
+    }
+  },
+  "ME": {
+    "wikidataId": "Q236",
+    "titles": {
+      "en": "Montenegro",
+      "es": "Montenegro"
+    }
+  },
+  "MG": {
+    "wikidataId": "Q1019",
+    "titles": {
+      "en": "Madagascar",
+      "es": "Madagascar"
+    }
+  },
+  "MK": {
+    "wikidataId": "Q221",
+    "titles": {
+      "en": "North Macedonia",
+      "es": "Macedonia del Norte"
+    }
+  },
+  "ML": {
+    "wikidataId": "Q912",
+    "titles": {
+      "en": "Mali",
+      "es": "Mali"
+    }
+  },
+  "MM": {
+    "wikidataId": "Q836",
+    "titles": {
+      "en": "Myanmar",
+      "es": "Birmania"
+    }
+  },
+  "MN": {
+    "wikidataId": "Q711",
+    "titles": {
+      "en": "Mongolia",
+      "es": "Mongolia"
+    }
+  },
+  "MR": {
+    "wikidataId": "Q1025",
+    "titles": {
+      "en": "Mauritania",
+      "es": "Mauritania"
+    }
+  },
+  "MW": {
+    "wikidataId": "Q1020",
+    "titles": {
+      "en": "Malawi",
+      "es": "Malaui"
+    }
+  },
+  "MX": {
+    "wikidataId": "Q96",
+    "titles": {
+      "en": "Mexico",
+      "es": "México"
+    }
+  },
+  "MY": {
+    "wikidataId": "Q833",
+    "titles": {
+      "en": "Malaysia",
+      "es": "Malasia"
+    }
+  },
+  "MZ": {
+    "wikidataId": "Q1029",
+    "titles": {
+      "en": "Mozambique",
+      "es": "Mozambique"
+    }
+  },
+  "NA": {
+    "wikidataId": "Q1030",
+    "titles": {
+      "en": "Namibia",
+      "es": "Namibia"
+    }
+  },
+  "NC": {
+    "wikidataId": "Q33788",
+    "titles": {
+      "en": "New Caledonia",
+      "es": "Nueva Caledonia"
+    }
+  },
+  "NE": {
+    "wikidataId": "Q1032",
+    "titles": {
+      "en": "Niger",
+      "es": "Níger"
+    }
+  },
+  "NG": {
+    "wikidataId": "Q1033",
+    "titles": {
+      "en": "Nigeria",
+      "es": "Nigeria"
+    }
+  },
+  "NI": {
+    "wikidataId": "Q811",
+    "titles": {
+      "en": "Nicaragua",
+      "es": "Nicaragua"
+    }
+  },
+  "NL": {
+    "wikidataId": "Q29999",
+    "titles": {
+      "en": "Kingdom of the Netherlands",
+      "es": "Reino de los Países Bajos"
+    }
+  },
+  "NO": {
+    "wikidataId": "Q20",
+    "titles": {
+      "en": "Norway",
+      "es": "Noruega"
+    }
+  },
+  "NP": {
+    "wikidataId": "Q837",
+    "titles": {
+      "en": "Nepal",
+      "es": "Nepal"
+    }
+  },
+  "NZ": {
+    "wikidataId": "Q664",
+    "titles": {
+      "en": "New Zealand",
+      "es": "Nueva Zelanda"
+    }
+  },
+  "OM": {
+    "wikidataId": "Q842",
+    "titles": {
+      "en": "Oman",
+      "es": "Omán"
+    }
+  },
+  "PA": {
+    "wikidataId": "Q804",
+    "titles": {
+      "en": "Panama",
+      "es": "Panamá"
+    }
+  },
+  "PE": {
+    "wikidataId": "Q419",
+    "titles": {
+      "en": "Peru",
+      "es": "Perú"
+    }
+  },
+  "PG": {
+    "wikidataId": "Q691",
+    "titles": {
+      "en": "Papua New Guinea",
+      "es": "Papúa Nueva Guinea"
+    }
+  },
+  "PH": {
+    "wikidataId": "Q928",
+    "titles": {
+      "en": "Philippines",
+      "es": "Filipinas"
+    }
+  },
+  "PK": {
+    "wikidataId": "Q843",
+    "titles": {
+      "en": "Pakistan",
+      "es": "Pakistán"
+    }
+  },
+  "PL": {
+    "wikidataId": "Q36",
+    "titles": {
+      "en": "Poland",
+      "es": "Polonia"
+    }
+  },
+  "PR": {
+    "wikidataId": "Q1183",
+    "titles": {
+      "en": "Puerto Rico",
+      "es": "Puerto Rico"
+    }
+  },
+  "PS": {
+    "wikidataId": "Q219060",
+    "titles": {
+      "en": "Palestine",
+      "es": "Palestina"
+    }
+  },
+  "PT": {
+    "wikidataId": "Q45",
+    "titles": {
+      "en": "Portugal",
+      "es": "Portugal"
+    }
+  },
+  "PY": {
+    "wikidataId": "Q733",
+    "titles": {
+      "en": "Paraguay",
+      "es": "Paraguay"
+    }
+  },
+  "QA": {
+    "wikidataId": "Q846",
+    "titles": {
+      "en": "Qatar",
+      "es": "Catar"
+    }
+  },
+  "RO": {
+    "wikidataId": "Q218",
+    "titles": {
+      "en": "Romania",
+      "es": "Rumania"
+    }
+  },
+  "RS": {
+    "wikidataId": "Q403",
+    "titles": {
+      "en": "Serbia",
+      "es": "Serbia"
+    }
+  },
+  "RU": {
+    "wikidataId": "Q159",
+    "titles": {
+      "en": "Russia",
+      "es": "Rusia"
+    }
+  },
+  "RW": {
+    "wikidataId": "Q1037",
+    "titles": {
+      "en": "Rwanda",
+      "es": "Ruanda"
+    }
+  },
+  "SA": {
+    "wikidataId": "Q851",
+    "titles": {
+      "en": "Saudi Arabia",
+      "es": "Arabia Saudita"
+    }
+  },
+  "SB": {
+    "wikidataId": "Q685",
+    "titles": {
+      "en": "Solomon Islands",
+      "es": "Islas Salomón"
+    }
+  },
+  "SD": {
+    "wikidataId": "Q1049",
+    "titles": {
+      "en": "Sudan",
+      "es": "Sudán"
+    }
+  },
+  "SE": {
+    "wikidataId": "Q34",
+    "titles": {
+      "en": "Sweden",
+      "es": "Suecia"
+    }
+  },
+  "SI": {
+    "wikidataId": "Q215",
+    "titles": {
+      "en": "Slovenia",
+      "es": "Eslovenia"
+    }
+  },
+  "SK": {
+    "wikidataId": "Q214",
+    "titles": {
+      "en": "Slovakia",
+      "es": "Eslovaquia"
+    }
+  },
+  "SL": {
+    "wikidataId": "Q1044",
+    "titles": {
+      "en": "Sierra Leone",
+      "es": "Sierra Leona"
+    }
+  },
+  "SN": {
+    "wikidataId": "Q1041",
+    "titles": {
+      "en": "Senegal",
+      "es": "Senegal"
+    }
+  },
+  "SO": {
+    "wikidataId": "Q1045",
+    "titles": {
+      "en": "Somalia",
+      "es": "Somalia"
+    }
+  },
+  "SR": {
+    "wikidataId": "Q730",
+    "titles": {
+      "en": "Suriname",
+      "es": "Surinam"
+    }
+  },
+  "SS": {
+    "wikidataId": "Q958",
+    "titles": {
+      "en": "South Sudan",
+      "es": "Sudán del Sur"
+    }
+  },
+  "SV": {
+    "wikidataId": "Q792",
+    "titles": {
+      "en": "El Salvador",
+      "es": "El Salvador"
+    }
+  },
+  "SY": {
+    "wikidataId": "Q858",
+    "titles": {
+      "en": "Syria",
+      "es": "Siria"
+    }
+  },
+  "SZ": {
+    "wikidataId": "Q1050",
+    "titles": {
+      "en": "Eswatini",
+      "es": "Suazilandia"
+    }
+  },
+  "TD": {
+    "wikidataId": "Q657",
+    "titles": {
+      "en": "Chad",
+      "es": "Chad"
+    }
+  },
+  "TG": {
+    "wikidataId": "Q945",
+    "titles": {
+      "en": "Togo",
+      "es": "Togo"
+    }
+  },
+  "TH": {
+    "wikidataId": "Q869",
+    "titles": {
+      "en": "Thailand",
+      "es": "Tailandia"
+    }
+  },
+  "TJ": {
+    "wikidataId": "Q863",
+    "titles": {
+      "en": "Tajikistan",
+      "es": "Tayikistán"
+    }
+  },
+  "TL": {
+    "wikidataId": "Q574",
+    "titles": {
+      "en": "Timor-Leste",
+      "es": "Timor Oriental"
+    }
+  },
+  "TM": {
+    "wikidataId": "Q874",
+    "titles": {
+      "en": "Turkmenistan",
+      "es": "Turkmenistán"
+    }
+  },
+  "TN": {
+    "wikidataId": "Q948",
+    "titles": {
+      "en": "Tunisia",
+      "es": "Túnez"
+    }
+  },
+  "TR": {
+    "wikidataId": "Q43",
+    "titles": {
+      "en": "Turkey",
+      "es": "Turquía"
+    }
+  },
+  "TT": {
+    "wikidataId": "Q754",
+    "titles": {
+      "en": "Trinidad and Tobago",
+      "es": "Trinidad y Tobago"
+    }
+  },
+  "TW": {
+    "wikidataId": "Q865",
+    "titles": {
+      "en": "Taiwan",
+      "es": "República de China"
+    }
+  },
+  "TZ": {
+    "wikidataId": "Q924",
+    "titles": {
+      "en": "Tanzania",
+      "es": "Tanzania"
+    }
+  },
+  "UA": {
+    "wikidataId": "Q212",
+    "titles": {
+      "en": "Ukraine",
+      "es": "Ucrania"
+    }
+  },
+  "UG": {
+    "wikidataId": "Q1036",
+    "titles": {
+      "en": "Uganda",
+      "es": "Uganda"
+    }
+  },
+  "US": {
+    "wikidataId": "Q30",
+    "titles": {
+      "en": "United States",
+      "es": "Estados Unidos"
+    }
+  },
+  "UY": {
+    "wikidataId": "Q77",
+    "titles": {
+      "en": "Uruguay",
+      "es": "Uruguay"
+    }
+  },
+  "UZ": {
+    "wikidataId": "Q265",
+    "titles": {
+      "en": "Uzbekistan",
+      "es": "Uzbekistán"
+    }
+  },
+  "VE": {
+    "wikidataId": "Q717",
+    "titles": {
+      "en": "Venezuela",
+      "es": "Venezuela"
+    }
+  },
+  "VN": {
+    "wikidataId": "Q881",
+    "titles": {
+      "en": "Vietnam",
+      "es": "Vietnam"
+    }
+  },
+  "VU": {
+    "wikidataId": "Q686",
+    "titles": {
+      "en": "Vanuatu",
+      "es": "Vanuatu"
+    }
+  },
+  "XK": {
+    "wikidataId": "Q1246",
+    "titles": {
+      "en": "Kosovo",
+      "es": "Kosovo"
+    }
+  },
+  "YE": {
+    "wikidataId": "Q805",
+    "titles": {
+      "en": "Yemen",
+      "es": "Yemen"
+    }
+  },
+  "ZA": {
+    "wikidataId": "Q258",
+    "titles": {
+      "en": "South Africa",
+      "es": "Sudáfrica"
+    }
+  },
+  "ZM": {
+    "wikidataId": "Q953",
+    "titles": {
+      "en": "Zambia",
+      "es": "Zambia"
+    }
+  },
+  "ZW": {
+    "wikidataId": "Q954",
+    "titles": {
+      "en": "Zimbabwe",
+      "es": "Zimbabue"
+    }
+  }
+}

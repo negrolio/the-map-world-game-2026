@@ -33,6 +33,8 @@ describe('learn-api-client', () => {
         JSON.stringify({
           iso2: 'AR',
           locale: 'es',
+          contentLocale: 'es',
+          displayName: 'Argentina',
           title: 'Argentina',
           summary: 'Resumen',
           flagUrl: null,
@@ -47,7 +49,8 @@ describe('learn-api-client', () => {
 
     expect(result.ok).toBe(true)
     if (result.ok) {
-      expect(result.data.title).toBe('Argentina')
+      expect(result.data.displayName).toBe('Argentina')
+      expect(result.data.contentLocale).toBe('es')
     }
     expect(fetchMock).toHaveBeenCalledWith(
       'http://localhost:3000/api/v1/countries/AR/learn?locale=es',

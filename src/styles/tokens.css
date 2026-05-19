@@ -139,3 +139,51 @@ h3,
   font-family: var(--font-display);
   letter-spacing: 0.01em;
 }
+
+/* Learn modal: scrollbar outside the parchment, themed to match wood/paper. */
+.learn-modal-scroll-outside {
+  height: 100%;
+  max-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  width: calc(100% + 0.875rem);
+  margin-right: -0.875rem;
+  padding-right: 0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-wood-soft) transparent;
+}
+
+.learn-modal-scroll-outside::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+.learn-modal-scroll-outside::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.learn-modal-scroll-outside::-webkit-scrollbar-thumb {
+  background-color: var(--color-wood-soft);
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+}
+
+.learn-modal-scroll-outside::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-wood);
+}
+
+/* Learn modal copy: body font for long text (PRD §7 — no display on paragraphs). */
+.learn-modal-content {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+}
+
+.learn-modal-content .learn-modal-title {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+
+.learn-modal-content .learn-modal-link {
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+}

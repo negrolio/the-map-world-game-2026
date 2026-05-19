@@ -10,6 +10,25 @@ curl -s "http://localhost:3000/api/v1/countries/AR/learn?locale=es"
 # Requiere red a Wikipedia en la primera petición (cache miss)
 ```
 
+Matriz de regresión locale (TR/CD/FK):
+
+```bash
+curl -s "http://localhost:3000/api/v1/countries/TR/learn?locale=es" | jq '{displayName,locale,contentLocale,wikipediaUrl}'
+curl -s "http://localhost:3000/api/v1/countries/CD/learn?locale=es" | jq '{displayName,locale,contentLocale,wikipediaUrl}'
+curl -s "http://localhost:3000/api/v1/countries/FK/learn?locale=en" | jq '{displayName,locale,contentLocale,wikipediaUrl}'
+```
+
+## Mapa Wikipedia (Wikidata sitelinks)
+
+Tras cambiar `src/data/countries-catalog.json`, regenerar y verificar:
+
+```bash
+npm run build:wikipedia-sitelinks   # requiere red (Wikidata API)
+npm run check:wikipedia-sitelinks   # también corre en npm run build
+```
+
+Artefacto versionado: [`shared/wikipedia-sitelinks.json`](../../../../shared/wikipedia-sitelinks.json). PRD: [bugs-or-changes/03-prd-wikipedia-locale-resolution.md](./bugs-or-changes/03-prd-wikipedia-locale-resolution.md).
+
 ## Arranque
 
 ```bash

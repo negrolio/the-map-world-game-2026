@@ -10,11 +10,18 @@ export const esNamespaces = {
   },
   home: {
     badge: 'Home · MVP',
-    lead:
-      'Una partida de geografía sobre un mapa interactivo. Configurá jugadores, modo país o capital, cobertura por continente y empezá la expedición.',
-    startSetup: 'Comenzar setup',
-    startLearn: 'Modo aprendizaje',
-    viewTechnical: 'Ver estado técnico',
+    gameCard: {
+      title: 'Partida',
+      description:
+        'Una partida de geografía sobre un mapa interactivo. Configurá jugadores, modo país o capital, cobertura por continente y empezá la expedición.',
+      ariaLabel: 'Iniciar partida: configurar jugadores y reglas',
+    },
+    learnCard: {
+      title: 'Modo aprendizaje',
+      description:
+        'Explorá el mapa sin puntaje: tocá un país y leé su ficha con bandera y texto de Wikipedia. Ideal para curiosear antes o después de jugar.',
+      ariaLabel: 'Abrir modo aprendizaje: explorar países en el mapa',
+    },
   },
   setup: {
     badge: 'Setup de partida',

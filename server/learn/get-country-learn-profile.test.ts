@@ -5,17 +5,18 @@ import { getCountryLearnProfile } from './get-country-learn-profile'
 import { createLearnCache } from './learn-cache'
 import type { GetCountryLearnProfileDeps, WikipediaClient } from './learn-deps'
 
+const wikiContentEs = {
+  contentLocale: 'es' as AppLocale,
+  summary: 'Resumen de prueba.',
+  flagUrl: 'https://upload.wikimedia.org/example.jpg',
+  wikipediaUrl: 'https://es.wikipedia.org/wiki/Argentina',
+}
+
 function createDeps(overrides?: Partial<GetCountryLearnProfileDeps>): GetCountryLearnProfileDeps {
   const wikipediaClient: WikipediaClient = {
     fetchCountryLearnContent: vi.fn().mockResolvedValue({
       ok: true,
-      data: {
-        locale: 'es',
-        title: 'Argentina',
-        summary: 'Resumen de prueba.',
-        flagUrl: 'https://upload.wikimedia.org/example.jpg',
-        wikipediaUrl: 'https://es.wikipedia.org/wiki/Argentina',
-      },
+      data: wikiContentEs,
     }),
   }
 
@@ -53,6 +54,8 @@ describe('getCountryLearnProfile', () => {
       data: {
         iso2: 'AR',
         locale: 'es',
+        contentLocale: 'es',
+        displayName: 'Argentina',
         title: 'Argentina',
         summary: 'Resumen de prueba.',
         flagUrl: 'https://upload.wikimedia.org/example.jpg',
@@ -62,7 +65,7 @@ describe('getCountryLearnProfile', () => {
     })
     expect(deps.cache.set).toHaveBeenCalledWith(
       { iso2: 'AR', locale: 'es' },
-      expect.objectContaining({ iso2: 'AR' }),
+      expect.objectContaining({ iso2: 'AR', displayName: 'Argentina' }),
     )
   })
 
@@ -70,6 +73,8 @@ describe('getCountryLearnProfile', () => {
     const cached: LearnProfile = {
       iso2: 'US',
       locale: 'en',
+      contentLocale: 'en',
+      displayName: 'United States',
       title: 'United States',
       summary: 'Cached summary',
       flagUrl: null,
@@ -91,7 +96,7 @@ describe('getCountryLearnProfile', () => {
     expect(deps.cache.set).not.toHaveBeenCalled()
   })
 
-  it('falls back to en when requested locale has no wikipedia page', async () => {
+  it('keeps requested locale and sets contentLocale en on fallback', async () => {
     const fetchMock = vi
       .fn()
       .mockResolvedValueOnce({
@@ -101,8 +106,7 @@ describe('getCountryLearnProfile', () => {
       .mockResolvedValueOnce({
         ok: true,
         data: {
-          locale: 'en' as AppLocale,
-          title: 'Argentina',
+          contentLocale: 'en' as AppLocale,
           summary: 'English summary.',
           flagUrl: null,
           wikipediaUrl: 'https://en.wikipedia.org/wiki/Argentina',
@@ -117,7 +121,8 @@ describe('getCountryLearnProfile', () => {
 
     expect(result.ok).toBe(true)
     if (result.ok) {
-      expect(result.data.locale).toBe('en')
+      expect(result.data.locale).toBe('es')
+      expect(result.data.contentLocale).toBe('en')
       expect(result.data.summary).toBe('English summary.')
     }
     expect(fetchMock).toHaveBeenCalledTimes(2)
@@ -127,13 +132,7 @@ describe('getCountryLearnProfile', () => {
   it('uses server cache and skips wikipedia on second identical request', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      data: {
-        locale: 'es' as AppLocale,
-        title: 'Argentina',
-        summary: 'Cached path',
-        flagUrl: null,
-        wikipediaUrl: 'https://es.wikipedia.org/wiki/Argentina',
-      },
+      data: wikiContentEs,
     })
 
     const deps = createDeps({

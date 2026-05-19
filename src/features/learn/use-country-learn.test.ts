@@ -7,6 +7,8 @@ import { useCountryLearn } from './use-country-learn'
 const profile = {
   iso2: 'AR',
   locale: 'es' as const,
+  contentLocale: 'es' as const,
+  displayName: 'Argentina',
   title: 'Argentina',
   summary: 'Resumen',
   flagUrl: null,
@@ -43,7 +45,7 @@ describe('useCountryLearn', () => {
     })
 
     if (result.current.modalState?.status === 'success') {
-      expect(result.current.modalState.profile.title).toBe('Argentina')
+      expect(result.current.modalState.profile.displayName).toBe('Argentina')
     }
     expect(sessionStorage.getItem(LEARN_PROFILE_STORAGE_KEY)).toBeTruthy()
   })

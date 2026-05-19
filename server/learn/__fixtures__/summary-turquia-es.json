@@ -1,0 +1,8 @@
+{
+  "title": "Turquía",
+  "extract": "Turquía, formalmente República de Turquía, es un país transcontinental.",
+  "thumbnail": { "source": "https://upload.wikimedia.org/wikipedia/commons/thumb/example.jpg" },
+  "content_urls": {
+    "desktop": { "page": "https://es.wikipedia.org/wiki/Turqu%C3%ADa" }
+  }
+}

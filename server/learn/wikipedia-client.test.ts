@@ -44,13 +44,88 @@ describe('createWikipediaClient', () => {
     const result = await client.fetchCountryLearnContent({
       iso2: 'AR',
       locale: 'es',
-      localizedName: 'Argentina',
+      displayName: 'Argentina',
     })
 
     expect(result.ok).toBe(true)
     if (result.ok) {
-      expect(result.data.title).toBe('Argentina')
+      expect(result.data.contentLocale).toBe('es')
       expect(result.data.wikipediaUrl).toContain('es.wikipedia.org')
+    }
+  })
+
+  it('fetches TR in es via Turquía sitelink, not Turkey', async () => {
+    const summary = loadFixture('summary-turquia-es.json')
+    const requestedUrls: string[] = []
+    const client = createWikipediaClient({
+      fetchImpl: async (input) => {
+        const url = typeof input === 'string' ? input : input.url
+        requestedUrls.push(url)
+        if (url.includes('es.wikipedia.org') && url.includes('Turqu')) {
+          return new Response(JSON.stringify(summary), { status: 200 })
+        }
+        return new Response(null, { status: 404 })
+      },
+    })
+
+    const result = await client.fetchCountryLearnContent({
+      iso2: 'TR',
+      locale: 'es',
+      displayName: 'Turquía',
+    })
+
+    expect(result.ok).toBe(true)
+    expect(requestedUrls.some((u) => u.includes('Turqu%C3%ADa') || u.includes('Turquía'))).toBe(
+      true,
+    )
+    expect(requestedUrls.some((u) => u.includes('Turkey'))).toBe(false)
+  })
+
+  it('fetches FK in en via Falkland Islands sitelink', async () => {
+    const summary = loadFixture('summary-falklands-en.json')
+    const client = createWikipediaClient({
+      fetchImpl: createMockFetch([
+        (url) =>
+          url.includes('en.wikipedia.org') && url.includes('Falkland_Islands')
+            ? { status: 200, body: summary }
+            : undefined,
+      ]),
+    })
+
+    const result = await client.fetchCountryLearnContent({
+      iso2: 'FK',
+      locale: 'en',
+      displayName: 'Falkland Islands (Malvinas)',
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.wikipediaUrl).toContain('en.wikipedia.org/wiki/Falkland_Islands')
+    }
+  })
+
+  it('fetches CD in es via República Democrática del Congo sitelink', async () => {
+    const summary = loadFixture('summary-rdc-es.json')
+    const client = createWikipediaClient({
+      fetchImpl: createMockFetch([
+        (url) =>
+          url.includes('es.wikipedia.org') &&
+          (url.includes('Rep%C3%BAblica') || url.includes('República'))
+            ? { status: 200, body: summary }
+            : undefined,
+      ]),
+    })
+
+    const result = await client.fetchCountryLearnContent({
+      iso2: 'CD',
+      locale: 'es',
+      displayName: 'Congo (República Democrática del)',
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.contentLocale).toBe('es')
+      expect(result.data.summary).toContain('República Democrática')
     }
   })
 
@@ -74,7 +149,7 @@ describe('createWikipediaClient', () => {
     const result = await client.fetchCountryLearnContent({
       iso2: 'AR',
       locale: 'es',
-      localizedName: 'República Argentina',
+      displayName: 'República Argentina',
     })
 
     expect(result.ok).toBe(true)
@@ -93,9 +168,9 @@ describe('createWikipediaClient', () => {
     })
 
     const result = await client.fetchCountryLearnContent({
-      iso2: 'AR',
+      iso2: 'ZZ',
       locale: 'es',
-      localizedName: 'País inventado',
+      displayName: 'País inventado',
     })
 
     expect(result).toEqual({ ok: false, code: 'WIKIPEDIA_PAGE_NOT_FOUND' })
@@ -109,7 +184,7 @@ describe('createWikipediaClient', () => {
     const result = await client.fetchCountryLearnContent({
       iso2: 'AR',
       locale: 'en',
-      localizedName: 'Argentina',
+      displayName: 'Argentina',
     })
 
     expect(result).toEqual({ ok: false, code: 'WIKIPEDIA_UNAVAILABLE' })
@@ -131,7 +206,7 @@ describe('createWikipediaClient', () => {
     await client.fetchCountryLearnContent({
       iso2: 'AR',
       locale: 'es',
-      localizedName: 'Argentina',
+      displayName: 'Argentina',
     })
 
     expect(seenHeaders[0]).toBe('MapWorldGame/test')
@@ -161,6 +236,7 @@ describe('getCountryLearnProfile + createWikipediaClient', () => {
     expect(result.ok).toBe(true)
     if (result.ok) {
       expect(result.data.iso2).toBe('AR')
+      expect(result.data.displayName).toBeTruthy()
       expect(result.data.source).toBe('wikipedia')
     }
   })

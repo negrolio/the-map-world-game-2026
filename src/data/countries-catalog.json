@@ -177,7 +177,7 @@
   {
     "iso2": "CD",
     "iso3": "COD",
-    "name": "DR Congo",
+    "name": "Democratic Republic of the Congo",
     "continent": "africa",
     "capital": "Kinshasa"
   },
@@ -366,7 +366,7 @@
   {
     "iso2": "FK",
     "iso3": "FLK",
-    "name": "Malvinas Argentinas (Falkland Islands)",
+    "name": "Falkland Islands",
     "continent": "americas",
     "capital": "Stanley"
   },

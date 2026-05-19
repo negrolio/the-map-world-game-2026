@@ -1,9 +1,11 @@
-import { getIsoWikipediaTitleOverride } from './iso-wikipedia-title-overrides.js'
+import type { AppLocale } from '../../shared/app-locale.js'
+import { getWikipediaSitelinkTitle } from './load-wikipedia-sitelinks.js'
 import { toWikiTitlePathSegment } from './wikipedia-url.js'
 
 export function buildArticleTitleCandidates(
   iso2: string,
-  localizedName: string,
+  locale: AppLocale,
+  displayName: string,
 ): readonly string[] {
   const candidates: string[] = []
   const seen = new Set<string>()
@@ -17,12 +19,21 @@ export function buildArticleTitleCandidates(
     candidates.push(segment)
   }
 
-  const override = getIsoWikipediaTitleOverride(iso2)
-  if (override) {
-    pushCandidate(override)
+  const sitelinkTitle = getWikipediaSitelinkTitle(iso2, locale)
+  if (sitelinkTitle) {
+    pushCandidate(sitelinkTitle)
   }
 
-  pushCandidate(localizedName)
+  pushCandidate(displayName)
 
   return candidates
+}
+
+/** Candidato único para fallback a inglés (sitelink enwiki). */
+export function buildEnglishFallbackTitleCandidate(iso2: string): string | undefined {
+  const title = getWikipediaSitelinkTitle(iso2, 'en')
+  if (!title) {
+    return undefined
+  }
+  return toWikiTitlePathSegment(title)
 }

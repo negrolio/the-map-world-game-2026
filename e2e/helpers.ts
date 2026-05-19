@@ -15,21 +15,24 @@ export async function selectAppLocale(page: Page, locale: AppLocaleCode = 'es'):
 export async function goToSetup(page: Page): Promise<void> {
   await goToHome(page)
   await selectAppLocale(page, 'es')
-  await page.getByRole('button', { name: /Comenzar setup|Start setup/i }).click()
+  await page.getByTestId('home-card-game').click()
 }
 
 export async function goToLearnMode(page: Page): Promise<void> {
   await goToHome(page)
   await selectAppLocale(page, 'es')
-  await page.getByRole('button', { name: /Modo aprendizaje|Learning mode/i }).click()
+  await page.getByTestId('home-card-learn').click()
   await expect(page.getByTestId('learn-map-view')).toBeVisible()
 }
 
 export function buildMockLearnProfile(iso2: string) {
+  const displayName = `E2E ${iso2.toUpperCase()}`
   return {
     iso2: iso2.toUpperCase(),
     locale: 'es',
-    title: `E2E ${iso2.toUpperCase()}`,
+    contentLocale: 'es',
+    displayName,
+    title: displayName,
     summary: 'Resumen de prueba para Playwright.',
     flagUrl: null,
     wikipediaUrl: `https://es.wikipedia.org/wiki/${iso2.toUpperCase()}`,

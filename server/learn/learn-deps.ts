@@ -2,8 +2,7 @@ import type { AppLocale } from '../../shared/app-locale.js'
 import type { LearnProfile } from '../../shared/learn-types.js'
 
 export interface WikipediaLearnContent {
-  readonly locale: AppLocale
-  readonly title: string
+  readonly contentLocale: AppLocale
   readonly summary: string
   readonly flagUrl: string | null
   readonly wikipediaUrl: string
@@ -20,7 +19,7 @@ export interface WikipediaClient {
   fetchCountryLearnContent(params: {
     iso2: string
     locale: AppLocale
-    localizedName: string
+    displayName: string
   }): Promise<WikipediaFetchResult>
 }
 

@@ -1,28 +1,22 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Badge, ChunkyButton, FieldSelect, Panel } from '../../components/ui'
+import homeCardGameUrl from '../../assets/home-card-game.png'
+import homeCardLearnUrl from '../../assets/home-card-learn.png'
+import { Badge, FieldSelect } from '../../components/ui'
 import type { AppLocale } from '../../i18n/app-locale'
 import { SUPPORTED_LOCALES, normalizeAppLocale } from '../../i18n/app-locale'
-import type { FeatureShell } from '../../types'
+import { HomeModeCard } from './HomeModeCard'
 
 export interface HomeViewProps {
-  readonly shellModules: readonly FeatureShell[]
-  readonly datasetVersion: string
   readonly onStartSetup: () => void
   readonly onStartLearn: () => void
 }
 
 /**
- * Portada del juego. Comunica el nombre, una promesa breve y el CTA primario.
- * El listado de módulos queda como nota técnica secundaria en el pie.
+ * Portada del juego: dos cards de modo (partida y aprendizaje) e idioma en cabecera.
  */
-export function HomeView({
-  shellModules,
-  datasetVersion,
-  onStartSetup,
-  onStartLearn,
-}: HomeViewProps) {
+export function HomeView({ onStartSetup, onStartLearn }: HomeViewProps) {
   const { t, i18n } = useTranslation('home')
   const { t: tCommon } = useTranslation('common')
   const { t: tSetup } = useTranslation('setup')
@@ -40,63 +34,48 @@ export function HomeView({
 
   return (
     <main className="min-h-screen bg-paper text-ink">
-      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col items-center justify-center gap-6 px-6 py-12 text-center">
-        <Badge tone="warning">{t('badge')}</Badge>
-        <h1 className="font-display text-4xl uppercase tracking-tight text-wood-dark md:text-6xl">
-          {tCommon('appTitle')}
-        </h1>
-        <p className="max-w-2xl font-body text-base text-ink-soft md:text-lg">{t('lead')}</p>
+      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-8 px-6 py-8 md:py-12">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex flex-col items-center gap-3 text-center sm:items-start sm:text-left">
+            <Badge tone="warning">{t('badge')}</Badge>
+            <h1 className="font-display text-4xl uppercase tracking-tight text-wood-dark md:text-5xl">
+              {tCommon('appTitle')}
+            </h1>
+          </div>
+          <div className="w-full shrink-0 sm:w-auto sm:min-w-[10rem]">
+            <FieldSelect
+              id="app-locale"
+              label={tSetup('languageLabel')}
+              value={activeLocale}
+              onChange={(event) => {
+                void i18n.changeLanguage(event.target.value as AppLocale)
+              }}
+              options={languageOptions}
+              className="text-left"
+            />
+          </div>
+        </header>
 
-        <Panel tone="paper-soft" padding="md" className="w-full max-w-md text-left">
-          <FieldSelect
-            id="app-locale"
-            label={tSetup('languageLabel')}
-            value={activeLocale}
-            onChange={(event) => {
-              void i18n.changeLanguage(event.target.value as AppLocale)
-            }}
-            options={languageOptions}
+        <div className="grid w-full grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+          <HomeModeCard
+            variant="primary"
+            testId="home-card-game"
+            title={t('gameCard.title')}
+            description={t('gameCard.description')}
+            imageUrl={homeCardGameUrl}
+            aria-label={t('gameCard.ariaLabel')}
+            onActivate={onStartSetup}
           />
-        </Panel>
-
-        <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-          <ChunkyButton type="button" tone="primary" size="lg" onClick={onStartLearn}>
-            {t('startLearn')}
-          </ChunkyButton>
-          <ChunkyButton type="button" tone="secondary" size="lg" onClick={onStartSetup}>
-            {t('startSetup')}
-          </ChunkyButton>
-          <ChunkyButton type="button" tone="secondary" size="lg">
-            {t('viewTechnical')}
-          </ChunkyButton>
+          <HomeModeCard
+            variant="secondary"
+            testId="home-card-learn"
+            title={t('learnCard.title')}
+            description={t('learnCard.description')}
+            imageUrl={homeCardLearnUrl}
+            aria-label={t('learnCard.ariaLabel')}
+            onActivate={onStartLearn}
+          />
         </div>
-
-        <Panel
-          tone="paper-soft"
-          padding="sm"
-          className="mt-6 w-full max-w-3xl text-left"
-        >
-          <p className="font-display text-xs uppercase tracking-wide text-ink-soft">
-            {tCommon('technicalStatus')}
-          </p>
-          <p className="mt-1 font-body text-xs text-ink-soft">
-            {tCommon('datasetVersionLabel')}:{' '}
-            <span className="font-semibold text-wood-dark">{datasetVersion}</span>
-          </p>
-          <ul className="mt-2 flex flex-wrap items-center justify-start gap-2">
-            {shellModules.map((shellModule) => (
-              <li
-                key={shellModule.id}
-                className="rounded-control border-2 border-wood-dark/50 bg-paper px-2.5 py-0.5 font-body text-xs text-ink"
-              >
-                {shellModule.id}:{' '}
-                <span className="font-semibold text-success-dark">
-                  {shellModule.status}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </Panel>
       </div>
     </main>
   )

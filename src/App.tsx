@@ -1,20 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { componentShell } from './components'
 import { ChunkyButton } from './components/ui'
-import { countriesCatalog, dataShell, datasetVersion } from './data'
+import { countriesCatalog } from './data'
 import { getContinentForIso2 } from './data/countries'
 import { GameShell } from './features/game/GameShell'
 import { ResultsView } from './features/game/ResultsView'
 import { HomeView } from './features/home/HomeView'
 import { LearnMapView } from './features/learn'
 import { SetupView } from './features/setup/SetupView'
-import { gameFeatureShell } from './features/game'
-import { setupFeatureShell, validateSetupConfigSchema } from './features/setup'
+import { validateSetupConfigSchema } from './features/setup'
 import { normalizeAppLocale } from './i18n/app-locale'
 import { translateApiErrorCode } from './i18n/translate-api-error'
-import { serviceShell } from './services'
 import {
   PRODUCT_RULES,
   advanceToNextRoundOrFinish,
@@ -28,7 +25,6 @@ import {
 } from './services'
 import type {
   AntiCheatMode,
-  FeatureShell,
   GameConfig,
   GameSession,
   IsoCountryCode,
@@ -56,14 +52,6 @@ export function App() {
   const [guessSubmitError, setGuessSubmitError] = useState<string | null>(null)
   const [antiCheatNotice, setAntiCheatNotice] = useState<string | null>(null)
   const antiCheatLockUntilRef = useRef<number>(0)
-
-  const shellModules: readonly FeatureShell[] = [
-    setupFeatureShell,
-    gameFeatureShell,
-    serviceShell,
-    dataShell,
-    componentShell,
-  ]
 
   const availableQuestionsForRegion = useMemo(() => {
     if (regionFilter === 'world') {
@@ -393,8 +381,6 @@ export function App() {
 
   return (
     <HomeView
-      shellModules={shellModules}
-      datasetVersion={datasetVersion}
       onStartSetup={() => setCurrentView('setup')}
       onStartLearn={() => setCurrentView('learn')}
     />

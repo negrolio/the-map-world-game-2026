@@ -16,6 +16,10 @@ function restoreTestViewportWidth(): void {
   setTestViewportWidth(initialInnerWidth)
 }
 
+function clickHomeGameCard(): void {
+  fireEvent.click(screen.getByTestId('home-card-game'))
+}
+
 describe('App', () => {
   afterEach(() => {
     restoreTestViewportWidth()
@@ -28,21 +32,18 @@ describe('App', () => {
     ).toBeInTheDocument()
   })
 
-  it('renderiza el boton base reutilizable', () => {
+  it('renderiza las cards de modo en la home', () => {
     renderWithI18n(<App />)
 
-    expect(screen.getAllByRole('button', { name: /Comenzar setup/i })).toHaveLength(1)
-  })
-
-  it('muestra la version de dataset en la vista dev', () => {
-    renderWithI18n(<App />)
-    expect(screen.getByText(/Versión del dataset/i)).toBeInTheDocument()
+    expect(screen.getByTestId('home-card-game')).toBeInTheDocument()
+    expect(screen.getByTestId('home-card-learn')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Partida/i })).toBeInTheDocument()
   })
 
   it('navega desde home hacia modo aprendizaje al presionar el CTA', () => {
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Modo aprendizaje/i }))
+    fireEvent.click(screen.getByTestId('home-card-learn'))
 
     expect(screen.getByTestId('learn-map-view')).toBeInTheDocument()
     expect(screen.getByTestId('world-map-root')).toBeInTheDocument()
@@ -51,7 +52,7 @@ describe('App', () => {
   it('navega desde home hacia setup al presionar el CTA', () => {
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
 
     expect(screen.getByRole('heading', { name: /Panel de configuración/i })).toBeInTheDocument()
   })
@@ -59,7 +60,7 @@ describe('App', () => {
   it('renderiza los controles base del setup panel', () => {
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
 
     expect(screen.getByText(/Cantidad de jugadores/i)).toBeInTheDocument()
     expect(screen.getByText(/Modo de preguntas/i)).toBeInTheDocument()
@@ -72,7 +73,7 @@ describe('App', () => {
   it('bloquea iniciar partida y muestra feedback cuando la configuracion es invalida', () => {
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
 
     const firstPlayerInput = screen.getByDisplayValue('Jugador 1')
     fireEvent.change(firstPlayerInput, { target: { value: '   ' } })
@@ -84,7 +85,7 @@ describe('App', () => {
 
   it('marca accesibilidad basica cuando hay error en setup', () => {
     renderWithI18n(<App />)
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
 
     const firstPlayerInput = screen.getByDisplayValue('Jugador 1')
     fireEvent.change(firstPlayerInput, { target: { value: '   ' } })
@@ -96,7 +97,7 @@ describe('App', () => {
   it('navega a la vista de partida con mapa al iniciar con configuracion valida', () => {
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
 
     expect(screen.getByTestId('world-map-root')).toBeInTheDocument()
@@ -106,7 +107,7 @@ describe('App', () => {
   it('muestra la pregunta de la ronda activa al iniciar la partida', () => {
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
 
     const prompt = screen.getByTestId('round-prompt')
@@ -118,7 +119,7 @@ describe('App', () => {
     setTestViewportWidth(1200)
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
 
     expect(screen.getByTestId('game-players-hud')).toBeInTheDocument()
@@ -133,7 +134,7 @@ describe('App', () => {
     setTestViewportWidth(375)
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
 
     const mobileRow = screen.getByTestId('player-hud-mobile-player-1')
@@ -146,7 +147,7 @@ describe('App', () => {
   it('expone semantica accesible para el mapa interactivo', () => {
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
 
     expect(screen.getByRole('region', { name: /Mapa interactivo de países/i })).toBeInTheDocument()
@@ -156,7 +157,7 @@ describe('App', () => {
   it('en anti-cheat estricto aborta la partida al perder foco', () => {
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
     fireEvent.click(screen.getByRole('radio', { name: /Estricto/i }))
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
 
@@ -169,7 +170,7 @@ describe('App', () => {
   it('permite rejugar desde resultados sin recargar la pagina', () => {
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
     fireEvent.click(screen.getByRole('radio', { name: /Estricto/i }))
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
     fireEvent.blur(window)
@@ -185,7 +186,7 @@ describe('App', () => {
   it('renderiza el shell de partida full-screen con bandas top y bottom (MAP-UX-02)', () => {
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
 
     expect(screen.getByTestId('game-shell')).toBeInTheDocument()
@@ -197,7 +198,7 @@ describe('App', () => {
   it('expone navegacion compacta a Setup y Home en la banda superior (F2.4)', () => {
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
 
     const nav = screen.getByTestId('game-overlay-nav')
@@ -208,7 +209,7 @@ describe('App', () => {
   it('quita el bloque debug "Ultimo clic ISO2" de la vista de partida (F2.8)', () => {
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
 
     expect(screen.queryByTestId('map-click-feedback')).not.toBeInTheDocument()
@@ -218,7 +219,7 @@ describe('App', () => {
   it('rendera el mapa en modo full-bleed dentro del shell (F2.2)', () => {
     renderWithI18n(<App />)
 
-    fireEvent.click(screen.getByRole('button', { name: /Comenzar setup/i }))
+    clickHomeGameCard()
     fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
 
     const root = screen.getByTestId('world-map-root')

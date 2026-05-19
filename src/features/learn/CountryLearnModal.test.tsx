@@ -4,21 +4,25 @@ import { describe, expect, it, vi } from 'vitest'
 import { renderWithI18n } from '../../test/render-with-i18n'
 import { CountryLearnModal } from './CountryLearnModal'
 
+const baseProfile = {
+  iso2: 'AR',
+  locale: 'es' as const,
+  contentLocale: 'es' as const,
+  displayName: 'Argentina',
+  title: 'Argentina',
+  summary: 'Texto de prueba.',
+  flagUrl: null,
+  wikipediaUrl: 'https://es.wikipedia.org/wiki/Argentina',
+  source: 'wikipedia' as const,
+}
+
 describe('CountryLearnModal', () => {
   it('renders success content with wikipedia link', () => {
     renderWithI18n(
       <CountryLearnModal
         state={{
           status: 'success',
-          profile: {
-            iso2: 'AR',
-            locale: 'es',
-            title: 'Argentina',
-            summary: 'Texto de prueba.',
-            flagUrl: null,
-            wikipediaUrl: 'https://es.wikipedia.org/wiki/Argentina',
-            source: 'wikipedia',
-          },
+          profile: baseProfile,
           requestedLocale: 'es',
         }}
         requestedLocale="es"
@@ -50,19 +54,18 @@ describe('CountryLearnModal', () => {
     expect(onClose).toHaveBeenCalled()
   })
 
-  it('shows english content badge when effective locale differs', () => {
+  it('shows english content badge when content locale differs', () => {
     renderWithI18n(
       <CountryLearnModal
         state={{
           status: 'success',
           profile: {
-            iso2: 'AR',
-            locale: 'en',
+            ...baseProfile,
+            locale: 'es',
+            contentLocale: 'en',
+            displayName: 'Argentina',
             title: 'Argentina',
-            summary: 'Summary',
-            flagUrl: null,
             wikipediaUrl: 'https://en.wikipedia.org/wiki/Argentina',
-            source: 'wikipedia',
           },
           requestedLocale: 'es',
         }}

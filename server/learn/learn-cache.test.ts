@@ -5,6 +5,8 @@ import type { LearnProfile } from '../../shared/learn-types'
 const sampleProfile: LearnProfile = {
   iso2: 'AR',
   locale: 'es',
+  contentLocale: 'es',
+  displayName: 'Argentina',
   title: 'Argentina',
   summary: 'Summary',
   flagUrl: null,

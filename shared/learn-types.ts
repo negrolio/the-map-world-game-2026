@@ -15,7 +15,13 @@ export interface ApiErrorPayload {
 
 export interface LearnProfile {
   readonly iso2: string
+  /** Locale solicitado por el cliente (query param). */
   readonly locale: AppLocale
+  /** Locale real del extracto de Wikipedia. */
+  readonly contentLocale: AppLocale
+  /** Nombre de país para UI (capa producto/i18n). */
+  readonly displayName: string
+  /** @deprecated Usar displayName; se mantiene igual a displayName por compatibilidad. */
   readonly title: string
   readonly summary: string
   readonly flagUrl: string | null

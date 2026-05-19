@@ -10,11 +10,18 @@ export const enNamespaces = {
   },
   home: {
     badge: 'Home · MVP',
-    lead:
-      'A geography game on an interactive map. Set up players, country or capital mode, coverage by continent, and start the expedition.',
-    startSetup: 'Start setup',
-    startLearn: 'Learning mode',
-    viewTechnical: 'View technical status',
+    gameCard: {
+      title: 'Play a match',
+      description:
+        'A geography game on an interactive map. Set up players, country or capital mode, coverage by continent, and start the expedition.',
+      ariaLabel: 'Start a match: configure players and rules',
+    },
+    learnCard: {
+      title: 'Learning mode',
+      description:
+        'Explore the map with no score: tap a country and read its card with flag and Wikipedia summary. Great for browsing before or after a match.',
+      ariaLabel: 'Open learning mode: explore countries on the map',
+    },
   },
   setup: {
     badge: 'Game setup',

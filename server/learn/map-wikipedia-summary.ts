@@ -13,13 +13,12 @@ export interface WikipediaSummaryResponse {
 
 export function mapWikipediaSummaryToLearnContent(
   body: WikipediaSummaryResponse,
-  locale: AppLocale,
+  contentLocale: AppLocale,
 ): WikipediaLearnContent | null {
-  const title = body.title?.trim()
   const summary = body.extract?.trim()
   const wikipediaUrl = body.content_urls?.desktop?.page?.trim()
 
-  if (!title || !summary || !wikipediaUrl) {
+  if (!summary || !wikipediaUrl) {
     return null
   }
 
@@ -32,8 +31,7 @@ export function mapWikipediaSummaryToLearnContent(
     rawFlagUrl && isAllowedWikimediaAssetUrl(rawFlagUrl) ? rawFlagUrl : null
 
   return {
-    locale,
-    title,
+    contentLocale,
     summary,
     flagUrl,
     wikipediaUrl,

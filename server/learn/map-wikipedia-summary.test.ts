@@ -7,8 +7,7 @@ describe('mapWikipediaSummaryToLearnContent', () => {
   it('maps a full summary response', () => {
     const mapped = mapWikipediaSummaryToLearnContent(summaryArgentina, 'es')
     expect(mapped).toEqual({
-      locale: 'es',
-      title: 'Argentina',
+      contentLocale: 'es',
       summary: expect.stringContaining('República Argentina'),
       flagUrl: expect.stringContaining('upload.wikimedia.org'),
       wikipediaUrl: 'https://es.wikipedia.org/wiki/Argentina',

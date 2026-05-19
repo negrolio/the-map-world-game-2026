@@ -1,6 +1,6 @@
 import type { LearnProfile } from '../../types/learn-api'
 
-export const LEARN_PROFILE_STORAGE_KEY = 'map-game:learn-last-profile:v1'
+export const LEARN_PROFILE_STORAGE_KEY = 'map-game:learn-last-profile:v2'
 
 export function readLastLearnProfile(): LearnProfile | null {
   try {
@@ -28,10 +28,18 @@ function isLearnProfile(value: unknown): value is LearnProfile {
     return false
   }
   const record = value as Record<string, unknown>
+  const displayName =
+    typeof record.displayName === 'string'
+      ? record.displayName
+      : typeof record.title === 'string'
+        ? record.title
+        : null
+
   return (
     typeof record.iso2 === 'string' &&
     (record.locale === 'es' || record.locale === 'en') &&
-    typeof record.title === 'string' &&
+    (record.contentLocale === 'es' || record.contentLocale === 'en') &&
+    displayName !== null &&
     typeof record.summary === 'string' &&
     (record.flagUrl === null || typeof record.flagUrl === 'string') &&
     typeof record.wikipediaUrl === 'string' &&

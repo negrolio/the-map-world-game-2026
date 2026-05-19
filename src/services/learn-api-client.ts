@@ -61,9 +61,21 @@ function parseLearnProfile(body: unknown): LearnProfile | null {
     return null
   }
 
+  const contentLocale = record.contentLocale
+  if (contentLocale !== 'es' && contentLocale !== 'en') {
+    return null
+  }
+
+  const displayName =
+    typeof record.displayName === 'string'
+      ? record.displayName
+      : typeof record.title === 'string'
+        ? record.title
+        : null
+
   if (
     typeof record.iso2 !== 'string' ||
-    typeof record.title !== 'string' ||
+    displayName === null ||
     typeof record.summary !== 'string' ||
     typeof record.wikipediaUrl !== 'string' ||
     record.source !== 'wikipedia'
@@ -79,7 +91,9 @@ function parseLearnProfile(body: unknown): LearnProfile | null {
   return {
     iso2: record.iso2,
     locale,
-    title: record.title,
+    contentLocale,
+    displayName,
+    title: displayName,
     summary: record.summary,
     flagUrl,
     wikipediaUrl: record.wikipediaUrl,

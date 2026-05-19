@@ -10,12 +10,16 @@ import { validateLearnRequest } from './validate-learn-request.js'
 
 function toLearnProfile(
   iso2: string,
+  requestedLocale: AppLocale,
+  displayName: string,
   content: WikipediaLearnContent,
 ): LearnProfile {
   return {
     iso2,
-    locale: content.locale,
-    title: content.title,
+    locale: requestedLocale,
+    contentLocale: content.contentLocale,
+    displayName,
+    title: displayName,
     summary: content.summary,
     flagUrl: content.flagUrl,
     wikipediaUrl: content.wikipediaUrl,
@@ -29,32 +33,41 @@ function mapWikipediaFailure(
   return learnFailure(result.code, result.code)
 }
 
-async function fetchContentForLocale(
-  deps: GetCountryLearnProfileDeps,
-  country: CatalogCountry,
-  locale: AppLocale,
-): Promise<WikipediaFetchResult> {
-  const localizedName = deps.resolveLocalizedName(country, locale)
-  return deps.wikipediaClient.fetchCountryLearnContent({
-    iso2: country.iso2,
-    locale,
-    localizedName,
-  })
-}
-
 async function fetchWithLocaleFallback(
   deps: GetCountryLearnProfileDeps,
   country: CatalogCountry,
   requestedLocale: AppLocale,
-): Promise<WikipediaFetchResult> {
-  const primary = await fetchContentForLocale(deps, country, requestedLocale)
-  if (primary.ok || requestedLocale === 'en') {
-    return primary
+): Promise<{
+  readonly wiki: WikipediaLearnContent
+  readonly displayName: string
+}> {
+  const displayName = deps.resolveLocalizedName(country, requestedLocale)
+  const primary = await deps.wikipediaClient.fetchCountryLearnContent({
+    iso2: country.iso2,
+    locale: requestedLocale,
+    displayName,
+  })
+
+  if (primary.ok) {
+    return { wiki: primary.data, displayName }
   }
-  if (primary.code !== 'WIKIPEDIA_PAGE_NOT_FOUND') {
-    return primary
+
+  if (requestedLocale === 'en' || primary.code !== 'WIKIPEDIA_PAGE_NOT_FOUND') {
+    throw primary
   }
-  return fetchContentForLocale(deps, country, 'en')
+
+  const fallbackDisplayName = deps.resolveLocalizedName(country, 'en')
+  const fallback = await deps.wikipediaClient.fetchCountryLearnContent({
+    iso2: country.iso2,
+    locale: 'en',
+    displayName: fallbackDisplayName,
+  })
+
+  if (!fallback.ok) {
+    throw fallback
+  }
+
+  return { wiki: fallback.data, displayName }
 }
 
 export async function getCountryLearnProfile(
@@ -74,12 +87,17 @@ export async function getCountryLearnProfile(
     return { ok: true, data: cached }
   }
 
-  const wikiResult = await fetchWithLocaleFallback(deps, country, locale)
-  if (!wikiResult.ok) {
-    return mapWikipediaFailure(wikiResult)
+  let wikiResult: { readonly wiki: WikipediaLearnContent; readonly displayName: string }
+  try {
+    wikiResult = await fetchWithLocaleFallback(deps, country, locale)
+  } catch (failure) {
+    if (failure && typeof failure === 'object' && 'ok' in failure && failure.ok === false) {
+      return mapWikipediaFailure(failure as Extract<WikipediaFetchResult, { ok: false }>)
+    }
+    return learnFailure('INTERNAL_ERROR', 'INTERNAL_ERROR')
   }
 
-  const profile = toLearnProfile(iso2, wikiResult.data)
+  const profile = toLearnProfile(iso2, locale, wikiResult.displayName, wikiResult.wiki)
   deps.cache.set({ iso2, locale }, profile)
   return { ok: true, data: profile }
 }
