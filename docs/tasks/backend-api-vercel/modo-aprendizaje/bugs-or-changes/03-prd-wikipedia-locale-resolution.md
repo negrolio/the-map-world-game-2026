@@ -307,7 +307,7 @@ Cliente (`CountryLearnModal`, tests): migrar a `displayName`.
 
 - Más de dos locales (`fr`, `pt`, …) sin ampliar `AppLocale` y el mapa de sitelinks.
 - Sincronización automática en runtime con Wikidata (solo build/CI).
-- Editar contenido de Wikipedia o Gemini en esta iteración.
+- Editar contenido de Wikipedia o del proveedor LLM en esta iteración.
 - Renombrar países en el mapa TopoJSON / disputas territoriales más allá de `displayName`.
 
 ---

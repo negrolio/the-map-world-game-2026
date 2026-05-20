@@ -8,13 +8,13 @@ alwaysApply: true
 ## Secretos
 
 - Nunca incluir API keys, tokens ni secretos en código generado ni en commits
-- **Gemini**, DB y credenciales de terceros: solo variables de entorno en **servidor** (Vercel / `.env.local`)
+- **Proveedor LLM**, DB y credenciales de terceros: solo variables de entorno en **servidor** (Vercel / `.env.local`)
 - El bundle del navegador solo expone `VITE_*` no sensibles (p. ej. URL base de la API)
 
 ## Datos y logs
 
 - No registrar PII (nombres de jugadores en logs de servidor, emails, IPs completas en producción salvo necesidad de rate limit documentada)
-- No loguear cuerpos completos de respuestas de Wikipedia/Gemini ni query strings con datos personales
+- No loguear cuerpos completos de respuestas de Wikipedia ni del proveedor LLM, ni query strings con datos personales
 - Errores al cliente: `code` estable + mensaje genérico; detalle técnico solo en logs servidor si hace falta depurar
 
 ## Archivos prohibidos en operaciones del agente

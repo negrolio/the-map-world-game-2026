@@ -74,4 +74,4 @@ Incluir **siempre** flags de endurecimiento en la propuesta y en la ejecución:
 
 - **`vercel` (CLI):** devDependency para `vercel dev` y deploy; mismo flujo de verificación y consentimiento.
 - Evitar dependencias pesadas en handlers `api/`; preferir `fetch` nativo y lógica en `server/`.
-- SDKs de IA/DB: instalar solo el paquete oficial del proveedor acordado (Gemini, `@supabase/supabase-js`, etc.).
+- SDKs de IA/DB: instalar solo el paquete oficial del proveedor acordado (p. ej. Gemini como primera implementación del LLM, `@supabase/supabase-js`, etc.). Preferir `fetch` nativo cuando alcance, para minimizar el acoplamiento con un proveedor concreto.

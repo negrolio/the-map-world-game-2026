@@ -16,7 +16,7 @@ Perfilar antes de optimizar; no adivinar cuellos de botella.
 ## API / servidor
 
 - **Caché** en servidor para respuestas idempotentes (Wikipedia por `iso2` + `locale`)
-- Batch de llamadas a Gemini (una por partida) cuando exista `prompts/`
+- Batch de llamadas al proveedor LLM (una por partida) cuando exista `prompts/`
 - Timeouts razonables en `fetch` a terceros; fallar rápido con código estable
 
 ## Vercel

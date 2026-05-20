@@ -10,7 +10,7 @@ alwaysApply: false
 
 1. **`api/*.ts`** — Handler Vercel: método, query/body, CORS, `Response.json`, códigos HTTP. **Sin** reglas de negocio.
 2. **`server/<módulo>/`** — Casos de uso puros, testeables con Vitest sin levantar Vercel.
-3. **Adaptadores** — `WikipediaClient`, `GeminiClient`, `ScoreRepository`, caché: interfaces en `server/`, mocks en tests.
+3. **Adaptadores** — `WikipediaClient`, `LlmClient` (proveedor LLM intercambiable; primera implementación con Gemini), `ScoreRepository`, caché: interfaces en `server/`, mocks en tests.
 
 ```
 api/v1/countries/[iso2]/learn.ts  →  server/learn/get-country-learn-profile.ts
@@ -67,7 +67,7 @@ api/v1/countries/[iso2]/learn.ts  →  server/learn/get-country-learn-profile.ts
 | Módulo | Ruta ejemplo | Notas |
 |--------|----------------|-------|
 | `learn/` | `GET .../countries/:iso2/learn` | Wikipedia + caché |
-| `prompts/` | `POST .../prompts/generate` | Gemini; key solo en servidor |
+| `prompts/` | `POST .../prompts/generate` | Acceso al LLM vía `LlmClient` (proveedor intercambiable; Gemini en v1); key solo en servidor |
 | `scores/` | `POST/GET .../scores` | DB externa; anticheat antes de persistir |
 
-No mezclar responsabilidades entre módulos; reutilizar `learn` desde `prompts` vía función compartida, no duplicar fetch a Wikipedia.
+No mezclar responsabilidades entre módulos. `prompts/` **no consume** el caso de uso ni el DTO de `learn/` (no hay pre-fetch del resumen para alimentar al LLM); solo comparte la **infraestructura** de acceso a Wikipedia (`WikipediaClient`, caché de bajo nivel y mappings ISO↔título). En `prompts/`, Wikipedia se consulta **después** de la generación, como verificador del artículo declarado por el modelo (V5/V6 del approach B). No duplicar el `WikipediaClient` ni los mappings entre módulos.

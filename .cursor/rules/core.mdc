@@ -38,7 +38,7 @@ src/              → Solo frontend (features, services, components, i18n)
 | Cliente HTTP al backend | `src/services/*-api-client.ts` |
 | Tipos de dominio del juego en cliente | `src/types/` |
 | Handlers y CORS | `api/` |
-| Wikipedia, Gemini, DB, caché | `server/` + adaptadores |
+| Wikipedia, proveedor LLM, DB, caché | `server/` + adaptadores |
 
 ## Convenciones de código
 
@@ -51,7 +51,7 @@ src/              → Solo frontend (features, services, components, i18n)
 
 ## Secretos y entorno
 
-- Claves (Gemini, DB, etc.) **solo** en env del servidor (Vercel / `.env.local` para `vercel dev`)
+- Claves (proveedor LLM, DB, etc.) **solo** en env del servidor (Vercel / `.env.local` para `vercel dev`)
 - Frontend: solo variables `VITE_*` no sensibles (p. ej. `VITE_API_BASE_URL`)
 - No commitear `.env`, `.env.local`, `.vercel/` con tokens
 

@@ -40,7 +40,7 @@ No mezclar `fetch` a Vercel dentro de componentes; exponer hooks o funciones des
 ## Tests
 
 - Vitest: mockear `global.fetch` en clientes API
-- Playwright: mock de red o fixture JSON; no depender de Wikipedia/Gemini en CI
+- Playwright: mock de red o fixture JSON; no depender de Wikipedia ni del proveedor LLM en CI
 
 ## Contrato local existente
 

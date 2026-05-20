@@ -13,7 +13,7 @@ Documentación de contexto para que un agente (o humano) pueda **planificar tare
 
 - *Persistencia de puntajes en servidor*
 - *Modo aprendizaje (explorar países sin penalizar)*
-- (Gemini / preguntas con tags: discutido en chat; aún no tiene entrada dedicada en backlog — conviene añadirla al promover)
+- (Preguntas con IA + tags temáticos: discutido en chat; aún no tiene entrada dedicada en backlog — conviene añadirla al promover. El proyecto se diseña agnóstico del proveedor LLM; la primera implementación usa **Gemini Flash** pero el resto del backend no depende de esa elección)
 
 **Arquitectura frontend existente (referencia):** [`docs/architecture/mvp_frontend_map_game_1b56bd4b.plan.mdc`](../../architecture/mvp_frontend_map_game_1b56bd4b.plan.mdc) — MVP cerrado; dominio en `src/services/`, pool en `buildQuestionPool`, sesión en memoria.
 

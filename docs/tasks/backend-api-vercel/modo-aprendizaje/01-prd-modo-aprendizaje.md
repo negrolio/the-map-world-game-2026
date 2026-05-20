@@ -19,7 +19,7 @@
 
 No hay setup de partida, turnos, puntaje ni fin de sesión: la exploración es **abierta** hasta volver a Home o Setup (quiz).
 
-El backend se diseña como **módulo `learn/`** reutilizable más adelante por **preguntas con IA (Gemini)** y otras features; esta iteración implementa solo Wikipedia + proxy + caché.
+El backend se diseña como **módulo `learn/`** independiente. La feature de **preguntas con IA** (modo trivia con LLM, proveedor intercambiable; primera implementación con Gemini) **no consume el pipeline de aprendizaje** ni su DTO: comparte solo la **infraestructura** (`WikipediaClient`, caché de bajo nivel, mappings ISO↔título de `shared/wikipedia-sitelinks.json`). En el approach B vigente del modo trivia, Wikipedia se consulta **después** de la generación, como verificador del artículo declarado por el modelo, no como contexto pre-cargado para el LLM. Esta iteración implementa solo Wikipedia + proxy + caché para el modo aprendizaje.
 
 ---
 
@@ -102,7 +102,7 @@ El backend se diseña como **módulo `learn/`** reutilizable más adelante por *
 
 **Como** desarrollador,  
 **quiero** un endpoint versionado y un núcleo `server/learn` testeable sin Vercel,  
-**para** reutilizar el mismo pipeline cuando integremos Gemini y otras APIs.
+**para** poder evolucionarlo de forma estable y **compartir su infraestructura** (`WikipediaClient`, caché, mappings ISO↔título) con futuras features como el modo trivia con IA — sin que estas dependan del pipeline ni del DTO del modo aprendizaje.
 
 ---
 
@@ -156,7 +156,7 @@ Convención: **RF-L** = aprendizaje (learn), **RF-B** = backend, **RF-I** = inte
 | RF-I01 | Base URL | Cliente usa `import.meta.env.VITE_API_BASE_URL` (documentado en `.env.example` sin secretos) |
 | RF-I02 | Query locale | Cada petición incluye `locale` alineado con `AppLocale` activo |
 | RF-I03 | Errores | El front mapea `error.code` del JSON con `translateApiErrorCode` (namespace `errors`); existen claves para códigos listados en §8 |
-| RF-I04 | Sin secretos en bundle | Ninguna API key de Wikipedia/Gemini en el cliente |
+| RF-I04 | Sin secretos en bundle | Ninguna API key de Wikipedia ni del proveedor LLM en el cliente |
 
 ---
 
@@ -187,8 +187,8 @@ Convención: **RF-L** = aprendizaje (learn), **RF-B** = backend, **RF-I** = inte
 | RNF-E01 | Handlers en `api/` delgados; lógica en `server/learn/` (funciones puras + adaptadores) |
 | RNF-E02 | Tipos/DTO compartidos en `shared/` (opcional) sin importar React |
 | RNF-E03 | El módulo `WikipediaClient` es intercambiable (tests con mock) |
-| RNF-E04 | Contrato `/v1/...` estable para futuros clientes (móvil, Gemini) |
-| RNF-E05 | Preparar `server/prompts/` como carpeta vacía o interfaz común **sin implementar** Gemini en esta iteración |
+| RNF-E04 | Contrato `/v1/...` estable para futuros clientes (móvil, módulo de IA, etc.) |
+| RNF-E05 | Preparar `server/prompts/` como carpeta vacía o interfaz común (`LlmClient`) **sin implementar** ningún proveedor LLM concreto en esta iteración |
 
 ### 5.4 Accesibilidad y UX
 
@@ -350,7 +350,7 @@ Secuencia nominal:
 
 - Deploy a Vercel en la nube (**fase 2**).
 - Rate limiting (**fase 2**).
-- Modo trivia con IA (Gemini) y tags temáticos.
+- Modo trivia con IA y tags temáticos (proveedor LLM intercambiable; primera implementación prevista con Gemini, fuera de esta iteración).
 - Persistencia de puntajes / leaderboard en servidor.
 - Setup de partida dentro del modo aprendizaje (jugadores, preguntas, anti-cheat, región).
 - Turnos multijugador en aprendizaje.

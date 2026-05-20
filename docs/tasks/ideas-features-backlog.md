@@ -27,6 +27,13 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
 
 <!-- Agregar nuevas entradas arriba de esta lista, las más recientes primero. -->
 
+- **Preguntas con IA (tags temáticos)** — 2026-05-20
+  - Contexto / problema: el quiz actual usa plantillas fijas (`country` / `capital`). Falta una variante con preguntas redactadas dinámicamente por un LLM, orientadas por **tags temáticos** (`historia`, `arte`, `musica`, `gastronomia`, etc.) sin cambiar el motor del juego ni el catálogo de países objetivo.
+  - Idea / dirección: añadir un toggle “preguntas con IA” + multi-select de tags en Setup; en `startGameWithConfig`, antes de empezar a jugar, llamar a `POST /v1/prompts/generate` para que el backend devuelva el `prompt` por país. **La plataforma es agnóstica del proveedor LLM**: el acceso pasa por un adaptador `LlmClient` y la **primera implementación** se hará con **Gemini Flash** (tier gratuito), pero ni el contrato HTTP ni la lógica de validación/caché dependen de ese proveedor concreto. Validaciones server-side estrictas (ISO, palabras prohibidas, idioma, artículo Wikipedia declarado) + caché + fallback al `prompt` plantilla local.
+  - Impacto estimado: feature · alto.
+  - Esfuerzo estimado: alto.
+  - Notas: documentación de diseño en [`backend-api-vercel/modo-ai-trivia/00-decision-approach-ai-y-data-retrieval.md`](./backend-api-vercel/modo-ai-trivia/00-decision-approach-ai-y-data-retrieval.md) y resumen general en [`backend-api-vercel/00-decision-resumen-planificacion-backend.md`](./backend-api-vercel/00-decision-resumen-planificacion-backend.md). Requiere artefacto adicional `shared/country-forbidden-terms.json`. La elección del proveedor concreto se aísla en una sola fábrica/config, sin enraizarse en plans ni PRDs.
+
 - **Botón “Setup”: el label no comunica que se abandona la partida** — 2026-05-10
   - Contexto / problema: al tocar el botón de setup durante una partida se navega a la pantalla de configuración y **se pierde el progreso** de la ronda en curso; el texto “Setup” suena a ajustes menores y no advierte que implica **salir / reiniciar flujo** de juego.
   - Idea / dirección: renombrar o complementar el CTA (ej. “Nueva partida”, “Opciones y reinicio”, “Salir al menú de juego”) y/o pedir **confirmación** si hay partida activa; revisar `aria-label` y copy en mobile donde el espacio es corto.
