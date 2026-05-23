@@ -1,0 +1,101 @@
+[
+  {
+    "id": "historia",
+    "labels": {
+      "es": "Historia",
+      "en": "History"
+    },
+    "promptHint": {
+      "es": "Centra la adivinanza en un hecho histórico relevante y verificable (independencia, batalla, dinastía, civilización antigua, descubrimiento, tratado). Evita personajes contemporáneos polémicos.",
+      "en": "Focus the riddle on a notable and verifiable historical fact (independence, battle, dynasty, ancient civilisation, discovery, treaty). Avoid contemporary polarising figures."
+    }
+  },
+  {
+    "id": "politica",
+    "labels": {
+      "es": "Política",
+      "en": "Politics"
+    },
+    "promptHint": {
+      "es": "Restringido a hechos políticos históricos verificables en Wikipedia: forma de gobierno establecida hace décadas, fundación del estado, símbolos nacionales, instituciones de larga data. PROHIBIDO mencionar líderes vivos, elecciones recientes, conflictos en curso o temas polémicos de actualidad.",
+      "en": "Restricted to historical political facts verifiable on Wikipedia: long-established form of government, founding of the state, national symbols, long-standing institutions. FORBIDDEN to mention living leaders, recent elections, ongoing conflicts or controversial current-affairs topics."
+    }
+  },
+  {
+    "id": "geografia",
+    "labels": {
+      "es": "Geografía",
+      "en": "Geography"
+    },
+    "promptHint": {
+      "es": "Centra la adivinanza en geografía física (relieve, cordilleras, ríos, lagos, climas, biomas, fronteras naturales). Evita revelar el nombre del país a través de la región o capital.",
+      "en": "Focus the riddle on physical geography (terrain, mountain ranges, rivers, lakes, climates, biomes, natural borders). Avoid revealing the country through region or capital."
+    }
+  },
+  {
+    "id": "flora-y-fauna",
+    "labels": {
+      "es": "Flora y fauna",
+      "en": "Flora and fauna"
+    },
+    "promptHint": {
+      "es": "Centra la adivinanza en una especie animal o vegetal endémica, un ecosistema característico o un parque natural emblemático. No menciones el país por su nombre.",
+      "en": "Focus the riddle on an endemic plant or animal species, a characteristic ecosystem or a flagship natural park. Do not name the country."
+    }
+  },
+  {
+    "id": "cultura-general",
+    "labels": {
+      "es": "Cultura general",
+      "en": "General culture"
+    },
+    "promptHint": {
+      "es": "Centra la adivinanza en costumbres, gastronomía, festividades, tradiciones, arquitectura o patrimonio cultural identificable con un único país.",
+      "en": "Focus the riddle on customs, gastronomy, festivities, traditions, architecture or cultural heritage identifiable with a single country."
+    }
+  },
+  {
+    "id": "musica",
+    "labels": {
+      "es": "Música",
+      "en": "Music"
+    },
+    "promptHint": {
+      "es": "Centra la adivinanza en un género musical originario, un instrumento tradicional, un compositor histórico o un movimiento musical característico del país.",
+      "en": "Focus the riddle on a music genre that originated there, a traditional instrument, a historical composer or a music movement characteristic of the country."
+    }
+  },
+  {
+    "id": "literatura",
+    "labels": {
+      "es": "Literatura",
+      "en": "Literature"
+    },
+    "promptHint": {
+      "es": "Centra la adivinanza en una obra literaria, un movimiento o un autor histórico ampliamente asociado al país. No menciones el país por su nombre.",
+      "en": "Focus the riddle on a literary work, movement or historical author widely associated with the country. Do not name the country."
+    }
+  },
+  {
+    "id": "cine",
+    "labels": {
+      "es": "Cine",
+      "en": "Cinema"
+    },
+    "promptHint": {
+      "es": "Centra la adivinanza en una corriente cinematográfica, un género o un cineasta histórico identificable con el país. Evita actores o producciones de actualidad polémica.",
+      "en": "Focus the riddle on a film movement, genre or historical filmmaker identifiable with the country. Avoid contemporary polarising actors or productions."
+    }
+  },
+  {
+    "id": "deportes",
+    "labels": {
+      "es": "Deportes",
+      "en": "Sports"
+    },
+    "promptHint": {
+      "es": "Centra la adivinanza en un deporte nacional, un torneo emblemático o un logro deportivo histórico del país. No nombres jugadores cuyo país sea el dato a adivinar.",
+      "en": "Focus the riddle on a national sport, an emblematic tournament or a historical sporting achievement of the country. Do not name players whose country is the answer."
+    }
+  }
+]

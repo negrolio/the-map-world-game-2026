@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next'
 
 import { GamePlayersHud, WorldMap } from '../../components'
 import { Alert, Badge, ChunkyButton, OverlayBand } from '../../components/ui'
-import { getActivePlayerForRound } from '../../services'
+import { MAX_AI_ATTEMPTS, getActivePlayerForRound } from '../../services'
 import type { GameSession, IsoCountryCode } from '../../types'
+import { AiAttemptsBanner } from './AiAttemptsBanner'
+import { AiSourceLink } from './AiSourceLink'
 
 const DESKTOP_FINE_POINTER_MQ = '(hover: hover) and (pointer: fine)'
 
@@ -75,6 +77,11 @@ export function GameShell({
   const activeRound = session.rounds[session.activeRoundIndex]
   const turnPlayer = getActivePlayerForRound(session)
   const roundGuess = activeRound?.guess
+  const isAiMode = session.config.questionMode === 'ai'
+  const aiAttemptsUsed = activeRound?.attempts?.length ?? 0
+  const lastAiAttempt = activeRound?.attempts?.[activeRound.attempts.length - 1]
+  const aiInProgress = isAiMode && !roundGuess && aiAttemptsUsed > 0
+  void lastAiAttempt
   const mapFeedback =
     roundGuess && activeRound
       ? {
@@ -160,14 +167,34 @@ export function GameShell({
             data-testid="round-prompt"
             data-target-iso2={activeRound.targetCountryCode}
           >
-            {session.config.questionMode === 'country' ? t('promptCountry') : t('promptCapital')}
-            <span className="text-warning">{activeRound.prompt}</span>
-            {t('promptSuffix')}
+            {isAiMode
+              ? t('promptAi')
+              : session.config.questionMode === 'country'
+                ? t('promptCountry')
+                : t('promptCapital')}
+            <span className="text-warning"> {activeRound.prompt}</span>
+            {isAiMode ? null : t('promptSuffix')}
           </p>
+        ) : null}
+        {isAiMode && activeRound ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <AiAttemptsBanner attemptsUsed={aiAttemptsUsed} />
+            {activeRound.aiSource ? <AiSourceLink source={activeRound.aiSource} /> : null}
+          </div>
         ) : null}
         {turnPlayer && !roundGuess ? (
           <p className="font-body text-sm text-bone/90" data-testid="active-turn-player">
             {t('turnLine', { name: turnPlayer.name })}
+          </p>
+        ) : null}
+        {isAiMode && aiInProgress && lastAiAttempt ? (
+          <p
+            data-testid="ai-attempt-feedback"
+            role="status"
+            aria-live="polite"
+            className="font-body text-sm font-semibold text-action"
+          >
+            {t('ai.tryAgain')}
           </p>
         ) : null}
         {roundGuess ? (
@@ -183,7 +210,9 @@ export function GameShell({
           >
             {roundGuess.isCorrect
               ? t('feedbackCorrect')
-              : t('feedbackWrong', { iso2: activeRound?.targetCountryCode ?? '' })}
+              : isAiMode && aiAttemptsUsed >= MAX_AI_ATTEMPTS
+                ? t('ai.finalWrong', { iso2: activeRound?.targetCountryCode ?? '' })
+                : t('feedbackWrong', { iso2: activeRound?.targetCountryCode ?? '' })}
             {t('feedbackAnswerBy')}
             <span className="text-bone">
               {session.players.find((player) => player.id === roundGuess.playerId)?.name ??

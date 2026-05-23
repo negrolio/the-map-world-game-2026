@@ -32,3 +32,21 @@ export {
   resolveCatalogIso2OrNull,
   resolveCountryClickFromTopologyProperties,
 } from './topology-country-click'
+export {
+  MAX_AI_ATTEMPTS,
+  PRELOAD_THRESHOLD,
+  getAiScoreForAttempt,
+  isAiAttemptNumber,
+} from './ai-trivia-rules'
+export type { AiAttemptNumber, AiScoreDelta } from './ai-trivia-rules'
+export {
+  buildPromptsGenerateUrl,
+  fetchAiPrompts,
+  resolvePromptsApiBaseUrl,
+} from './prompts-api-client'
+export type {
+  FetchAiPromptsInput,
+  FetchAiPromptsResult,
+} from './prompts-api-client'
+export { mapAiItemsToPool } from './map-ai-items-to-pool'
+export type { MapAiItemsInput, MapAiItemsResult } from './map-ai-items-to-pool'

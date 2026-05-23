@@ -52,8 +52,13 @@ export const enNamespaces = {
     regionOceania: 'Oceania',
     modeCountry: 'Country',
     modeCapital: 'Capital',
+    modeAi: 'AI Trivia',
     antiCheatNormal: 'Normal',
     antiCheatStrict: 'Strict',
+    aiTagsLegend: 'Thematic tags',
+    aiTagsHelp: 'Pick one or more tags to guide the riddles. "All" uses the full catalog.',
+    aiTagAll: 'All',
+    aiStrictRequired: 'AI mode requires strict anti-cheat. We enabled it automatically.',
   },
   game: {
     srTitle: 'World map — 110m',
@@ -81,6 +86,24 @@ export const enNamespaces = {
     hudWaitingAdvance: 'Round answered. Waiting to advance to the next question.',
     turnBadge: 'Turn',
     playerStats: '{{score}} pts · ✓ {{correct}} · ✗ {{wrong}}',
+    promptAi: 'Riddle:',
+    ai: {
+      loadingBadge: 'Generating riddles',
+      loadingTitle: 'Preparing the AI game…',
+      loadingLead: 'We are asking the model for {{count}} riddles. This can take a few seconds.',
+      loadingHint: 'Keep it open. If it takes too long, you can cancel and pick different tags.',
+      cancel: 'Cancel',
+      errorBadge: 'We could not start',
+      errorTitle: 'There was a problem generating the riddles',
+      retry: 'Retry',
+      backToSetup: 'Back to setup',
+      backToHome: 'Back to home',
+      attemptsLabel: 'Attempt {{current}} of {{total}}',
+      sourceLabel: 'Source: ',
+      sourceLink: 'Read on Wikipedia',
+      tryAgain: 'Try another country.',
+      finalWrong: 'Out of attempts. The target was the country with ISO2 {{iso2}}.',
+    },
   },
   results: {
     badge: 'Results',
@@ -122,6 +145,7 @@ export const enNamespaces = {
     fixConfigBeforeStart: 'Fix the configuration before starting the game.',
     wrongRegionGuess:
       'That country is not in this game’s continent. Pick one inside the highlighted region.',
+    aiPromptsReducedNotice: 'Number of questions reduced to {{count}} due to lack of valid riddles.',
   },
   validation: {
     config: {
@@ -169,5 +193,11 @@ export const enNamespaces = {
     ADVANCE_NOT_PLAYING: 'You can only advance while the game is in progress.',
     ADVANCE_ROUND_INDEX_INVALID: 'Round index out of range.',
     ADVANCE_ANSWER_REQUIRED: 'Answer before advancing to the next round.',
+    INVALID_REQUEST: 'The request is not valid. Check the parameters.',
+    INVALID_TAG: 'The selected thematic tag does not exist.',
+    LLM_UNAVAILABLE: 'The riddle generator is unavailable right now. Please try again shortly.',
+    LLM_RATE_LIMITED: 'The riddle generator received too many requests. Wait a few seconds.',
+    INSUFFICIENT_GROUNDING_BATCH: 'We could not generate verifiable riddles for this batch. Try other tags or change the coverage.',
+    AI_ATTEMPTS_EXCEEDED: 'You have already used the 3 attempts for this round.',
   },
 } as const

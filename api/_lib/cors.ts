@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from './vercel-types.js'
 
-const CORS_ALLOW_METHODS = 'GET, OPTIONS'
+const CORS_ALLOW_METHODS = 'GET, POST, OPTIONS'
 const CORS_ALLOW_HEADERS = 'Content-Type'
 
 export function parseAllowedOrigins(

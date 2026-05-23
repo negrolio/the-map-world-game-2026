@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import type { TFunction } from 'i18next'
 import { useTranslation } from 'react-i18next'
 
+import type { AiTriviaTagId } from '../../../shared/ai-trivia-tags-schema'
 import {
   Alert,
   Badge,
@@ -20,6 +21,7 @@ import type {
   QuestionMode,
   RegionFilter,
 } from '../../types'
+import { AiTriviaTagsPicker } from './AiTriviaTagsPicker'
 
 export interface SetupValidationLimits {
   readonly min: number
@@ -45,6 +47,7 @@ export interface SetupViewProps {
   readonly regionFilter: RegionFilter
   readonly antiCheatMode: AntiCheatMode
   readonly questionCount: number
+  readonly tags: readonly AiTriviaTagId[]
   readonly setupDraft: GameConfig
   readonly availableQuestionsForRegion: number
   readonly validationResult: SetupValidationResult
@@ -58,6 +61,7 @@ export interface SetupViewProps {
   readonly onRegionFilterChange: (region: RegionFilter) => void
   readonly onAntiCheatModeChange: (mode: AntiCheatMode) => void
   readonly onQuestionCountChange: (count: number) => void
+  readonly onTagsChange: (next: readonly AiTriviaTagId[]) => void
   readonly onStartGame: () => void
   readonly onBackToHome: () => void
 }
@@ -85,6 +89,7 @@ export function SetupView(props: SetupViewProps) {
     regionFilter,
     antiCheatMode,
     questionCount,
+    tags,
     setupDraft,
     availableQuestionsForRegion,
     validationResult,
@@ -98,6 +103,7 @@ export function SetupView(props: SetupViewProps) {
     onRegionFilterChange,
     onAntiCheatModeChange,
     onQuestionCountChange,
+    onTagsChange,
     onStartGame,
     onBackToHome,
   } = props
@@ -126,6 +132,7 @@ export function SetupView(props: SetupViewProps) {
         [
           ['country', 'modeCountry'],
           ['capital', 'modeCapital'],
+          ['ai', 'modeAi'],
         ] as const
       ).map(([value, labelKey]) => ({
         value,
@@ -158,6 +165,8 @@ export function SetupView(props: SetupViewProps) {
   )
 
   const activeLocale = (i18n.language.startsWith('en') ? 'en' : 'es') as AppLocale
+  const isAiMode = questionMode === 'ai'
+  const showStrictForcedNotice = isAiMode && antiCheatMode !== 'strict'
 
   return (
     <main className="min-h-screen bg-paper text-ink">
@@ -228,6 +237,14 @@ export function SetupView(props: SetupViewProps) {
               onChange={onQuestionModeChange}
             />
 
+            {isAiMode ? (
+              <AiTriviaTagsPicker
+                selectedTags={tags}
+                onChange={onTagsChange}
+                locale={activeLocale}
+              />
+            ) : null}
+
             <FieldSelect
               id="region-filter"
               label={t('regionLabel')}
@@ -243,6 +260,12 @@ export function SetupView(props: SetupViewProps) {
               options={antiCheatOptions}
               onChange={onAntiCheatModeChange}
             />
+
+            {showStrictForcedNotice ? (
+              <Alert tone="info" data-testid="ai-strict-required-notice">
+                {t('aiStrictRequired')}
+              </Alert>
+            ) : null}
 
             <FieldInput
               id="question-count"

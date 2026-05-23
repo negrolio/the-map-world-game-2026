@@ -52,8 +52,13 @@ export const esNamespaces = {
     regionOceania: 'Oceanía',
     modeCountry: 'País',
     modeCapital: 'Capital',
+    modeAi: 'IA Trivia',
     antiCheatNormal: 'Normal',
     antiCheatStrict: 'Estricto',
+    aiTagsLegend: 'Tags temáticos',
+    aiTagsHelp: 'Elegí uno o más tags para guiar las adivinanzas. "Todas" usa el catálogo completo.',
+    aiTagAll: 'Todas',
+    aiStrictRequired: 'El modo IA requiere anti-cheat estricto. Lo activamos automáticamente.',
   },
   game: {
     srTitle: 'Mapa mundial — 110m',
@@ -81,6 +86,24 @@ export const esNamespaces = {
     hudWaitingAdvance: 'Ronda respondida. Esperando avance a la siguiente pregunta.',
     turnBadge: 'Turno',
     playerStats: '{{score}} pts · ✓ {{correct}} · ✗ {{wrong}}',
+    promptAi: 'Adivinanza:',
+    ai: {
+      loadingBadge: 'Generando adivinanzas',
+      loadingTitle: 'Preparando la partida AI…',
+      loadingLead: 'Pedimos {{count}} adivinanzas al modelo. Esto puede tardar unos segundos.',
+      loadingHint: 'Mantenelo abierto. Si tarda mucho, podés cancelar y elegir otros tags.',
+      cancel: 'Cancelar',
+      errorBadge: 'No pudimos arrancar',
+      errorTitle: 'Hubo un problema al generar las adivinanzas',
+      retry: 'Reintentar',
+      backToSetup: 'Volver al setup',
+      backToHome: 'Volver al home',
+      attemptsLabel: 'Intento {{current}} de {{total}}',
+      sourceLabel: 'Fuente: ',
+      sourceLink: 'Leer en Wikipedia',
+      tryAgain: 'Probá otro país.',
+      finalWrong: 'Se agotaron los intentos. El objetivo era el país con ISO2 {{iso2}}.',
+    },
   },
   results: {
     badge: 'Resultados',
@@ -122,6 +145,7 @@ export const esNamespaces = {
     fixConfigBeforeStart: 'Corregí la configuración antes de iniciar la partida.',
     wrongRegionGuess:
       'Ese país no pertenece al continente de esta partida. Elegí uno dentro de la región resaltada.',
+    aiPromptsReducedNotice: 'Se redujo el número de preguntas a {{count}} por falta de adivinanzas válidas.',
   },
   validation: {
     config: {
@@ -169,5 +193,11 @@ export const esNamespaces = {
     ADVANCE_NOT_PLAYING: 'Solo se puede avanzar mientras la partida está en curso.',
     ADVANCE_ROUND_INDEX_INVALID: 'Índice de ronda fuera de rango.',
     ADVANCE_ANSWER_REQUIRED: 'Respondé antes de avanzar de ronda.',
+    INVALID_REQUEST: 'La solicitud no es válida. Revisá los parámetros.',
+    INVALID_TAG: 'El tag temático seleccionado no existe.',
+    LLM_UNAVAILABLE: 'El generador de adivinanzas no está disponible ahora. Probá de nuevo en un momento.',
+    LLM_RATE_LIMITED: 'El generador de adivinanzas recibió demasiadas solicitudes. Esperá unos segundos.',
+    INSUFFICIENT_GROUNDING_BATCH: 'No se pudieron generar adivinanzas con base verificable para este lote. Probá otros tags o ajustá la cobertura.',
+    AI_ATTEMPTS_EXCEEDED: 'Ya usaste los 3 intentos de esta ronda.',
   },
 } as const

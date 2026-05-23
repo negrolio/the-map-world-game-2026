@@ -2,7 +2,7 @@ import type { GameConfig } from '../types'
 import { PRODUCT_RULES, getQuestionCountLimits } from './product-rules'
 
 export interface ConfigValidationError {
-  readonly field: 'players' | 'questionCount' | 'pool'
+  readonly field: 'players' | 'questionCount' | 'pool' | 'antiCheat'
   /** Clave i18n (`validation.config.*`) */
   readonly messageKey: string
   readonly messageValues?: Readonly<Record<string, string | number>>
@@ -67,6 +67,13 @@ export function validateConfig(input: ValidateConfigInput): ConfigValidationResu
       field: 'questionCount',
       messageKey: 'validation.config.questionCountRange',
       messageValues: { min: questionLimits.min, max: questionLimits.max },
+    })
+  }
+
+  if (config.questionMode === 'ai' && config.antiCheatMode !== 'strict') {
+    errors.push({
+      field: 'antiCheat',
+      messageKey: 'validation.config.aiRequiresStrict',
     })
   }
 

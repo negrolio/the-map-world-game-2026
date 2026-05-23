@@ -1,8 +1,20 @@
+import {
+  MAX_AI_ATTEMPTS,
+  getAiScoreForAttempt,
+  isAiAttemptNumber,
+} from './ai-trivia-rules'
 import type { QuestionPoolItem } from './build-question-pool'
 import { buildGameResult } from './game-result'
 import { applyAnswerToPlayer } from './scoring'
 import { getActivePlayerIdForRound } from './turn-engine'
-import type { ApiResponse, GameSession, Guess, IsoCountryCode, Round } from '../types'
+import type {
+  AiAttempt,
+  ApiResponse,
+  GameSession,
+  Guess,
+  IsoCountryCode,
+  Round,
+} from '../types'
 import { DomainError } from '../types'
 
 export function beginPlayingSession(
@@ -13,12 +25,21 @@ export function beginPlayingSession(
     throw new DomainError('INVALID_CONFIG', 'Cannot start playing without at least one question.')
   }
 
-  const rounds: readonly Round[] = selectedQuestions.map((item, index) => ({
-    id: `round-${index + 1}-${item.id}`,
-    roundNumber: index + 1,
-    targetCountryCode: item.answerCountryCode,
-    prompt: item.prompt,
-  }))
+  const isAi = session.config.questionMode === 'ai'
+  const rounds: readonly Round[] = selectedQuestions.map((item, index) => {
+    const base: Round = {
+      id: `round-${index + 1}-${item.id}`,
+      roundNumber: index + 1,
+      targetCountryCode: item.answerCountryCode,
+      prompt: item.prompt,
+    }
+    if (!isAi) return base
+    return {
+      ...base,
+      attempts: [],
+      ...(item.aiSource ? { aiSource: item.aiSource } : {}),
+    }
+  })
 
   return {
     ...session,
@@ -115,6 +136,31 @@ export function submitRoundGuess(
   }
 
   const isCorrect = selectedCountryCode === currentRound.targetCountryCode
+  const isAi = session.config.questionMode === 'ai'
+
+  const playerIndex = session.players.findIndex((player) => player.id === playerId)
+  if (playerIndex === -1) {
+    return {
+      success: false,
+      error: {
+        code: 'PLAYER_NOT_IN_SESSION',
+        message: 'Player does not belong to session.',
+      },
+    }
+  }
+
+  if (isAi) {
+    return submitAiRoundGuess({
+      session,
+      currentRound,
+      roundIndex,
+      playerId,
+      playerIndex,
+      selectedCountryCode,
+      answeredAtISO,
+      isCorrect,
+    })
+  }
 
   const guess: Guess = {
     playerId,
@@ -129,17 +175,6 @@ export function submitRoundGuess(
     index === roundIndex ? updatedRound : round,
   )
 
-  const playerIndex = session.players.findIndex((player) => player.id === playerId)
-  if (playerIndex === -1) {
-    return {
-      success: false,
-      error: {
-        code: 'PLAYER_NOT_IN_SESSION',
-        message: 'Player does not belong to session.',
-      },
-    }
-  }
-
   const updatedPlayers = session.players.map((player, index) =>
     index === playerIndex ? applyAnswerToPlayer(player, isCorrect) : player,
   )
@@ -153,6 +188,93 @@ export function submitRoundGuess(
         players: updatedPlayers,
       },
       guess,
+    },
+  }
+}
+
+interface SubmitAiRoundInput {
+  readonly session: GameSession
+  readonly currentRound: Round
+  readonly roundIndex: number
+  readonly playerId: string
+  readonly playerIndex: number
+  readonly selectedCountryCode: IsoCountryCode
+  readonly answeredAtISO: string
+  readonly isCorrect: boolean
+}
+
+function submitAiRoundGuess(
+  input: SubmitAiRoundInput,
+): ApiResponse<SubmitRoundGuessSuccess> {
+  const previousAttempts = input.currentRound.attempts ?? []
+  const previousAttemptCount = previousAttempts.length
+  const nextAttemptNumber = previousAttemptCount + 1
+  if (!isAiAttemptNumber(nextAttemptNumber)) {
+    return {
+      success: false,
+      error: {
+        code: 'AI_ATTEMPTS_EXCEEDED',
+        message: 'No remaining AI attempts on this round.',
+      },
+    }
+  }
+
+  const scoreDelta = input.isCorrect ? getAiScoreForAttempt(nextAttemptNumber) : 0
+  const newAttempt: AiAttempt = {
+    playerId: input.playerId,
+    selectedCountryCode: input.selectedCountryCode,
+    isCorrect: input.isCorrect,
+    attemptedAtISO: input.answeredAtISO,
+    scoreDelta,
+  }
+
+  const attempts: readonly AiAttempt[] = [...previousAttempts, newAttempt]
+  const isLastAttempt = attempts.length >= MAX_AI_ATTEMPTS
+  const closesRound = input.isCorrect || isLastAttempt
+
+  const guess: Guess | undefined = closesRound
+    ? {
+        playerId: input.playerId,
+        selectedCountryCode: input.selectedCountryCode,
+        isCorrect: input.isCorrect,
+        answeredAtISO: input.answeredAtISO,
+      }
+    : undefined
+
+  const updatedRound: Round = {
+    ...input.currentRound,
+    attempts,
+    ...(guess ? { guess } : {}),
+  }
+
+  const updatedRounds = input.session.rounds.map((round, index) =>
+    index === input.roundIndex ? updatedRound : round,
+  )
+
+  const updatedPlayers = closesRound
+    ? input.session.players.map((player, index) =>
+        index === input.playerIndex
+          ? applyAnswerToPlayer(player, input.isCorrect, scoreDelta)
+          : player,
+      )
+    : input.session.players
+
+  const reportedGuess: Guess = guess ?? {
+    playerId: input.playerId,
+    selectedCountryCode: input.selectedCountryCode,
+    isCorrect: input.isCorrect,
+    answeredAtISO: input.answeredAtISO,
+  }
+
+  return {
+    success: true,
+    data: {
+      session: {
+        ...input.session,
+        rounds: updatedRounds,
+        players: updatedPlayers,
+      },
+      guess: reportedGuess,
     },
   }
 }

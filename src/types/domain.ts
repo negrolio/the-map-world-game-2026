@@ -1,6 +1,9 @@
+import type { AiPromptSource } from '../../shared/ai-trivia-api'
+import type { AiTriviaTagId } from '../../shared/ai-trivia-tags-schema'
+
 export type IsoCountryCode = string
 
-export type QuestionMode = 'country' | 'capital'
+export type QuestionMode = 'country' | 'capital' | 'ai'
 
 export type RegionFilter = 'world' | 'africa' | 'americas' | 'asia' | 'europe' | 'oceania'
 
@@ -23,6 +26,19 @@ export interface GameConfig {
   readonly regionFilter: RegionFilter
   readonly antiCheatMode: AntiCheatMode
   readonly questionCount: number
+  /**
+   * Tags temáticos seleccionados en Setup para `questionMode === 'ai'`.
+   * Ausente o vacío significa "cualquier tag del catálogo" (PRD RF-D02).
+   */
+  readonly tags?: readonly AiTriviaTagId[]
+}
+
+export interface AiAttempt {
+  readonly playerId: string
+  readonly selectedCountryCode: IsoCountryCode
+  readonly isCorrect: boolean
+  readonly attemptedAtISO: string
+  readonly scoreDelta: number
 }
 
 export interface Round {
@@ -31,6 +47,17 @@ export interface Round {
   readonly targetCountryCode: IsoCountryCode
   readonly prompt: string
   readonly guess?: Guess
+  /**
+   * Historial de intentos solo en modo AI. Cada clic durante una ronda
+   * abierta agrega una entrada aquí. La ronda se cierra (asignando `guess`)
+   * cuando se acierta o se agotan `MAX_AI_ATTEMPTS` intentos.
+   */
+  readonly attempts?: readonly AiAttempt[]
+  /**
+   * Metadatos de la fuente Wikipedia declarada por el LLM. Solo presente
+   * cuando la ronda nació de un ítem AI válido.
+   */
+  readonly aiSource?: AiPromptSource
 }
 
 export interface Guess {

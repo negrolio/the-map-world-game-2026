@@ -1,3 +1,4 @@
+import type { AiPromptSource } from '../../shared/ai-trivia-api'
 import type { CountryRecord } from '../data'
 import { getLocalizedCapital, getLocalizedCountryName } from '../data/country-localization'
 import type { AppLocale } from '../i18n/app-locale'
@@ -8,6 +9,8 @@ export interface QuestionPoolItem {
   readonly answerCountryCode: IsoCountryCode
   readonly prompt: string
   readonly mode: QuestionMode
+  /** Metadatos de origen para modo 'ai' (riddle generado por LLM). */
+  readonly aiSource?: AiPromptSource
 }
 
 export interface BuildQuestionPoolInput {

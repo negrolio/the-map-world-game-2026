@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import type { AiTriviaTagId } from '../shared/ai-trivia-tags-schema'
 import { ChunkyButton } from './components/ui'
 import { countriesCatalog } from './data'
 import { getContinentForIso2 } from './data/countries'
+import { AiPromptsErrorView } from './features/game/AiPromptsErrorView'
+import { AiPromptsLoadingView } from './features/game/AiPromptsLoadingView'
 import { GameShell } from './features/game/GameShell'
 import { ResultsView } from './features/game/ResultsView'
 import { HomeView } from './features/home/HomeView'
@@ -15,11 +18,13 @@ import { translateApiErrorCode } from './i18n/translate-api-error'
 import {
   PRODUCT_RULES,
   advanceToNextRoundOrFinish,
+  applyAntiCheatIncident,
   beginPlayingSession,
   buildQuestionPool,
-  applyAntiCheatIncident,
   createGameSession,
+  fetchAiPrompts,
   getActivePlayerIdForRound,
+  mapAiItemsToPool,
   submitRoundGuess,
   validateConfig,
 } from './services'
@@ -34,6 +39,11 @@ import type {
 
 type AppView = 'home' | 'setup' | 'game' | 'learn'
 
+type AiStartupState =
+  | { readonly kind: 'idle' }
+  | { readonly kind: 'loading'; readonly requestedItems: number; readonly config: GameConfig }
+  | { readonly kind: 'error'; readonly errorCode: string; readonly canRetry: boolean; readonly config: GameConfig }
+
 export function App() {
   const { t: tApp } = useTranslation('app')
   const { t: tGame } = useTranslation('game')
@@ -47,11 +57,14 @@ export function App() {
   const [regionFilter, setRegionFilter] = useState<RegionFilter>('world')
   const [antiCheatMode, setAntiCheatMode] = useState<AntiCheatMode>('normal')
   const [questionCount, setQuestionCount] = useState<number>(5)
+  const [tags, setTags] = useState<readonly AiTriviaTagId[]>([])
   const [setupSubmitMessage, setSetupSubmitMessage] = useState<string | null>(null)
   const [gameSession, setGameSession] = useState<GameSession | null>(null)
   const [guessSubmitError, setGuessSubmitError] = useState<string | null>(null)
   const [antiCheatNotice, setAntiCheatNotice] = useState<string | null>(null)
+  const [aiStartup, setAiStartup] = useState<AiStartupState>({ kind: 'idle' })
   const antiCheatLockUntilRef = useRef<number>(0)
+  const aiStartupAbortRef = useRef<AbortController | null>(null)
 
   const availableQuestionsForRegion = useMemo(() => {
     if (regionFilter === 'world') {
@@ -61,15 +74,18 @@ export function App() {
     return countriesCatalog.filter((country) => country.continent === regionFilter).length
   }, [regionFilter])
 
+  const effectiveAntiCheatMode: AntiCheatMode = questionMode === 'ai' ? 'strict' : antiCheatMode
+
   const setupDraft: GameConfig = useMemo(
     () => ({
       players,
       questionMode,
       regionFilter,
-      antiCheatMode,
+      antiCheatMode: effectiveAntiCheatMode,
       questionCount,
+      ...(questionMode === 'ai' ? { tags } : {}),
     }),
-    [antiCheatMode, players, questionCount, questionMode, regionFilter],
+    [effectiveAntiCheatMode, players, questionCount, questionMode, regionFilter, tags],
   )
 
   const validationResult = useMemo(
@@ -90,7 +106,7 @@ export function App() {
     return schemaValidationResult.errors.filter((errorMessage) => !domainKeys.has(errorMessage))
   }, [schemaValidationResult.errors, validationResult.errors])
 
-  function startGameWithConfig(config: GameConfig): void {
+  async function startGameWithConfig(config: GameConfig): Promise<void> {
     const sessionResponse = createGameSession(config)
     if (!sessionResponse.success) {
       setSetupSubmitMessage(
@@ -104,6 +120,80 @@ export function App() {
 
     const poolSeed = import.meta.env.MODE === 'test' ? 12_345 : Date.now()
     const appLocale = normalizeAppLocale(i18n.language) ?? 'es'
+
+    if (config.questionMode === 'ai') {
+      aiStartupAbortRef.current?.abort()
+      const abortController = new AbortController()
+      aiStartupAbortRef.current = abortController
+      setSetupSubmitMessage(null)
+      setGuessSubmitError(null)
+      setAntiCheatNotice(null)
+      setAiStartup({ kind: 'loading', requestedItems: config.questionCount, config })
+      setCurrentView('game')
+
+      const candidatePool = buildQuestionPool({
+        countries: countriesCatalog,
+        regionFilter: config.regionFilter,
+        questionMode: 'country',
+        locale: appLocale,
+        requestedQuestionCount: config.questionCount,
+        seed: poolSeed,
+      })
+      const candidateIso2s = candidatePool.selectedQuestions.map((item) => item.answerCountryCode)
+      const validSet = new Set(candidateIso2s)
+
+      const promptsResult = await fetchAiPrompts({
+        items: candidateIso2s.map((iso2) => ({ iso2 })),
+        tags: config.tags ?? [],
+        locale: appLocale,
+        signal: abortController.signal,
+      })
+
+      if (abortController.signal.aborted) {
+        return
+      }
+      aiStartupAbortRef.current = null
+
+      if (!promptsResult.ok) {
+        setAiStartup({
+          kind: 'error',
+          errorCode: promptsResult.error.code,
+          canRetry:
+            promptsResult.error.code === 'LLM_UNAVAILABLE' ||
+            promptsResult.error.code === 'LLM_RATE_LIMITED' ||
+            promptsResult.error.code === 'INTERNAL_ERROR',
+          config,
+        })
+        return
+      }
+
+      const { pool, droppedCount } = mapAiItemsToPool({
+        items: promptsResult.data.items,
+        validIso2Set: validSet,
+      })
+
+      if (pool.length === 0) {
+        setAiStartup({
+          kind: 'error',
+          errorCode: 'INSUFFICIENT_GROUNDING_BATCH',
+          canRetry: true,
+          config,
+        })
+        return
+      }
+
+      const playingSession = beginPlayingSession(sessionResponse.data, pool)
+
+      setAiStartup({ kind: 'idle' })
+      setGameSession(playingSession)
+      if (pool.length < config.questionCount || droppedCount > 0) {
+        setSetupSubmitMessage(tApp('aiPromptsReducedNotice', { count: pool.length }))
+      } else {
+        setSetupSubmitMessage(null)
+      }
+      return
+    }
+
     const pool = buildQuestionPool({
       countries: countriesCatalog,
       regionFilter: config.regionFilter,
@@ -118,6 +208,7 @@ export function App() {
     setSetupSubmitMessage(null)
     setGuessSubmitError(null)
     setAntiCheatNotice(null)
+    setAiStartup({ kind: 'idle' })
     setGameSession(playingSession)
     setCurrentView('game')
   }
@@ -171,7 +262,19 @@ export function App() {
       setSetupSubmitMessage(tApp('fixConfigBeforeStart'))
       return
     }
-    startGameWithConfig(setupDraft)
+    void startGameWithConfig(setupDraft)
+  }
+
+  function handleCancelAiStartup(): void {
+    aiStartupAbortRef.current?.abort()
+    aiStartupAbortRef.current = null
+    setAiStartup({ kind: 'idle' })
+    setCurrentView('setup')
+  }
+
+  function handleRetryAiStartup(): void {
+    if (aiStartup.kind !== 'error') return
+    void startGameWithConfig(aiStartup.config)
   }
 
   const handleCountryMapClick = useCallback((iso2: IsoCountryCode | null): void => {
@@ -302,6 +405,33 @@ export function App() {
   }, [currentView, gameSession?.status])
 
   if (currentView === 'game') {
+    if (aiStartup.kind === 'loading') {
+      return (
+        <AiPromptsLoadingView
+          requestedItems={aiStartup.requestedItems}
+          onCancel={handleCancelAiStartup}
+        />
+      )
+    }
+
+    if (aiStartup.kind === 'error') {
+      return (
+        <AiPromptsErrorView
+          errorCode={aiStartup.errorCode}
+          canRetry={aiStartup.canRetry}
+          onRetry={handleRetryAiStartup}
+          onBackToSetup={() => {
+            setAiStartup({ kind: 'idle' })
+            exitGameTo('setup')
+          }}
+          onBackToHome={() => {
+            setAiStartup({ kind: 'idle' })
+            exitGameTo('home')
+          }}
+        />
+      )
+    }
+
     if (!gameSession) {
       return (
         <main className="min-h-screen bg-paper text-ink">
@@ -322,7 +452,9 @@ export function App() {
         <ResultsView
           session={gameSession}
           antiCheatNotice={antiCheatNotice}
-          onReplaySameConfig={() => startGameWithConfig(gameSession.config)}
+          onReplaySameConfig={() => {
+            void startGameWithConfig(gameSession.config)
+          }}
           onGoToSetup={() => exitGameTo('setup')}
           onGoToHome={() => exitGameTo('home')}
         />
@@ -358,8 +490,9 @@ export function App() {
         players={players}
         questionMode={questionMode}
         regionFilter={regionFilter}
-        antiCheatMode={antiCheatMode}
+        antiCheatMode={effectiveAntiCheatMode}
         questionCount={questionCount}
+        tags={tags}
         setupDraft={setupDraft}
         availableQuestionsForRegion={availableQuestionsForRegion}
         validationResult={validationResult}
@@ -373,6 +506,7 @@ export function App() {
         onRegionFilterChange={handleRegionFilterChange}
         onAntiCheatModeChange={setAntiCheatMode}
         onQuestionCountChange={setQuestionCount}
+        onTagsChange={setTags}
         onStartGame={handleStartGame}
         onBackToHome={() => setCurrentView('home')}
       />
