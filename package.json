@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev:api": "vercel dev",
+    "convex:dev": "convex dev",
+    "convex:deploy": "convex deploy",
     "check:dataset-version": "node ./scripts/check-dataset-version.mjs",
     "check:wikipedia-sitelinks": "node ./scripts/check-wikipedia-sitelinks.mjs",
     "build:wikipedia-sitelinks": "node ./scripts/build-wikipedia-sitelinks.mjs",
@@ -16,6 +18,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "convex": "^1.39.1",
     "i18n-iso-countries": "^7.14.0",
     "i18next": "^26.1.0",
     "prop-types": "^15.8.1",

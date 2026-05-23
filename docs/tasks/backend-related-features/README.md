@@ -8,6 +8,7 @@ Documentación de contexto para que un agente (o humano) pueda **planificar tare
 |-----------|-----|
 | [`00-decision-resumen-planificacion-backend.md`](./00-decision-resumen-planificacion-backend.md) | **Resumen ejecutivo y decisiones**: alcance, arquitectura modular, hosting, features 1–3, riesgos, orden sugerido |
 | [`01-prd-modo-aprendizaje.md`](./01-prd-modo-aprendizaje.md) | **PRD formal** del modo aprendizaje (Wikipedia + backend + front + fases 1–2) |
+| [`convex-setup/00-entorno-convex-vercel.md`](./convex-setup/00-entorno-convex-vercel.md) | **Convex + Vercel** (pre-feature): env vars, dev en dos terminales, deploy |
 
 **Ideas de origen en backlog:** [`ideas-features-backlog.md`](../ideas-features-backlog.md)
 
