@@ -1,5 +1,7 @@
 # PRD — Modo AI trivia (preguntas redactadas por LLM + tags temáticos)
 
+> **Nota (2026-05-23):** las decisiones de **persistencia y caché** (§2 filas *Persistencia* y *Caché servidor*; §5.3 RNF-E06; §6.1 Fase 2 opcional Edge/KV; §8.1 *DB / persistencia*) fueron **sustituidas** por la iteración Convex. Ver [`../riddle-storage-convex/00-decision-persistencia-riddles-convex.md`](../riddle-storage-convex/00-decision-persistencia-riddles-convex.md) y [`../riddle-storage-convex/01-prd-riddle-storage-convex.md`](../riddle-storage-convex/01-prd-riddle-storage-convex.md). El resto de este PRD (approach B, validaciones V1–V8, UI, scoring, intentos) sigue siendo la fuente de verdad del modo AI trivia.
+
 **Estado:** aprobado para descomposición en plan/tasks
 **Fecha:** 2026-05-20
 **Idioma del documento:** español

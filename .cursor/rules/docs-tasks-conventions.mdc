@@ -1,0 +1,61 @@
+---
+description: Convenciones para crear y mantener docs de iteración (PRDs, ADRs, planes) en docs/tasks/
+globs: ["docs/tasks/**/*.md", "docs/tasks/**/*.mdc"]
+alwaysApply: false
+---
+
+# Convenciones para `docs/tasks/`
+
+PRDs y documentos de decisión son **ADR** (Architecture Decision Records): valen por el momento en que se aprobaron. Esta regla evita el crecimiento descontrolado de `.md` cuando una feature nueva contradice o extiende una iteración previa.
+
+## Roles por tipo de doc
+
+| Archivo | Mutabilidad | Cuándo se crea | Cuándo se edita |
+|---------|-------------|----------------|-----------------|
+| `00-decision-*.md` | **Inmutable** una vez aprobado | Antes del PRD, para cerrar un diseño grande | **Nunca**, salvo callout de superseding (ver §Callout) |
+| `01-prd-*.md` | **Inmutable** una vez aprobado | Una vez por feature | **Nunca**, salvo callout de superseding |
+| `02-plan-implementacion-*.md` | Inmutable una vez aprobado | Tras el PRD | Nunca, salvo callout de superseding |
+| `03-deploy-*.md` / `04-fase-2-*.md` | Mutable durante la fase | Por fase de deploy | Hasta que la fase cierre |
+| `bugs-or-changes/*.md` | Mutable | Bug o cambio chico dentro de una feature ya cerrada | Hasta resolver |
+| `README.md` (índice de carpeta) | **Vivo** | Una vez por carpeta | Cada cambio de estado de la feature |
+
+## Reglas de decisión rápida
+
+1. **Cambio de diseño que invalida una decisión previa** → carpeta nueva hermana + `00-decision-*.md` + `01-prd-*.md` propios + callout en el doc viejo. **Nunca** reescribir el viejo.
+2. **Bug o aclaración chica dentro de una feature cerrada** → archivo en `<feature>/bugs-or-changes/` (ver `modo-aprendizaje/bugs-or-changes/` como referencia).
+3. **Estado o progreso** ("la fase 1 cerró", "falta X") → al `README.md` de la carpeta. **Nunca** dentro del PRD.
+4. **Decisión nueva que abre una feature nueva** → carpeta nueva con `00-decision-*.md` + `01-prd-*.md`.
+5. **Duda entre 1 y 4** → carpeta nueva. Es más barato una carpeta de más que mezclar contextos en el mismo doc.
+
+## Callout obligatorio de superseding
+
+Cuando una feature nueva invalida o extiende decisiones de un doc inmutable, agregar **solo** este callout al inicio del doc viejo (no editar secciones internas):
+
+```markdown
+> **Nota (YYYY-MM-DD):** la decisión "<resumen>" (§X, §Y) fue **sustituida** por
+> [`<ruta relativa al nuevo PRD>`](<ruta relativa>). El resto del doc sigue siendo
+> la fuente de verdad de esta feature.
+```
+
+## Sección obligatoria en el PRD nuevo
+
+Si el PRD nuevo modifica decisiones de iteraciones previas, su §0 debe ser **"Cambios respecto a iteraciones previas"** con una tabla:
+
+| Origen | Decisión previa | Estado en esta iteración |
+|--------|-----------------|--------------------------|
+| `<ruta>:§X fila Y` | `<resumen>` | **Sustituida / Extendida / Sigue vigente** por `<motivo>` |
+
+Sin esta tabla no se aprueba el PRD nuevo.
+
+## Numeración y nombres
+
+- Dentro de cada carpeta de feature, prefijo `NN-` con dos dígitos: `00-decision`, `01-prd`, `02-plan-implementacion`, `03-deploy-fase-2`, `04-fase-2-deploy`, etc.
+- Carpetas en **kebab-case** (alineado con `core.mdc`).
+- Una **carpeta por feature** bajo `docs/tasks/<area>/<feature>/` (ej. `docs/tasks/backend-related-features/modo-ai-trivia/`).
+
+## Qué NO hacer
+
+- **No** editar `00-decision-*.md`, `01-prd-*.md` ni `02-plan-*.md` aprobados para "actualizarlos" con decisiones nuevas. Crear doc nuevo + callout.
+- **No** poner estado/progreso ("ya está implementado", "falta Y") dentro de un PRD; va al README de la carpeta.
+- **No** acumular varias features en un mismo PRD aunque compartan dominio: una carpeta por feature.
+- **No** mezclar bugs y features: los bugs van en `bugs-or-changes/`; las features con cambios de diseño van en carpeta nueva.

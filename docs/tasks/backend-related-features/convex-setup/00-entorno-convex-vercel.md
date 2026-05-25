@@ -104,4 +104,4 @@ Hasta que no haya tablas/funciones de negocio, el build actual (`npm run build`)
 
 ## 6. Próximo paso (feature)
 
-PRD/plan: caché persistente de adivinanzas (`RiddleRepository` + tabla `riddles`, dedupe por `excludedIds` en el cliente). Ver conversación / task pendiente `modo-ai-trivia-cache-persistente`.
+PRD y decisión: [`../riddle-storage-convex/00-decision-persistencia-riddles-convex.md`](../riddle-storage-convex/00-decision-persistencia-riddles-convex.md), [`../riddle-storage-convex/01-prd-riddle-storage-convex.md`](../riddle-storage-convex/01-prd-riddle-storage-convex.md). Implementación: `RiddleRepository` + tabla `riddles`, dedupe por `excludedIds` en el cliente.
