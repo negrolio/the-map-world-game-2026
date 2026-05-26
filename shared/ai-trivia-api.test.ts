@@ -15,6 +15,7 @@ describe('ai-trivia-api', () => {
     expect(aiPromptsErrorHttpStatus('RATE_LIMITED')).toBe(429)
     expect(aiPromptsErrorHttpStatus('LLM_UNAVAILABLE')).toBe(503)
     expect(aiPromptsErrorHttpStatus('INSUFFICIENT_GROUNDING_BATCH')).toBe(503)
+    expect(aiPromptsErrorHttpStatus('CONVEX_UNAVAILABLE')).toBe(503)
     expect(aiPromptsErrorHttpStatus('INTERNAL_ERROR')).toBe(500)
   })
 
@@ -27,10 +28,11 @@ describe('ai-trivia-api', () => {
     })
   })
 
-  it('isAiPromptsApiErrorCode narrows the eight known codes only', () => {
+  it('isAiPromptsApiErrorCode narrows known codes only', () => {
     expect(isAiPromptsApiErrorCode('INVALID_REQUEST')).toBe(true)
     expect(isAiPromptsApiErrorCode('LLM_UNAVAILABLE')).toBe(true)
     expect(isAiPromptsApiErrorCode('INSUFFICIENT_GROUNDING_BATCH')).toBe(true)
+    expect(isAiPromptsApiErrorCode('CONVEX_UNAVAILABLE')).toBe(true)
     expect(isAiPromptsApiErrorCode('WIKIPEDIA_UNAVAILABLE')).toBe(false)
     expect(isAiPromptsApiErrorCode('NOT_A_CODE')).toBe(false)
   })

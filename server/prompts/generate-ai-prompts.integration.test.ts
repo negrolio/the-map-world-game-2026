@@ -22,9 +22,18 @@ function ensureEnvLocalLoaded(): void {
 }
 
 describe('generateAiPrompts — integration', () => {
-  it('returns at least one valid item for AR when GEMINI_API_KEY is set', async () => {
+  // Opt-in: requiere infra viva (Convex dev + Gemini real). Se activa con
+  // `RUN_INTEGRATION_TESTS=1 GEMINI_API_KEY=... CONVEX_URL=... npm test`.
+  // Sin la flag, el test queda como no-op para no romper runs sin servicios externos.
+  it('returns at least one valid item for AR when integration env is configured', async () => {
     ensureEnvLocalLoaded()
+    if (process.env.RUN_INTEGRATION_TESTS !== '1') {
+      return
+    }
     if (!process.env.GEMINI_API_KEY?.trim()) {
+      return
+    }
+    if (!process.env.CONVEX_URL?.trim()) {
       return
     }
 

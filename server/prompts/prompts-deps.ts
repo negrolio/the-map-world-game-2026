@@ -1,7 +1,8 @@
 import type { AppLocale } from '../../shared/app-locale.js'
 import type { AiTriviaTagId } from '../../shared/ai-trivia-tags-schema.js'
-import type { AiPromptDifficulty, AiPromptItem } from '../../shared/ai-trivia-api.js'
+import type { AiPromptDifficulty } from '../../shared/ai-trivia-api.js'
 import type { AiTriviaTracer } from './ai-trivia-trace.js'
+import type { RiddleRepository } from './riddle-repository.js'
 
 export type LlmAttemptNumber = 1 | 2 | 3
 
@@ -87,17 +88,6 @@ export interface LlmClient {
   generateRiddles(input: LlmGenerateInput): Promise<LlmGenerateResult>
 }
 
-export interface AiTriviaCacheKey {
-  readonly iso2: string
-  readonly tag: AiTriviaTagId
-  readonly locale: AppLocale
-}
-
-export interface AiTriviaCache {
-  get(key: AiTriviaCacheKey): AiPromptItem | undefined
-  set(key: AiTriviaCacheKey, item: AiPromptItem): void
-}
-
 export interface WikipediaGroundingCheck {
   readonly iso2: string
   readonly claimedTitle: string
@@ -116,9 +106,20 @@ export interface WikipediaGroundingClient {
 export interface GenerateAiPromptsDeps {
   readonly llmClient: LlmClient
   readonly groundingClient: WikipediaGroundingClient
-  readonly cache: AiTriviaCache
+  /**
+   * Almacén persistente de riddles validados. Reemplaza la caché in-memory
+   * con TTL del PRD original del modo AI trivia (ver
+   * `riddle-storage-convex/01-prd-riddle-storage-convex.md` §3).
+   */
+  readonly riddleRepository: RiddleRepository
   readonly now: () => number
   readonly random: () => number
+  /**
+   * Identificador del proveedor LLM utilizado para etiquetar cada
+   * `StoredRiddle.llmProvider` al persistirlo (RF-B72). Lo inyecta el caller
+   * para evitar acoplar `generate-ai-prompts.ts` con un proveedor concreto.
+   */
+  readonly llmProviderId: string
   /**
    * Tracer **opcional** de inspección manual en desarrollo local. Si está
    * presente, `generateAiPrompts` registra cada paso (cache, batches, V1..V8,

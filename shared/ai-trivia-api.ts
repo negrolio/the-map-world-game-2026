@@ -8,6 +8,7 @@ export type AiPromptsApiErrorCode =
   | 'LLM_UNAVAILABLE'
   | 'LLM_RATE_LIMITED'
   | 'INSUFFICIENT_GROUNDING_BATCH'
+  | 'CONVEX_UNAVAILABLE'
   | 'RATE_LIMITED'
   | 'INTERNAL_ERROR'
 
@@ -25,6 +26,12 @@ export interface AiPromptsRequest {
   readonly tags: readonly AiTriviaTagId[]
   readonly locale: AppLocale
   readonly seed?: number
+  /**
+   * Identificadores opacos (`StoredRiddle.id`, equivalentes a `Doc<'riddles'>._id`
+   * de Convex) ya vistos por el cliente en este dispositivo. El servidor los
+   * filtra al elegir variantes existentes para evitar repetidos (RF-B61, RF-F70).
+   */
+  readonly excludedIds?: readonly string[]
 }
 
 export interface AiPromptSource {
@@ -36,6 +43,13 @@ export interface AiPromptSource {
 export type AiPromptDifficulty = 'easy' | 'medium' | 'hard'
 
 export interface AiPromptItem {
+  /**
+   * Identificador opaco del documento en Convex (`Doc<'riddles'>._id`) que
+   * permite al cliente registrar el riddle como "visto" y enviarlo en
+   * `excludedIds` en futuros requests (RF-B83, RF-F70..F72). Es obligatorio:
+   * el cliente debe rechazar items que lleguen sin él (RF-I10).
+   */
+  readonly riddleId: string
   readonly iso2: string
   readonly tag: AiTriviaTagId
   readonly riddle: string
@@ -71,6 +85,7 @@ export function aiPromptsErrorHttpStatus(code: AiPromptsApiErrorCode): number {
       return 429
     case 'LLM_UNAVAILABLE':
     case 'INSUFFICIENT_GROUNDING_BATCH':
+    case 'CONVEX_UNAVAILABLE':
       return 503
     case 'INTERNAL_ERROR':
       return 500
@@ -96,6 +111,7 @@ export function isAiPromptsApiErrorCode(value: string): value is AiPromptsApiErr
     value === 'LLM_UNAVAILABLE' ||
     value === 'LLM_RATE_LIMITED' ||
     value === 'INSUFFICIENT_GROUNDING_BATCH' ||
+    value === 'CONVEX_UNAVAILABLE' ||
     value === 'RATE_LIMITED' ||
     value === 'INTERNAL_ERROR'
   )

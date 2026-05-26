@@ -11,8 +11,10 @@ export interface AiTriviaCounterEvent {
   readonly kind:
     | 'validation_failure'
     | 'llm_request'
-    | 'cache_hit'
+    | 'cache_hit_l1'
+    | 'cache_hit_l2'
     | 'cache_miss'
+    | 'convex_error'
     | 'batch_result'
   readonly rule?: string
   readonly iso2?: string
@@ -51,12 +53,20 @@ export function incrementValidationFailure(
   })
 }
 
-export function recordCacheHit(
+export function recordCacheHitL1(
   iso2: string,
   tag: AiTriviaTagId,
   locale: AppLocale,
 ): void {
-  activeLogger({ kind: 'cache_hit', iso2, tag, locale })
+  activeLogger({ kind: 'cache_hit_l1', iso2, tag, locale })
+}
+
+export function recordCacheHitL2(
+  iso2: string,
+  tag: AiTriviaTagId,
+  locale: AppLocale,
+): void {
+  activeLogger({ kind: 'cache_hit_l2', iso2, tag, locale })
 }
 
 export function recordCacheMiss(
@@ -65,6 +75,20 @@ export function recordCacheMiss(
   locale: AppLocale,
 ): void {
   activeLogger({ kind: 'cache_miss', iso2, tag, locale })
+}
+
+/**
+ * Reporta un fallo del backend persistente (Convex) al servir un lookup. El
+ * orquestador lo emite por cada `(iso2, tag)` que el repositorio devuelve
+ * como `unavailable` antes de cortocircuitar la request entera.
+ */
+export function recordConvexError(
+  code: 'lookup' | 'save',
+  iso2: string,
+  tag: AiTriviaTagId,
+  locale: AppLocale,
+): void {
+  activeLogger({ kind: 'convex_error', code, iso2, tag, locale })
 }
 
 export function recordLlmRequest(locale: AppLocale, itemCount: number, attempt: number): void {

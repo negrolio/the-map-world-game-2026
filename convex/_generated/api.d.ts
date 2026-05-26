@@ -9,6 +9,7 @@
  */
 
 import type * as ping from "../ping.js";
+import type * as riddles from "../riddles.js";
 
 import type {
   ApiFromModules,
@@ -18,6 +19,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   ping: typeof ping;
+  riddles: typeof riddles;
 }>;
 
 /**

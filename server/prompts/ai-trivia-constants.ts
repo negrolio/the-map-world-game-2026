@@ -17,11 +17,22 @@ export const MAX_REROLLS = 2
 export const CIRCUIT_BREAKER_RATIO = 0.5
 export const CIRCUIT_BREAKER_MIN_ITEMS = 4
 
-/** TTL por defecto de la caché de prompts validados (30 días, RF-B45 del PRD). */
-export const AI_TRIVIA_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000
-
 /** Máximo de items aceptados en un request al endpoint (RF-B41). */
 export const MAX_ITEMS_PER_REQUEST = 50
+
+/**
+ * Versión actual del set de validaciones V1..V8 (PRD §2.2 de
+ * `riddle-storage-convex`). Cada `StoredRiddle` queda etiquetado con esta
+ * versión al persistir en Convex; en v2 un job batch puede revalidar y
+ * actualizar a una versión nueva sin migrar el schema (D7).
+ */
+export const AI_TRIVIA_VALIDATION_VERSION = 1
+
+/**
+ * Tope defensivo del array `excludedIds` que el cliente puede enviar (RF-B80).
+ * Alineado con el cap de `localStorage` en `src/services/ai-trivia-seen-ids.ts`.
+ */
+export const MAX_EXCLUDED_IDS = 500
 
 /** Longitud aceptable del riddle (V3). */
 export const RIDDLE_MIN_LENGTH = 20

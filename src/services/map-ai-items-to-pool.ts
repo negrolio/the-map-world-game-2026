@@ -39,6 +39,7 @@ export function mapAiItemsToPool(input: MapAiItemsInput): MapAiItemsResult {
       prompt: item.riddle,
       mode: 'ai',
       aiSource: item.source,
+      aiRiddleId: item.riddleId,
     })
   }
   return { pool, droppedCount }

@@ -50,3 +50,8 @@ export type {
 } from './prompts-api-client'
 export { mapAiItemsToPool } from './map-ai-items-to-pool'
 export type { MapAiItemsInput, MapAiItemsResult } from './map-ai-items-to-pool'
+export {
+  addSeenRiddleId,
+  clearSeenRiddleIds,
+  getSeenRiddleIds,
+} from './ai-trivia-seen-ids'

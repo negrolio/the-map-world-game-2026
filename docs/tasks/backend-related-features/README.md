@@ -1,22 +1,26 @@
 # Iteración: backend API (Vercel) — planificación
 
-**Estado:** **Fase 1 cerrada** + **rate limit (P8) en repo**. Deploy/smoke HTTPS: [`modo-aprendizaje/04-fase-2-deploy.md`](./modo-aprendizaje/04-fase-2-deploy.md). Checklist: [`03-fase-1-checklist.md`](./modo-aprendizaje/03-fase-1-checklist.md).
+**Estado actual (2026-05-26):**
 
-Documentación de contexto para que un agente (o humano) pueda **planificar tareas** sin re-leer el hilo de diseño. Cuando se empiece a ejecutar, promover entradas del backlog y crear `01-…`, `02-…` según fases.
+- **Modo aprendizaje:** cerrado (Fase 1 + rate limit + Fase 2 deploy HTTPS). Ver [`modo-aprendizaje/04-fase-2-deploy.md`](./modo-aprendizaje/04-fase-2-deploy.md) y [`modo-aprendizaje/03-fase-1-checklist.md`](./modo-aprendizaje/03-fase-1-checklist.md).
+- **Modo AI trivia:** cerrado (implementación + rate limit + Fase 2 deploy notes). Ver [`modo-ai-trivia/03-deploy-fase-2.md`](./modo-ai-trivia/03-deploy-fase-2.md).
+- **Persistencia riddles en Convex:** implementado en repo (Fases 1–7 + 8.1 + 9.1–9.2 del plan); **pendiente** smoke local (Tarea 8.2) y deploy preview/prod + smoke HTTPS (Tarea 9.3). Ver [`riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md`](./riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md) y [`riddle-storage-convex/03-deploy-fase-2.md`](./riddle-storage-convex/03-deploy-fase-2.md).
 
-| Documento | Rol |
-|-----------|-----|
+Documentación de contexto para que un agente (o humano) pueda **planificar tareas** sin re-leer el hilo de diseño. Al promover nuevas ideas del backlog, crear carpeta hermana con `00-decision-…md`, `01-prd-…md`, etc., según [`.cursor/rules/docs-tasks-conventions.mdc`](../../../.cursor/rules/docs-tasks-conventions.mdc).
+
+| Documento / carpeta | Rol |
+|---------------------|-----|
 | [`00-decision-resumen-planificacion-backend.md`](./00-decision-resumen-planificacion-backend.md) | **Resumen ejecutivo y decisiones**: alcance, arquitectura modular, hosting, features 1–3, riesgos, orden sugerido |
-| [`01-prd-modo-aprendizaje.md`](./01-prd-modo-aprendizaje.md) | **PRD formal** del modo aprendizaje (Wikipedia + backend + front + fases 1–2) |
-| [`convex-setup/00-entorno-convex-vercel.md`](./convex-setup/00-entorno-convex-vercel.md) | **Convex + Vercel** (pre-feature): env vars, dev en dos terminales, deploy |
-| [`modo-ai-trivia/`](./modo-ai-trivia/) | **Modo AI trivia** (implementado): decisión approach B, PRD, plan, deploy Fase 2 |
-| [`riddle-storage-convex/`](./riddle-storage-convex/) | **Persistencia riddles en Convex** (PRD aprobado; pendiente plan/implementación): `00-decision` + `01-prd` |
+| [`modo-aprendizaje/`](./modo-aprendizaje/) | **Modo aprendizaje** (cerrado): PRD, plan, deploy Fase 2 y `bugs-or-changes/` |
+| [`modo-ai-trivia/`](./modo-ai-trivia/) | **Modo AI trivia** (cerrado): decisión approach B, PRD, plan, deploy Fase 2 |
+| [`convex-setup/`](./convex-setup/) | **Convex + Vercel** (índice operativo): env vars, dev en dos terminales, deploy. Doc vivo |
+| [`riddle-storage-convex/`](./riddle-storage-convex/) | **Persistencia riddles en Convex** (implementado en repo, pendiente deploy): `00-decision` + `01-prd` + `02-plan` (checklist vivo) + `03-deploy-fase-2` |
 
 **Ideas de origen en backlog:** [`ideas-features-backlog.md`](../ideas-features-backlog.md)
 
-- *Persistencia de puntajes en servidor*
-- *Modo aprendizaje (explorar países sin penalizar)*
-- (Preguntas con IA + tags temáticos: discutido en chat; aún no tiene entrada dedicada en backlog — conviene añadirla al promover. El proyecto se diseña agnóstico del proveedor LLM; la primera implementación usa **Gemini Flash** pero el resto del backend no depende de esa elección)
+- *Persistencia de puntajes en servidor* (pendiente)
+- *Modo aprendizaje* — **promovido**, ver [`modo-aprendizaje/`](./modo-aprendizaje/)
+- *Preguntas con IA (tags temáticos)* — **promovido**, ver [`modo-ai-trivia/`](./modo-ai-trivia/) + [`riddle-storage-convex/`](./riddle-storage-convex/) (la primera implementación del LLM es **Gemini Flash** detrás de un adaptador `LlmClient` agnóstico)
 
 **Arquitectura frontend existente (referencia):** [`docs/architecture/mvp_frontend_map_game_1b56bd4b.plan.mdc`](../../architecture/mvp_frontend_map_game_1b56bd4b.plan.mdc) — MVP cerrado; dominio en `src/services/`, pool en `buildQuestionPool`, sesión en memoria.
 

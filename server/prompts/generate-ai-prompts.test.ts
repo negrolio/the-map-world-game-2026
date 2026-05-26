@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { AiPromptItem } from '../../shared/ai-trivia-api.js'
-import { createAiTriviaCache } from './ai-trivia-cache.js'
 import { generateAiPrompts } from './generate-ai-prompts.js'
 import { createLlmClientFake } from './llm-client-fake.js'
+import { resetAiTriviaLoggerForTests, setAiTriviaLogger } from './ai-trivia-logger.js'
 import type {
   GenerateAiPromptsDeps,
   LlmClient,
@@ -11,7 +11,14 @@ import type {
   WikipediaGroundingClient,
   WikipediaGroundingResult,
 } from './prompts-deps.js'
-import { resetAiTriviaLoggerForTests } from './ai-trivia-logger.js'
+import { createRiddleRepositoryInMemory } from './riddle-repository-in-memory.js'
+import type {
+  FindRandomVariantInput,
+  FindRandomVariantOutcome,
+  RiddleRepository,
+  SaveRiddleInput,
+  StoredRiddle,
+} from './riddle-repository.js'
 
 function makeOkOutput(
   iso2: string,
@@ -46,9 +53,10 @@ function makeDeps(overrides: Partial<GenerateAiPromptsDeps> = {}): GenerateAiPro
   return {
     llmClient: overrides.llmClient ?? createLlmClientFake(),
     groundingClient: overrides.groundingClient ?? makeGroundingClient(),
-    cache: overrides.cache ?? createAiTriviaCache({ now: () => 0 }),
+    riddleRepository: overrides.riddleRepository ?? createRiddleRepositoryInMemory(),
     now: overrides.now ?? (() => 0),
     random: overrides.random ?? (() => 0),
+    llmProviderId: overrides.llmProviderId ?? 'fake',
     tracer: overrides.tracer,
   }
 }
@@ -82,7 +90,7 @@ describe('generateAiPrompts — request validation', () => {
 })
 
 describe('generateAiPrompts — happy path', () => {
-  it('returns one item per request item when the LLM and grounding both succeed', async () => {
+  it('returns one item per request item including riddleId when LLM and grounding succeed', async () => {
     const llm: LlmClient = createLlmClientFake({
       respond: (input) => ({
         items: input.items.map((item) => makeOkOutput(item.iso2, item.tag)),
@@ -100,32 +108,174 @@ describe('generateAiPrompts — happy path', () => {
     expect(result.ok).toBe(true)
     if (result.ok) {
       expect(result.data.items).toHaveLength(2)
-      expect(result.data.items[0].source.url).toMatch(
-        /^https:\/\/es\.wikipedia\.org\/wiki\//,
-      )
+      for (const item of result.data.items) {
+        expect(item.riddleId).toMatch(/^mem-\d+$/)
+        expect(item.source.url).toMatch(/^https:\/\/es\.wikipedia\.org\/wiki\//)
+      }
     }
   })
 
-  it('caches validated items and skips LLM on subsequent calls', async () => {
+  it('persists each new item with validationVersion=1, llmProviderId and createdAt from deps.now()', async () => {
+    const saveSpy = vi.fn(
+      async (input: SaveRiddleInput): Promise<StoredRiddle> => ({ id: 'k73abc', ...input }),
+    )
+    const findSpy = vi.fn(
+      async (input: FindRandomVariantInput): Promise<FindRandomVariantOutcome> => {
+        void input
+        return { kind: 'miss' }
+      },
+    )
+    const repo: RiddleRepository = { findRandomVariant: findSpy, save: saveSpy }
+    const llm: LlmClient = createLlmClientFake({
+      respond: (input) => ({
+        items: input.items.map((item) => makeOkOutput(item.iso2, item.tag)),
+      }),
+    })
+
+    const result = await generateAiPrompts(
+      { items: [{ iso2: 'AR' }], tags: ['historia'], locale: 'es', seed: 1 },
+      makeDeps({
+        llmClient: llm,
+        riddleRepository: repo,
+        now: () => 1234,
+        llmProviderId: 'gemini',
+      }),
+    )
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.items[0].riddleId).toBe('k73abc')
+    }
+    expect(saveSpy).toHaveBeenCalledTimes(1)
+    expect(saveSpy.mock.calls[0]?.[0]).toMatchObject({
+      iso2: 'AR',
+      tag: 'historia',
+      locale: 'es',
+      llmProvider: 'gemini',
+      validationVersion: 1,
+      createdAt: 1234,
+    })
+  })
+
+  it('serves a stored variant from L2 without calling the LLM', async () => {
+    const repo = createRiddleRepositoryInMemory()
+    await repo.save({
+      iso2: 'AR',
+      tag: 'historia',
+      locale: 'es',
+      riddle: 'r1',
+      source: {
+        origin: 'wikipedia',
+        title: 'Congreso de Tucumán',
+        locale: 'es',
+        url: 'https://es.wikipedia.org/wiki/Congreso_de_Tucum%C3%A1n',
+      },
+      difficulty: 'medium',
+      justification: '',
+      llmProvider: 'fake',
+      validationVersion: 1,
+      createdAt: 0,
+    })
+
     const llm: LlmClient = {
-      generateRiddles: vi.fn(async (input) => ({
+      generateRiddles: vi.fn(async () => ({
         ok: true,
-        data: { items: input.items.map((it) => makeOkOutput(it.iso2, it.tag)) },
+        data: { items: [] },
       })),
     }
-    const cache = createAiTriviaCache({ now: () => 0 })
-    const deps = makeDeps({ llmClient: llm, cache })
 
-    await generateAiPrompts(
+    const result = await generateAiPrompts(
       { items: [{ iso2: 'AR' }], tags: ['historia'], locale: 'es', seed: 1 },
-      deps,
+      makeDeps({ llmClient: llm, riddleRepository: repo }),
     )
-    await generateAiPrompts(
-      { items: [{ iso2: 'AR' }], tags: ['historia'], locale: 'es', seed: 1 },
-      deps,
-    )
+    expect(result.ok).toBe(true)
+    expect(llm.generateRiddles).not.toHaveBeenCalled()
+  })
 
-    expect(llm.generateRiddles).toHaveBeenCalledTimes(1)
+  it('falls through to the LLM when excludedIds drains every stored variant', async () => {
+    const repo = createRiddleRepositoryInMemory()
+    const stored = await repo.save({
+      iso2: 'AR',
+      tag: 'historia',
+      locale: 'es',
+      riddle: 'r1',
+      source: {
+        origin: 'wikipedia',
+        title: 'Congreso de Tucumán',
+        locale: 'es',
+        url: 'https://es.wikipedia.org/wiki/Congreso_de_Tucum%C3%A1n',
+      },
+      difficulty: 'medium',
+      justification: '',
+      llmProvider: 'fake',
+      validationVersion: 1,
+      createdAt: 0,
+    })
+    const llm: LlmClient = createLlmClientFake({
+      respond: (input) => ({
+        items: input.items.map((item) => makeOkOutput(item.iso2, item.tag)),
+      }),
+    })
+    const result = await generateAiPrompts(
+      {
+        items: [{ iso2: 'AR' }],
+        tags: ['historia'],
+        locale: 'es',
+        seed: 1,
+        excludedIds: [stored.id],
+      },
+      makeDeps({ llmClient: llm, riddleRepository: repo }),
+    )
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.items[0].riddleId).not.toBe(stored.id)
+    }
+  })
+})
+
+describe('generateAiPrompts — Convex unavailable', () => {
+  it('shortcircuits the batch with CONVEX_UNAVAILABLE 503 when lookup is unavailable', async () => {
+    const repo: RiddleRepository = {
+      async findRandomVariant() {
+        return { kind: 'unavailable' }
+      },
+      async save(input: SaveRiddleInput) {
+        return { id: 'unused', ...input }
+      },
+    }
+    const result = await generateAiPrompts(
+      { items: [{ iso2: 'AR' }, { iso2: 'BR' }], tags: ['historia'], locale: 'es', seed: 1 },
+      makeDeps({ riddleRepository: repo }),
+    )
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.code).toBe('CONVEX_UNAVAILABLE')
+      expect(result.httpStatus).toBe(503)
+    }
+  })
+
+  it('returns CONVEX_UNAVAILABLE when save throws after a successful LLM batch', async () => {
+    const repo: RiddleRepository = {
+      async findRandomVariant() {
+        return { kind: 'miss' }
+      },
+      async save() {
+        throw new Error('convex down')
+      },
+    }
+    const llm: LlmClient = createLlmClientFake({
+      respond: (input) => ({
+        items: input.items.map((item) => makeOkOutput(item.iso2, item.tag)),
+      }),
+    })
+    const result = await generateAiPrompts(
+      { items: [{ iso2: 'AR' }], tags: ['historia'], locale: 'es', seed: 1 },
+      makeDeps({ llmClient: llm, riddleRepository: repo }),
+    )
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.code).toBe('CONVEX_UNAVAILABLE')
+    }
   })
 })
 
@@ -290,6 +440,118 @@ describe('generateAiPrompts — tag selection determinism', () => {
     if (a.ok && b.ok) {
       expect(a.data.items.map((i) => i.tag)).toEqual(b.data.items.map((i) => i.tag))
     }
+  })
+})
+
+describe('generateAiPrompts — metrics', () => {
+  it('emits cache_hit_l1 when the L1 layer serves a request', async () => {
+    const repo: RiddleRepository = {
+      async findRandomVariant() {
+        return {
+          kind: 'hit',
+          layer: 'l1',
+          riddle: {
+            id: 'mem-7',
+            iso2: 'AR',
+            tag: 'historia',
+            locale: 'es',
+            riddle: 'r',
+            source: {
+              origin: 'wikipedia',
+              title: 'X',
+              locale: 'es',
+              url: 'https://es.wikipedia.org/wiki/X',
+            },
+            difficulty: 'medium',
+            justification: '',
+            llmProvider: 'fake',
+            validationVersion: 1,
+            createdAt: 0,
+          },
+        }
+      },
+      async save(input: SaveRiddleInput) {
+        return { id: 'unused', ...input }
+      },
+    }
+    const events: string[] = []
+    setAiTriviaLogger((event) => {
+      if (event.kind.startsWith('cache_') || event.kind === 'convex_error') {
+        events.push(event.kind)
+      }
+    })
+    await generateAiPrompts(
+      { items: [{ iso2: 'AR' }], tags: ['historia'], locale: 'es', seed: 1 },
+      makeDeps({ riddleRepository: repo }),
+    )
+    expect(events).toContain('cache_hit_l1')
+  })
+
+  it('emits cache_hit_l2 when the L2 layer serves a request', async () => {
+    const repo: RiddleRepository = {
+      async findRandomVariant() {
+        return {
+          kind: 'hit',
+          layer: 'l2',
+          riddle: {
+            id: 'mem-8',
+            iso2: 'AR',
+            tag: 'historia',
+            locale: 'es',
+            riddle: 'r',
+            source: {
+              origin: 'wikipedia',
+              title: 'X',
+              locale: 'es',
+              url: 'https://es.wikipedia.org/wiki/X',
+            },
+            difficulty: 'medium',
+            justification: '',
+            llmProvider: 'fake',
+            validationVersion: 1,
+            createdAt: 0,
+          },
+        }
+      },
+      async save(input: SaveRiddleInput) {
+        return { id: 'unused', ...input }
+      },
+    }
+    const events: string[] = []
+    setAiTriviaLogger((event) => {
+      if (event.kind.startsWith('cache_')) {
+        events.push(event.kind)
+      }
+    })
+    await generateAiPrompts(
+      { items: [{ iso2: 'AR' }], tags: ['historia'], locale: 'es', seed: 1 },
+      makeDeps({ riddleRepository: repo }),
+    )
+    expect(events).toContain('cache_hit_l2')
+  })
+
+  it('emits convex_error and CONVEX_UNAVAILABLE when lookup is unavailable', async () => {
+    const repo: RiddleRepository = {
+      async findRandomVariant() {
+        return { kind: 'unavailable' }
+      },
+      async save(input: SaveRiddleInput) {
+        return { id: 'unused', ...input }
+      },
+    }
+    const events: { kind: string; code?: string }[] = []
+    setAiTriviaLogger((event) => {
+      events.push({ kind: event.kind, code: event.code })
+    })
+    const result = await generateAiPrompts(
+      { items: [{ iso2: 'AR' }], tags: ['historia'], locale: 'es', seed: 1 },
+      makeDeps({ riddleRepository: repo }),
+    )
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.error.code).toBe('CONVEX_UNAVAILABLE')
+    }
+    expect(events.some((e) => e.kind === 'convex_error' && e.code === 'lookup')).toBe(true)
   })
 })
 

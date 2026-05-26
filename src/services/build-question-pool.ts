@@ -11,6 +11,13 @@ export interface QuestionPoolItem {
   readonly mode: QuestionMode
   /** Metadatos de origen para modo 'ai' (riddle generado por LLM). */
   readonly aiSource?: AiPromptSource
+  /**
+   * Identificador opaco del riddle persistido en Convex, propagado desde
+   * `AiPromptItem.riddleId`. Solo presente para items de modo `'ai'`. El
+   * frontend lo registra en `localStorage` (`ai-trivia-seen-ids`) para
+   * que un próximo fetch lo envíe en `excludedIds` y evitar repetidos.
+   */
+  readonly aiRiddleId?: string
 }
 
 export interface BuildQuestionPoolInput {

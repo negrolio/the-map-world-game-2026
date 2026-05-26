@@ -2,10 +2,12 @@ import type { AppLocale } from '../../shared/app-locale.js'
 import {
   aiPromptsFailure,
   type AiPromptItem,
+  type AiPromptSource,
   type AiPromptsFailure,
   type AiPromptsResult,
 } from '../../shared/ai-trivia-api.js'
 import {
+  AI_TRIVIA_VALIDATION_VERSION,
   CIRCUIT_BREAKER_MIN_ITEMS,
   CIRCUIT_BREAKER_RATIO,
   MAX_REROLLS,
@@ -13,6 +15,10 @@ import {
 import {
   incrementValidationFailure,
   recordBatchResult,
+  recordCacheHitL1,
+  recordCacheHitL2,
+  recordCacheMiss,
+  recordConvexError,
 } from './ai-trivia-logger.js'
 import type { AiTriviaTracer } from './ai-trivia-trace.js'
 import type {
@@ -24,6 +30,7 @@ import type {
   LlmRerollContextEntry,
   WikipediaGroundingResult,
 } from './prompts-deps.js'
+import type { StoredRiddle, StoredRiddleSource } from './riddle-repository.js'
 import {
   assignTagsToItems,
   createSeededRandom,
@@ -42,13 +49,6 @@ interface PendingItem {
   readonly iso2: string
   readonly tag: ItemWithTag['tag']
   readonly originalIndex: number
-}
-
-interface RerollOutcome {
-  readonly valid: readonly { readonly index: number; readonly item: AiPromptItem }[]
-  readonly pending: readonly PendingItem[]
-  readonly failedRules: readonly LlmRerollContextEntry[]
-  readonly wikipediaUnavailable: boolean
 }
 
 export async function generateAiPrompts(
@@ -89,21 +89,42 @@ export async function generateAiPrompts(
 
     for (let i = 0; i < itemsWithTags.length; i += 1) {
       const entry = itemsWithTags[i]
-      const cached = deps.cache.get({
+      const outcome = await deps.riddleRepository.findRandomVariant({
         iso2: entry.iso2,
         tag: entry.tag,
         locale: request.locale,
+        excludedIds: request.excludedIds,
+        random,
       })
+      if (outcome.kind === 'unavailable') {
+        recordConvexError('lookup', entry.iso2, entry.tag, request.locale)
+        tracer?.recordCacheLookup({
+          iso2: entry.iso2,
+          tag: entry.tag,
+          locale: request.locale,
+          hit: false,
+        })
+        return aiPromptsFailure(
+          'CONVEX_UNAVAILABLE',
+          'Riddle storage is currently unavailable',
+        )
+      }
       tracer?.recordCacheLookup({
         iso2: entry.iso2,
         tag: entry.tag,
         locale: request.locale,
-        hit: cached !== undefined,
+        hit: outcome.kind === 'hit',
       })
-      if (cached) {
-        responseSlots[i] = cached
+      if (outcome.kind === 'hit') {
+        if (outcome.layer === 'l1') {
+          recordCacheHitL1(entry.iso2, entry.tag, request.locale)
+        } else {
+          recordCacheHitL2(entry.iso2, entry.tag, request.locale)
+        }
+        responseSlots[i] = storedRiddleToApiItem(outcome.riddle)
         continue
       }
+      recordCacheMiss(entry.iso2, entry.tag, request.locale)
       cacheMisses.push({ iso2: entry.iso2, tag: entry.tag, originalIndex: i })
     }
 
@@ -115,11 +136,28 @@ export async function generateAiPrompts(
       } else {
         for (const valid of llmOutcome.valid) {
           const entry = itemsWithTags[valid.index]
-          deps.cache.set(
-            { iso2: entry.iso2, tag: entry.tag, locale: request.locale },
-            valid.item,
-          )
-          responseSlots[valid.index] = valid.item
+          try {
+            const stored = await deps.riddleRepository.save({
+              iso2: entry.iso2,
+              tag: entry.tag,
+              locale: request.locale,
+              riddle: valid.output.riddle.trim(),
+              source: buildStoredSource(valid.output),
+              difficulty: valid.output.difficulty,
+              justification: valid.output.justification,
+              llmProvider: deps.llmProviderId,
+              validationVersion: AI_TRIVIA_VALIDATION_VERSION,
+              createdAt: deps.now(),
+            })
+            responseSlots[valid.index] = storedRiddleToApiItem(stored)
+          } catch {
+            recordConvexError('save', entry.iso2, entry.tag, request.locale)
+            llmFailure = aiPromptsFailure(
+              'CONVEX_UNAVAILABLE',
+              'Riddle storage is currently unavailable',
+            )
+            break
+          }
         }
       }
     }
@@ -155,9 +193,14 @@ export async function generateAiPrompts(
   }
 }
 
+interface ValidLlmOutput {
+  readonly index: number
+  readonly output: Extract<LlmGenerateOutputItem, { kind: 'ok' }>
+}
+
 interface ProcessWithRerollsSuccess {
   readonly ok: true
-  readonly valid: readonly { readonly index: number; readonly item: AiPromptItem }[]
+  readonly valid: readonly ValidLlmOutput[]
 }
 interface ProcessWithRerollsFailure {
   readonly ok: false
@@ -170,7 +213,7 @@ async function processWithRerolls(
   deps: GenerateAiPromptsDeps,
 ): Promise<ProcessWithRerollsSuccess | ProcessWithRerollsFailure> {
   const tracer = deps.tracer
-  const validResults: { index: number; item: AiPromptItem }[] = []
+  const validResults: ValidLlmOutput[] = []
   let pending = [...initialPending]
   let attempt: LlmAttemptNumber = 1
   let lastRerollContext: readonly LlmRerollContextEntry[] = []
@@ -263,6 +306,13 @@ function buildBatchDebugCallback(
   }
 }
 
+interface PartitionResult {
+  readonly valid: readonly ValidLlmOutput[]
+  readonly pending: readonly PendingItem[]
+  readonly failedRules: readonly LlmRerollContextEntry[]
+  readonly wikipediaUnavailable: boolean
+}
+
 async function partitionLlmOutput(
   pending: readonly PendingItem[],
   outputs: readonly LlmGenerateOutputItem[],
@@ -270,14 +320,14 @@ async function partitionLlmOutput(
   attempt: LlmAttemptNumber,
   deps: GenerateAiPromptsDeps,
   groundingMemo: Map<string, WikipediaGroundingResult>,
-): Promise<RerollOutcome> {
+): Promise<PartitionResult> {
   const tracer = deps.tracer
   const outputByKey = new Map<string, LlmGenerateOutputItem>()
   for (const out of outputs) {
     outputByKey.set(`${out.iso2.toUpperCase()}|${out.tag}`, out)
   }
 
-  const valid: { index: number; item: AiPromptItem }[] = []
+  const valid: ValidLlmOutput[] = []
   const nextPending: PendingItem[] = []
   const failedRules: LlmRerollContextEntry[] = []
   let wikipediaUnavailable = false
@@ -329,10 +379,7 @@ async function partitionLlmOutput(
       { groundingClient: deps.groundingClient, groundingMemo },
     )
     if (validation.ok) {
-      valid.push({
-        index: entry.originalIndex,
-        item: buildAiPromptItem(output),
-      })
+      valid.push({ index: entry.originalIndex, output })
       tracer?.recordItemOutcome({
         attempt,
         iso2: entry.iso2,
@@ -389,20 +436,31 @@ async function partitionLlmOutput(
   }
 }
 
-function buildAiPromptItem(
+function buildStoredSource(
   output: Extract<LlmGenerateOutputItem, { kind: 'ok' }>,
-): AiPromptItem {
+): StoredRiddleSource {
   const titleEncoded = encodeURIComponent(output.claimedSourceTitle.replace(/ /g, '_'))
   const url = `https://${output.claimedSourceLocale}.wikipedia.org/wiki/${titleEncoded}`
   return {
-    iso2: output.iso2.toUpperCase(),
-    tag: output.tag,
-    riddle: output.riddle.trim(),
-    difficulty: output.difficulty,
-    source: {
-      title: output.claimedSourceTitle,
-      locale: output.claimedSourceLocale,
-      url,
-    },
+    origin: 'wikipedia',
+    url,
+    title: output.claimedSourceTitle,
+    locale: output.claimedSourceLocale,
+  }
+}
+
+function storedRiddleToApiItem(stored: StoredRiddle): AiPromptItem {
+  const source: AiPromptSource = {
+    title: stored.source.title,
+    locale: stored.source.locale,
+    url: stored.source.url,
+  }
+  return {
+    riddleId: stored.id,
+    iso2: stored.iso2.toUpperCase(),
+    tag: stored.tag,
+    riddle: stored.riddle,
+    difficulty: stored.difficulty,
+    source,
   }
 }

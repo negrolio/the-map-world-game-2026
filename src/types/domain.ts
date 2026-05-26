@@ -58,6 +58,11 @@ export interface Round {
    * cuando la ronda nació de un ítem AI válido.
    */
   readonly aiSource?: AiPromptSource
+  /**
+   * Identificador opaco del riddle persistido en Convex, propagado desde
+   * `QuestionPoolItem.aiRiddleId`. Solo presente para rondas de modo `'ai'`.
+   */
+  readonly aiRiddleId?: string
 }
 
 export interface Guess {

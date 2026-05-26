@@ -1,9 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import handler from './generate.js'
+import * as defaultPromptsDeps from '../../../server/prompts/create-default-prompts-deps.js'
 import { resetDefaultPromptsDepsForTests } from '../../../server/prompts/create-default-prompts-deps.js'
+import { createLlmClientGemini } from '../../../server/prompts/llm-client-gemini.js'
+import { createRiddleRepositoryInMemory } from '../../../server/prompts/riddle-repository-in-memory.js'
+import { createWikipediaGroundingClient } from '../../../server/prompts/wikipedia-grounding-client.js'
 import { resetRateLimitBucketsForTests } from '../../_lib/rate-limit.js'
 import type { VercelRequest, VercelResponse } from '../../_lib/vercel-types.js'
+
+vi.mock('../../_lib/load-local-env.js', () => ({
+  loadLocalEnvIfNeeded: vi.fn(),
+}))
 
 interface MockResponse {
   statusCode: number
@@ -40,12 +48,14 @@ function createMockResponse(): MockResponse {
 beforeEach(() => {
   resetDefaultPromptsDepsForTests()
   resetRateLimitBucketsForTests()
+  vi.stubEnv('CONVEX_URL', 'https://test.convex.cloud')
   vi.stubEnv('USE_FAKE_LLM', '')
   vi.stubEnv('GEMINI_API_KEY', '')
   vi.stubEnv('RATE_LIMIT_DISABLED', '1')
 })
 
 afterEach(() => {
+  vi.restoreAllMocks()
   vi.unstubAllEnvs()
 })
 
@@ -95,7 +105,17 @@ describe('POST /api/v1/prompts/generate — error mapping from use case', () => 
     expect(res.body).toMatchObject({ error: { code: 'INVALID_LOCALE' } })
   })
 
-  it('returns 503 LLM_UNAVAILABLE when no API key (factory falls back)', async () => {
+  it('returns 503 LLM_UNAVAILABLE when LLM key is missing', async () => {
+    vi.spyOn(defaultPromptsDeps, 'getDefaultPromptsDeps').mockReturnValue({
+      llmClient: createLlmClientGemini({ apiKey: '' }),
+      groundingClient: createWikipediaGroundingClient(),
+      riddleRepository: createRiddleRepositoryInMemory(),
+      now: () => Date.now(),
+      random: () => Math.random(),
+      llmProviderId: 'gemini',
+      tracer: undefined,
+    })
+
     const res = createMockResponse()
     await handler(
       {
@@ -105,7 +125,9 @@ describe('POST /api/v1/prompts/generate — error mapping from use case', () => 
       res as unknown as VercelResponse,
     )
     expect(res.statusCode).toBe(503)
-    expect(res.body).toMatchObject({ error: { code: 'LLM_UNAVAILABLE' } })
+    expect(res.body).toMatchObject({
+      error: { code: 'LLM_UNAVAILABLE' },
+    })
   })
 })
 

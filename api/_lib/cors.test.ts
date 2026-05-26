@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
-import { applyCorsHeaders, handleCorsPreflightIfNeeded, parseAllowedOrigins } from './cors'
+import {
+  applyCorsHeaders,
+  CORS_ALLOW_METHODS_GET,
+  CORS_ALLOW_METHODS_POST,
+  handleCorsPreflightIfNeeded,
+  parseAllowedOrigins,
+} from './cors'
 import type { VercelResponse } from './vercel-types'
 
 function createMockResponse(): VercelResponse & { headers: Record<string, string> } {
@@ -37,6 +43,18 @@ describe('applyCorsHeaders', () => {
       ['http://localhost:5173'],
     )
     expect(res.headers['Access-Control-Allow-Origin']).toBe('http://localhost:5173')
+    expect(res.headers['Access-Control-Allow-Methods']).toBe(CORS_ALLOW_METHODS_GET)
+  })
+
+  it('advertises POST only when configured for POST handlers', () => {
+    const res = createMockResponse()
+    applyCorsHeaders(
+      { headers: { origin: 'http://localhost:5173' } },
+      res,
+      ['http://localhost:5173'],
+      CORS_ALLOW_METHODS_POST,
+    )
+    expect(res.headers['Access-Control-Allow-Methods']).toBe(CORS_ALLOW_METHODS_POST)
   })
 
   it('skips cors when origin is not allowed', () => {

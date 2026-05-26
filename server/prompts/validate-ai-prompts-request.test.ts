@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { MAX_EXCLUDED_IDS } from './ai-trivia-constants.js'
 import { validateAiPromptsRequest } from './validate-ai-prompts-request.js'
 
 describe('validateAiPromptsRequest', () => {
@@ -128,5 +129,109 @@ describe('validateAiPromptsRequest', () => {
       seed: 'NaN',
     })
     expect(result.ok).toBe(false)
+  })
+
+  it('defaults excludedIds to an empty Set when absent', () => {
+    const result = validateAiPromptsRequest({
+      items: [{ iso2: 'AR' }],
+      tags: [],
+      locale: 'es',
+    })
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data.excludedIds.size).toBe(0)
+    }
+  })
+
+  it('passes through excludedIds as a Set when valid', () => {
+    const result = validateAiPromptsRequest({
+      items: [{ iso2: 'AR' }],
+      tags: [],
+      locale: 'es',
+      excludedIds: ['k73abc', 'k73def'],
+    })
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect([...result.data.excludedIds]).toEqual(['k73abc', 'k73def'])
+    }
+  })
+
+  it('dedupes excludedIds without failing on repeats', () => {
+    const result = validateAiPromptsRequest({
+      items: [{ iso2: 'AR' }],
+      tags: [],
+      locale: 'es',
+      excludedIds: ['k73abc', 'k73abc', 'k73def'],
+    })
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect([...result.data.excludedIds]).toEqual(['k73abc', 'k73def'])
+    }
+  })
+
+  it('rejects excludedIds that is not an array with INVALID_REQUEST', () => {
+    const result = validateAiPromptsRequest({
+      items: [{ iso2: 'AR' }],
+      tags: [],
+      locale: 'es',
+      excludedIds: 'k73abc',
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.failure.error.code).toBe('INVALID_REQUEST')
+    }
+  })
+
+  it(`rejects excludedIds with length > ${String(MAX_EXCLUDED_IDS)}`, () => {
+    const ids = Array.from({ length: MAX_EXCLUDED_IDS + 1 }, (_, i) => `id-${String(i)}`)
+    const result = validateAiPromptsRequest({
+      items: [{ iso2: 'AR' }],
+      tags: [],
+      locale: 'es',
+      excludedIds: ids,
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.failure.error.code).toBe('INVALID_REQUEST')
+    }
+  })
+
+  it('rejects excludedIds with non-string entries', () => {
+    const result = validateAiPromptsRequest({
+      items: [{ iso2: 'AR' }],
+      tags: [],
+      locale: 'es',
+      excludedIds: ['ok', 123],
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.failure.error.code).toBe('INVALID_REQUEST')
+    }
+  })
+
+  it('rejects empty-string entries in excludedIds', () => {
+    const result = validateAiPromptsRequest({
+      items: [{ iso2: 'AR' }],
+      tags: [],
+      locale: 'es',
+      excludedIds: ['ok', ''],
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.failure.error.code).toBe('INVALID_REQUEST')
+    }
+  })
+
+  it('rejects excludedIds entries longer than 64 characters', () => {
+    const result = validateAiPromptsRequest({
+      items: [{ iso2: 'AR' }],
+      tags: [],
+      locale: 'es',
+      excludedIds: ['x'.repeat(65)],
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.failure.error.code).toBe('INVALID_REQUEST')
+    }
   })
 })

@@ -11,13 +11,16 @@ import {
   type AiTriviaTagId,
 } from '../../shared/ai-trivia-tags-schema.js'
 import { findCountryByIso2 } from '../learn/countries-catalog.js'
-import { MAX_ITEMS_PER_REQUEST } from './ai-trivia-constants.js'
+import { MAX_EXCLUDED_IDS, MAX_ITEMS_PER_REQUEST } from './ai-trivia-constants.js'
+
+const EXCLUDED_ID_MAX_LENGTH = 64
 
 export interface ValidatedAiPromptsRequest {
   readonly items: readonly AiPromptsRequestItem[]
   readonly tags: readonly AiTriviaTagId[]
   readonly locale: AppLocale
   readonly seed?: number
+  readonly excludedIds: ReadonlySet<string>
 }
 
 export type ValidateAiPromptsRequestResult =
@@ -98,10 +101,66 @@ export function validateAiPromptsRequest(
     seed = body.seed
   }
 
+  const excludedIdsResult = parseExcludedIds(body.excludedIds)
+  if (!excludedIdsResult.ok) {
+    return fail(excludedIdsResult.failure)
+  }
+
   return {
     ok: true,
-    data: { items, tags, locale, seed },
+    data: { items, tags, locale, seed, excludedIds: excludedIdsResult.data },
   }
+}
+
+type ParseExcludedIdsOutcome =
+  | { readonly ok: true; readonly data: ReadonlySet<string> }
+  | { readonly ok: false; readonly failure: AiPromptsFailure }
+
+function parseExcludedIds(raw: unknown): ParseExcludedIdsOutcome {
+  if (raw === undefined) {
+    return { ok: true, data: new Set<string>() }
+  }
+  if (!Array.isArray(raw)) {
+    return {
+      ok: false,
+      failure: aiPromptsFailure('INVALID_REQUEST', 'excludedIds must be an array of strings'),
+    }
+  }
+  if (raw.length > MAX_EXCLUDED_IDS) {
+    return {
+      ok: false,
+      failure: aiPromptsFailure(
+        'INVALID_REQUEST',
+        `excludedIds must contain at most ${String(MAX_EXCLUDED_IDS)} entries`,
+      ),
+    }
+  }
+  const dedup = new Set<string>()
+  for (const candidate of raw) {
+    if (typeof candidate !== 'string') {
+      return {
+        ok: false,
+        failure: aiPromptsFailure('INVALID_REQUEST', 'each excludedIds entry must be a string'),
+      }
+    }
+    if (candidate.length === 0) {
+      return {
+        ok: false,
+        failure: aiPromptsFailure('INVALID_REQUEST', 'excludedIds entries must not be empty'),
+      }
+    }
+    if (candidate.length > EXCLUDED_ID_MAX_LENGTH) {
+      return {
+        ok: false,
+        failure: aiPromptsFailure(
+          'INVALID_REQUEST',
+          `excludedIds entries must be at most ${String(EXCLUDED_ID_MAX_LENGTH)} characters`,
+        ),
+      }
+    }
+    dedup.add(candidate)
+  }
+  return { ok: true, data: dedup }
 }
 
 function fail(failure: AiPromptsFailure): ValidateAiPromptsRequestResult {

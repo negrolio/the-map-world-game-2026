@@ -5,7 +5,7 @@ alwaysApply: false
 
 # Estado actual post-MVP — The Map World Game 2026
 
-**Estado de referencia:** 2026-05-13 (actualizado con cierre de **i18n ES/EN**).
+**Estado de referencia:** 2026-05-26 (actualizado con cierre de **modo aprendizaje**, **modo AI trivia** y avance en `main` de **persistencia de riddles en Convex** —pendiente smoke local y deploy preview/prod—).
 
 Este documento es el punto de entrada para entender dónde está hoy la app y cómo avanzar sin mezclar definiciones cerradas del MVP con nuevas features.
 
@@ -38,7 +38,28 @@ También está cerrada la iteración **Multilenguaje (i18n ES/EN)**:
 - [`../tasks/i18n-multilenguaje/01-decision-catalogo.md`](../tasks/i18n-multilenguaje/01-decision-catalogo.md): decisión de datos (nombres/capitales y `buildQuestionPool` con locale).
 - Plan operativo (referencia, no editar como fuente viva): [`../../.cursor/plans/i18n_por_fases_1671c705.plan.md`](../../.cursor/plans/i18n_por_fases_1671c705.plan.md).
 
-Estos archivos quedan como **documentación histórica y trazabilidad**. No conviene seguir agregando nuevas fases o features dentro de ellos salvo correcciones de estado, links o aclaraciones de decisiones ya tomadas.
+También está cerrada la iteración **Modo aprendizaje** (Wikipedia + backend Vercel Functions, Fase 1 + rate limit + Fase 2 deploy HTTPS):
+
+- [`../tasks/backend-related-features/README.md`](../tasks/backend-related-features/README.md): índice de iteraciones de backend.
+- [`../tasks/backend-related-features/modo-aprendizaje/01-prd-modo-aprendizaje.md`](../tasks/backend-related-features/modo-aprendizaje/01-prd-modo-aprendizaje.md): PRD formal.
+- [`../tasks/backend-related-features/modo-aprendizaje/03-fase-1-checklist.md`](../tasks/backend-related-features/modo-aprendizaje/03-fase-1-checklist.md) y [`04-fase-2-deploy.md`](../tasks/backend-related-features/modo-aprendizaje/04-fase-2-deploy.md): cierre de Fase 1 y deploy HTTPS.
+- Decisiones complementarias resueltas: resolución de idioma en Wikipedia ([`bugs-or-changes/03-prd-wikipedia-locale-resolution.md`](../tasks/backend-related-features/modo-aprendizaje/bugs-or-changes/03-prd-wikipedia-locale-resolution.md)) y rediseño UX del Home ([`bugs-or-changes/02-prd-home-page-ux-cards.md`](../tasks/backend-related-features/modo-aprendizaje/bugs-or-changes/02-prd-home-page-ux-cards.md)).
+
+También está cerrada la iteración **Modo AI trivia** (preguntas redactadas por LLM + tags temáticos, approach B con validaciones V1–V8 server-side, Gemini Flash detrás del adaptador `LlmClient`, Fase 1 + Fase 2 deploy notes):
+
+- [`../tasks/backend-related-features/modo-ai-trivia/00-decision-approach-ai-y-data-retrieval.md`](../tasks/backend-related-features/modo-ai-trivia/00-decision-approach-ai-y-data-retrieval.md): decisión de approach (LLM + validación server-side, sin retrieval).
+- [`../tasks/backend-related-features/modo-ai-trivia/01-prd-modo-ai-trivia.md`](../tasks/backend-related-features/modo-ai-trivia/01-prd-modo-ai-trivia.md): PRD formal (con callout de superseding hacia `riddle-storage-convex/` en lo relativo a persistencia).
+- [`../tasks/backend-related-features/modo-ai-trivia/03-deploy-fase-2.md`](../tasks/backend-related-features/modo-ai-trivia/03-deploy-fase-2.md): operativa de deploy y métricas.
+
+Iteración **Persistencia de riddles en Convex** (extiende modo AI trivia): **implementada en `main`** (Fases 1–7 + 8.1 + 9.1–9.2 del plan), **pendiente** smoke local (Tarea 8.2) y deploy preview/prod + smoke HTTPS (Tarea 9.3). Cuando esos dos pasos cierren, este bloque pasa al listado de iteraciones cerradas. Documentación:
+
+- [`../tasks/backend-related-features/riddle-storage-convex/README.md`](../tasks/backend-related-features/riddle-storage-convex/README.md): índice vivo de la iteración.
+- [`../tasks/backend-related-features/riddle-storage-convex/00-decision-persistencia-riddles-convex.md`](../tasks/backend-related-features/riddle-storage-convex/00-decision-persistencia-riddles-convex.md): ADR D1–D9.
+- [`../tasks/backend-related-features/riddle-storage-convex/01-prd-riddle-storage-convex.md`](../tasks/backend-related-features/riddle-storage-convex/01-prd-riddle-storage-convex.md): PRD formal con §0 de cambios respecto a iteraciones previas.
+- [`../tasks/backend-related-features/riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md`](../tasks/backend-related-features/riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md): plan vivo con checklist por fase.
+- [`../tasks/backend-related-features/riddle-storage-convex/03-deploy-fase-2.md`](../tasks/backend-related-features/riddle-storage-convex/03-deploy-fase-2.md): operativa de smoke local + deploy + métricas + rollback.
+
+Estos archivos quedan como **documentación histórica y trazabilidad**. No conviene seguir agregando nuevas fases o features dentro de ellos salvo correcciones de estado, links o aclaraciones de decisiones ya tomadas (regla en [`../../.cursor/rules/docs-tasks-conventions.mdc`](../../.cursor/rules/docs-tasks-conventions.mdc)).
 
 ---
 
@@ -58,6 +79,9 @@ La app ya cuenta con:
 - **Sistema visual unificado**: tokens (`src/styles/tokens.css`) con paleta madera + pergamino y tipografía Lilita One/Nunito locales (`src/styles/fonts/`), primitives (`src/components/ui/`: `ChunkyButton`, `Panel`, `Alert`, `Badge`, `FieldInput`, `FieldSelect`, `FieldRadioGroup`, `OverlayBand`, `PlayerCard`) y paleta del mapa centralizada en `src/components/world-map-palette.ts`.
 - **Vistas extraídas** desde `App.tsx`: `HomeView`, `SetupView`, `GameShell`, `ResultsView` viven en `src/features/<feature>/`.
 - **Internacionalización (ES/EN):** `i18next` + `react-i18next`; idioma inicial según `localStorage` (clave versionada) → navegador normalizado (`es`/`en`) → fallback **`es`**; persistencia al cambiar; `document.documentElement.lang` sincronizado; selector de idioma en **Setup** (`#app-locale`). Recursos en `src/i18n/` (namespaces `common`, `home`, `setup`, `game`, `results`, `aria`, `app`, `validation`, `errors`). Tests globales fijan `es` en `src/test/setup.ts`; errores de API y validación Zod se muestran por **código** → claves i18n. **Datos de preguntas:** prompts localizados vía `buildQuestionPool` con `locale` y capa `src/data/country-localization.ts` + `capital-es-map.json` (detalle en [`01-decision-catalogo.md`](../tasks/i18n-multilenguaje/01-decision-catalogo.md)). E2E ajustados a copy bilingüe y locale forzado donde hace falta.
+- **Modo aprendizaje:** modo de exploración libre (sin puntaje) con ficha Wikipedia por país. Backend en Vercel Functions (`api/v1/learn/*` + `server/learn/`) con `WikipediaClient`, resolución de idioma vía Wikidata sitelinks (`shared/wikipedia-sitelinks.json`), caché y rate limit por IP. Frontend en `src/features/learn/`. Deploy HTTPS en producción.
+- **Modo AI trivia:** tercera opción de quiz junto a `country` / `capital`; el `prompt` lo redacta un LLM (Gemini Flash detrás del adaptador `LlmClient`) con multi-select de tags temáticos (`historia`, `política`, `geografía`, `flora-y-fauna`, `cultura-general`, `música`, `literatura`, `cine`, `deportes`). Hasta 3 intentos por ronda con score escalonado (1/0.5/0.25). Backend valida la salida del LLM con reglas V1–V8 (incluye verificación contra Wikipedia del artículo declarado) y emite código `LLM_UNAVAILABLE` / `INSUFFICIENT_GROUNDING_BATCH` si no puede generar; el frontend muestra loading + error views específicos. Anti-cheat fuerza modo `strict` en AI. Rate limit reusado del bucket `prompts:`. Backend en `api/v1/prompts/generate.ts` + `server/prompts/`, frontend en `src/features/setup/AiTriviaTagsPicker*`, `src/features/game/Ai*View*`. Métricas `ai_trivia.*` sin PII en logs server.
+- **Persistencia de riddles en Convex (modo AI trivia):** los riddles validados por V1–V8 se persisten indefinidamente en una tabla `riddles` de Convex (campos: `iso2`, `tag`, `locale`, `riddle`, `source`, `difficulty`, `justification`, `llmProvider`, `validationVersion`, `createdAt`; índices `by_lookup` y `by_origin`). Caché de dos niveles: L1 in-memory por proceso (write-through, sin TTL) + L2 Convex como fuente de verdad. El cliente evita repetir riddles vía `localStorage` (`aiTrivia:seenIds:<locale>`, cap 500) propagando `excludedIds` en cada request; el server devuelve `riddleId` opaco por ítem. Errores Convex → `503 CONVEX_UNAVAILABLE`. Implementado en repo; activación en preview/prod (con Build Command `npx convex deploy --cmd 'npm run build'`) pendiente.
 
 Pendientes deliberados que siguen siendo opcionales desde el cierre MVP:
 
@@ -91,14 +115,14 @@ docs/tasks/<nombre-iteracion>/
 
 El backlog actual de ideas vive en [`../tasks/ideas-features-backlog.md`](../tasks/ideas-features-backlog.md). Algunas líneas posibles para priorizar:
 
-- Mejora del Home.
 - Claridad del CTA que abandona o reinicia una partida.
-- Persistencia local o remota de partidas/puntajes.
+- Persistencia de **puntajes/partidas** en servidor (la persistencia ya disponible cubre solo los `riddles` del modo AI, no los resultados).
 - Tema claro/oscuro (los tokens visuales ya están preparados para variar `:root`).
 - Ampliar i18n (más locales, contenido dinámico, revisión de copy por mercado) sobre la base ya entregada en [`../tasks/i18n-multilenguaje/`](../tasks/i18n-multilenguaje/).
-- Modo aprendizaje.
+- Mensajes de error más empáticos y contextualizados.
+- Pan del mapa: revisión de la curva al arrastrar.
 
-Antes de implementar una de estas líneas, conviene convertirla en una iteración concreta con alcance, criterios de aceptación, riesgos y plan de test.
+Antes de implementar una de estas líneas, conviene convertirla en una iteración concreta con alcance, criterios de aceptación, riesgos y plan de test, siguiendo la convención de [`../../.cursor/rules/docs-tasks-conventions.mdc`](../../.cursor/rules/docs-tasks-conventions.mdc) (carpeta por feature; PRDs y decisiones inmutables; callout de superseding ante choques).
 
 ---
 

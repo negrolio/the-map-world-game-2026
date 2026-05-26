@@ -1,6 +1,7 @@
 import { applyPromptsRateLimitIfNeeded } from '../../_lib/apply-prompts-rate-limit.js'
 import {
   applyCorsHeaders,
+  CORS_ALLOW_METHODS_POST,
   handleCorsPreflightIfNeeded,
   parseAllowedOrigins,
 } from '../../_lib/cors.js'
@@ -17,11 +18,11 @@ export default async function handler(
   loadLocalEnvIfNeeded()
 
   const allowedOrigins = parseAllowedOrigins()
-  if (handleCorsPreflightIfNeeded(req, res, allowedOrigins)) {
+  if (handleCorsPreflightIfNeeded(req, res, allowedOrigins, CORS_ALLOW_METHODS_POST)) {
     return
   }
 
-  applyCorsHeaders(req, res, allowedOrigins)
+  applyCorsHeaders(req, res, allowedOrigins, CORS_ALLOW_METHODS_POST)
 
   if (applyPromptsRateLimitIfNeeded(req, res)) {
     return

@@ -15,6 +15,12 @@ export interface FetchAiPromptsInput {
   readonly tags: readonly string[]
   readonly locale: AppLocale
   readonly seed?: number
+  /**
+   * Identificadores opacos (`AiPromptItem.riddleId`) ya vistos en este
+   * dispositivo. El servidor los excluye al elegir variantes. Solo se
+   * envía si tiene al menos un elemento.
+   */
+  readonly excludedIds?: readonly string[]
   readonly signal?: AbortSignal
   readonly fetchImpl?: typeof fetch
 }
@@ -48,6 +54,9 @@ export async function fetchAiPrompts(
     tags: input.tags,
     locale: input.locale,
     ...(typeof input.seed === 'number' ? { seed: input.seed } : {}),
+    ...(input.excludedIds && input.excludedIds.length > 0
+      ? { excludedIds: input.excludedIds }
+      : {}),
   }
   const fetchImpl = input.fetchImpl ?? fetch
   try {
@@ -113,6 +122,7 @@ function parseSuccess(body: unknown): AiPromptsResponse | null {
 function parseItem(raw: unknown): AiPromptItem | null {
   if (!raw || typeof raw !== 'object') return null
   const record = raw as Record<string, unknown>
+  if (typeof record.riddleId !== 'string' || record.riddleId.length === 0) return null
   if (typeof record.iso2 !== 'string') return null
   const tagRaw = typeof record.tag === 'string' ? record.tag.trim().toLowerCase() : ''
   if (!tagRaw || !isAiTriviaTagId(tagRaw)) return null
@@ -121,6 +131,7 @@ function parseItem(raw: unknown): AiPromptItem | null {
   const source = parseSource(record.source)
   if (!source) return null
   return {
+    riddleId: record.riddleId,
     iso2: record.iso2.toUpperCase(),
     tag: tagRaw,
     riddle: record.riddle,

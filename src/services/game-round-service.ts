@@ -38,6 +38,7 @@ export function beginPlayingSession(
       ...base,
       attempts: [],
       ...(item.aiSource ? { aiSource: item.aiSource } : {}),
+      ...(item.aiRiddleId ? { aiRiddleId: item.aiRiddleId } : {}),
     }
   })
 

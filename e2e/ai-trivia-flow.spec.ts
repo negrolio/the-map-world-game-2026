@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test'
 import { goToSetup } from './helpers'
 
 interface MockPromptItem {
+  readonly riddleId: string
   readonly iso2: string
   readonly tag: string
   readonly riddle: string
@@ -16,6 +17,7 @@ interface MockPromptItem {
 
 const SAMPLE_ITEMS: readonly MockPromptItem[] = [
   {
+    riddleId: 'k73ar1',
     iso2: 'AR',
     tag: 'historia',
     riddle:
@@ -28,6 +30,7 @@ const SAMPLE_ITEMS: readonly MockPromptItem[] = [
     },
   },
   {
+    riddleId: 'k73br1',
     iso2: 'BR',
     tag: 'historia',
     riddle:
@@ -40,6 +43,7 @@ const SAMPLE_ITEMS: readonly MockPromptItem[] = [
     },
   },
   {
+    riddleId: 'k73cl1',
     iso2: 'CL',
     tag: 'historia',
     riddle:
@@ -120,6 +124,58 @@ test.describe('AI trivia mode — happy path', () => {
     }
 
     await expect(page.getByTestId('game-finished-status')).toBeVisible({ timeout: 20_000 })
+  })
+})
+
+test.describe('AI trivia mode — dedupe via excludedIds', () => {
+  test('a second AI request sends excludedIds with the riddleIds from the first response', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+
+    const requests: { excludedIds?: string[] }[] = []
+    let callCount = 0
+    await page.route('**/api/v1/prompts/generate', async (route) => {
+      callCount += 1
+      const postData = route.request().postData()
+      const parsed = postData ? (JSON.parse(postData) as { excludedIds?: string[] }) : {}
+      requests.push({ excludedIds: parsed.excludedIds })
+
+      const items = SAMPLE_ITEMS.map((sample, index) => ({
+        ...sample,
+        riddleId: `${sample.riddleId}-call-${String(callCount)}-i${String(index)}`,
+      }))
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ items }),
+      })
+    })
+
+    await goToSetup(page)
+    await page.getByRole('radio', { name: /IA Trivia|AI Trivia/i }).check()
+    await page.locator('#question-count').fill('3')
+    await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
+    await expect(page.getByTestId('game-shell')).toBeVisible({ timeout: 20_000 })
+
+    expect(callCount).toBeGreaterThanOrEqual(1)
+    expect(requests[0].excludedIds ?? []).toEqual([])
+
+    await page.goto('/')
+    await goToSetup(page)
+    await page.getByRole('radio', { name: /IA Trivia|AI Trivia/i }).check()
+    await page.locator('#question-count').fill('3')
+    await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
+    await expect(page.getByTestId('game-shell')).toBeVisible({ timeout: 20_000 })
+
+    expect(callCount).toBeGreaterThanOrEqual(2)
+    const secondCallExcluded = requests[1].excludedIds ?? []
+    expect(secondCallExcluded.length).toBeGreaterThan(0)
+    expect(secondCallExcluded).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('call-1'),
+      ]),
+    )
   })
 })
 

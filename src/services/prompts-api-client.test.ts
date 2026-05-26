@@ -56,6 +56,7 @@ describe('fetchAiPrompts', () => {
   const validPayload = {
     items: [
       {
+        riddleId: 'k73abc',
         iso2: 'AR',
         tag: 'historia',
         riddle:
@@ -85,7 +86,7 @@ describe('fetchAiPrompts', () => {
     })
   })
 
-  it('returns parsed data on 200 OK with valid payload', async () => {
+  it('returns parsed data on 200 OK with valid payload (including riddleId)', async () => {
     await withBase('http://localhost:3000', async () => {
       const fetchImpl = vi.fn(async () => jsonResponse(validPayload))
       const result = await fetchAiPrompts({
@@ -98,6 +99,76 @@ describe('fetchAiPrompts', () => {
       if (result.ok) {
         expect(result.data.items).toHaveLength(1)
         expect(result.data.items[0].iso2).toBe('AR')
+        expect(result.data.items[0].riddleId).toBe('k73abc')
+      }
+    })
+  })
+
+  it('sends excludedIds in the request body when provided', async () => {
+    await withBase('http://localhost:3000', async () => {
+      const fetchImpl = vi.fn(async () => jsonResponse(validPayload))
+      await fetchAiPrompts({
+        items: [{ iso2: 'AR' }],
+        tags: [],
+        locale: 'es',
+        excludedIds: ['k73abc', 'k73def'],
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+      })
+      const init = (fetchImpl as ReturnType<typeof vi.fn>).mock.calls[0]?.[1] as
+        | RequestInit
+        | undefined
+      expect(init?.body).toBeTruthy()
+      const sent = JSON.parse(init?.body as string) as { excludedIds?: string[] }
+      expect(sent.excludedIds).toEqual(['k73abc', 'k73def'])
+    })
+  })
+
+  it('omits excludedIds from the body when array is empty', async () => {
+    await withBase('http://localhost:3000', async () => {
+      const fetchImpl = vi.fn(async () => jsonResponse(validPayload))
+      await fetchAiPrompts({
+        items: [{ iso2: 'AR' }],
+        tags: [],
+        locale: 'es',
+        excludedIds: [],
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+      })
+      const init = (fetchImpl as ReturnType<typeof vi.fn>).mock.calls[0]?.[1] as
+        | RequestInit
+        | undefined
+      const sent = JSON.parse(init?.body as string) as Record<string, unknown>
+      expect(sent).not.toHaveProperty('excludedIds')
+    })
+  })
+
+  it('rejects items missing riddleId (defensive parsing)', async () => {
+    await withBase('http://localhost:3000', async () => {
+      const payload = {
+        items: [
+          {
+            iso2: 'AR',
+            tag: 'historia',
+            riddle:
+              '¿Qué país declaró su independencia un 9 de julio de 1816 tras un congreso histórico?',
+            difficulty: 'medium',
+            source: {
+              title: 'Congreso de Tucumán',
+              locale: 'es',
+              url: 'https://es.wikipedia.org/wiki/Congreso_de_Tucum%C3%A1n',
+            },
+          },
+        ],
+      }
+      const fetchImpl = vi.fn(async () => jsonResponse(payload))
+      const result = await fetchAiPrompts({
+        items: [{ iso2: 'AR' }],
+        tags: [],
+        locale: 'es',
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+      })
+      expect(result.ok).toBe(false)
+      if (!result.ok) {
+        expect(result.error.code).toBe('INTERNAL_ERROR')
       }
     })
   })
@@ -108,6 +179,7 @@ describe('fetchAiPrompts', () => {
         items: [
           ...validPayload.items,
           {
+            riddleId: 'k73br',
             iso2: 'BR',
             tag: 'historia',
             riddle: 'short',
@@ -115,6 +187,7 @@ describe('fetchAiPrompts', () => {
             source: { title: 'X', locale: 'es', url: 'https://es.wikipedia.org/wiki/X' },
           },
           {
+            riddleId: 'k73cl',
             iso2: 'CL',
             tag: 'unknown-tag',
             riddle: 'whatever',
@@ -142,6 +215,7 @@ describe('fetchAiPrompts', () => {
       const payload = {
         items: [
           {
+            riddleId: 'k73x',
             iso2: 'AR',
             tag: 'historia',
             riddle: 'x',
@@ -169,6 +243,7 @@ describe('fetchAiPrompts', () => {
       const payload = {
         items: [
           {
+            riddleId: 'k73http',
             iso2: 'AR',
             tag: 'historia',
             riddle:

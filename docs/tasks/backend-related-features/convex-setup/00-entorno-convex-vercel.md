@@ -104,4 +104,14 @@ Hasta que no haya tablas/funciones de negocio, el build actual (`npm run build`)
 
 ## 6. Próximo paso (feature)
 
-PRD y decisión: [`../riddle-storage-convex/00-decision-persistencia-riddles-convex.md`](../riddle-storage-convex/00-decision-persistencia-riddles-convex.md), [`../riddle-storage-convex/01-prd-riddle-storage-convex.md`](../riddle-storage-convex/01-prd-riddle-storage-convex.md). Implementación: `RiddleRepository` + tabla `riddles`, dedupe por `excludedIds` en el cliente.
+Estado actual: la feature **`riddle-storage-convex`** ya está implementada (tabla `riddles` con índice `by_lookup`, adaptadores `RiddleRepositoryConvex` + L1, integración con `generate-ai-prompts`, dedupe via `excludedIds` desde el cliente).
+
+Documentos:
+
+| Documento | Rol |
+|-----------|-----|
+| [`../riddle-storage-convex/00-decision-persistencia-riddles-convex.md`](../riddle-storage-convex/00-decision-persistencia-riddles-convex.md) | ADR (D1–D9) |
+| [`../riddle-storage-convex/01-prd-riddle-storage-convex.md`](../riddle-storage-convex/01-prd-riddle-storage-convex.md) | PRD aprobado |
+| [`../riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md`](../riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md) | Plan vivo en formato checklist (con ritual obligatorio entre tareas) |
+
+`CONVEX_URL` queda **obligatorio** en el entorno del backend (Vercel Functions y `vercel dev`); sin ese valor, `/api/v1/prompts/generate` corta con `CONVEX_UNAVAILABLE` (HTTP 503).

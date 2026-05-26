@@ -27,13 +27,6 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
 
 <!-- Agregar nuevas entradas arriba de esta lista, las más recientes primero. -->
 
-- **Preguntas con IA (tags temáticos)** — 2026-05-20
-  - Contexto / problema: el quiz actual usa plantillas fijas (`country` / `capital`). Falta una variante con preguntas redactadas dinámicamente por un LLM, orientadas por **tags temáticos** (`historia`, `arte`, `musica`, `gastronomia`, etc.) sin cambiar el motor del juego ni el catálogo de países objetivo.
-  - Idea / dirección: añadir un toggle “preguntas con IA” + multi-select de tags en Setup; en `startGameWithConfig`, antes de empezar a jugar, llamar a `POST /v1/prompts/generate` para que el backend devuelva el `prompt` por país. **La plataforma es agnóstica del proveedor LLM**: el acceso pasa por un adaptador `LlmClient` y la **primera implementación** se hará con **Gemini Flash** (tier gratuito), pero ni el contrato HTTP ni la lógica de validación/caché dependen de ese proveedor concreto. Validaciones server-side estrictas (ISO, palabras prohibidas, idioma, artículo Wikipedia declarado) + caché + fallback al `prompt` plantilla local.
-  - Impacto estimado: feature · alto.
-  - Esfuerzo estimado: alto.
-  - Notas: documentación de diseño en [`backend-api-vercel/modo-ai-trivia/00-decision-approach-ai-y-data-retrieval.md`](./backend-api-vercel/modo-ai-trivia/00-decision-approach-ai-y-data-retrieval.md) y resumen general en [`backend-api-vercel/00-decision-resumen-planificacion-backend.md`](./backend-api-vercel/00-decision-resumen-planificacion-backend.md). Requiere artefacto adicional `shared/country-forbidden-terms.json`. La elección del proveedor concreto se aísla en una sola fábrica/config, sin enraizarse en plans ni PRDs.
-
 - **Botón “Setup”: el label no comunica que se abandona la partida** — 2026-05-10
   - Contexto / problema: al tocar el botón de setup durante una partida se navega a la pantalla de configuración y **se pierde el progreso** de la ronda en curso; el texto “Setup” suena a ajustes menores y no advierte que implica **salir / reiniciar flujo** de juego.
   - Idea / dirección: renombrar o complementar el CTA (ej. “Nueva partida”, “Opciones y reinicio”, “Salir al menú de juego”) y/o pedir **confirmación** si hay partida activa; revisar `aria-label` y copy en mobile donde el espacio es corto.
@@ -85,16 +78,24 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
   - Esfuerzo estimado: bajo.
   - Notas: revisar copy actual del overlay de feedback (relacionado con MAP-UX-02 F2.4). La base i18n ES/EN ya está en repo; cualquier mejora de tono debe hacerse en recursos `src/i18n/resources/` y claves por idioma.
 
-- **Modo aprendizaje (explorar países sin penalizar)** — 2026-05-10
-  - Contexto / problema: la app solo ofrece modo de adivinanza; no hay forma de explorar libremente para aprender.
-  - Idea / dirección: modo dedicado donde al clickear un país se muestre nombre, bandera y reseña corta (origen Wikipedia / Wikidata REST). Sin puntaje ni penalización.
-  - Impacto estimado: feature / educativo · alto.
-  - Esfuerzo estimado: alto.
-  - Notas: evaluar Wikipedia REST API (resumen + thumbnail), caching para no re-pegar, internacionalización del contenido y modo offline degradado. Definir cómo se entra/sale del modo desde el setup.
-
 ## Promovidas a tarea
 
 <!-- Cuando una idea pase a ejecutarse, mover acá con link a la task creada. -->
+
+- **Persistencia de riddles en Convex (modo AI trivia)** — 2026-05-23 (**implementado en repo, pendiente smoke local + deploy preview/prod**)
+  - Origen: extensión del modo AI trivia ya implementado; reemplaza la caché in-memory con TTL por persistencia en Convex (tabla `riddles`, índices `by_lookup` / `by_origin`, L1 in-memory write-through, dedupe vía `excludedIds` en `localStorage` del cliente, `riddleId` opaco en la respuesta API).
+  - Entregado en `main`: schema + queries Convex, puerto `RiddleRepository` + adaptadores in-memory/Convex/L1, refactor de `generate-ai-prompts`, métricas `cache_hit_l1` / `cache_hit_l2` / `cache_miss` / `convex_errors`, código `503 CONVEX_UNAVAILABLE`, frontend `ai-trivia-seen-ids`, e2e Playwright actualizado. Caché legacy `ai-trivia-cache.ts` eliminada.
+  - Pendiente: Tarea 8.2 (smoke local con `vercel dev` + Convex) y Tarea 9.3 (deploy + smoke HTTPS) — ver [`backend-related-features/riddle-storage-convex/03-deploy-fase-2.md`](./backend-related-features/riddle-storage-convex/03-deploy-fase-2.md).
+  - Documentación: [`backend-related-features/riddle-storage-convex/README.md`](./backend-related-features/riddle-storage-convex/README.md) · ADR [`00-decision-persistencia-riddles-convex.md`](./backend-related-features/riddle-storage-convex/00-decision-persistencia-riddles-convex.md) · PRD [`01-prd-riddle-storage-convex.md`](./backend-related-features/riddle-storage-convex/01-prd-riddle-storage-convex.md) · plan [`02-plan-implementacion-riddle-storage-convex.md`](./backend-related-features/riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md).
+
+- **Preguntas con IA (tags temáticos) — modo AI trivia** — 2026-05-22 (**cerrado en repo**)
+  - Entregado: tercer modo de quiz (`country` / `capital` / `ai`) con multi-select de tags (`historia`, `política`, `geografía`, `flora-y-fauna`, `cultura-general`, `música`, `literatura`, `cine`, `deportes`). Backend `POST /v1/prompts/generate` con LLM (Gemini Flash detrás del adaptador `LlmClient` agnóstico), validaciones V1–V8 (incluye verificación contra Wikipedia del artículo declarado), caché, fallback. Hasta 3 intentos por ronda con score escalonado (1 / 0.5 / 0.25). Anti-cheat fuerza `strict` en AI. Rate limit reusado del bucket `prompts:`. Métricas `ai_trivia.*` sin PII. Cartel de cierre de ronda con link Wikipedia.
+  - Documentación: índice [`backend-related-features/modo-ai-trivia/`](./backend-related-features/modo-ai-trivia/) · decisión approach [`00-decision-approach-ai-y-data-retrieval.md`](./backend-related-features/modo-ai-trivia/00-decision-approach-ai-y-data-retrieval.md) · PRD [`01-prd-modo-ai-trivia.md`](./backend-related-features/modo-ai-trivia/01-prd-modo-ai-trivia.md) · plan [`02-plan-implementacion-modo-ai-trivia.md`](./backend-related-features/modo-ai-trivia/02-plan-implementacion-modo-ai-trivia.md) · deploy [`03-deploy-fase-2.md`](./backend-related-features/modo-ai-trivia/03-deploy-fase-2.md).
+  - Persistencia: el PRD original especificaba "no DB; caché in-memory"; esa decisión fue **sustituida** por la iteración *Persistencia de riddles en Convex* listada arriba (ver callout en línea 3 del PRD AI trivia).
+
+- **Modo aprendizaje (explorar países sin penalizar)** — 2026-05-18 (**cerrado en repo**)
+  - Entregado: modo dedicado donde al clickear un país se abre una ficha Wikipedia (resumen + thumbnail) en el idioma del usuario, sin puntaje ni penalización. Backend Vercel Functions (`api/v1/learn/*` + `server/learn/`) con `WikipediaClient`, resolución vía Wikidata sitelinks (`shared/wikipedia-sitelinks.json`), caché y rate limit por IP. Frontend en `src/features/learn/`. Fase 1 + rate limit + Fase 2 deploy HTTPS cerrados.
+  - Documentación: índice [`backend-related-features/README.md`](./backend-related-features/README.md) · PRD [`modo-aprendizaje/01-prd-modo-aprendizaje.md`](./backend-related-features/modo-aprendizaje/01-prd-modo-aprendizaje.md) · checklist [`03-fase-1-checklist.md`](./backend-related-features/modo-aprendizaje/03-fase-1-checklist.md) · deploy [`04-fase-2-deploy.md`](./backend-related-features/modo-aprendizaje/04-fase-2-deploy.md) · bugs/cambios resueltos en [`bugs-or-changes/`](./backend-related-features/modo-aprendizaje/bugs-or-changes/) (incluye resolución de idioma Wikipedia y rediseño UX del Home).
 
 - **Multilenguaje (i18n) con selector de idioma** — 2026-05-13 (**cerrado en repo**)
   - Entregado: `i18next` + `react-i18next`; locales `es`/`en`; selector en Setup; persistencia en `localStorage` (clave versionada); `document.documentElement.lang`; errores API y validación por código → i18n; prompts de ronda según locale (`buildQuestionPool` + `country-localization` / `capital-es-map.json`). Estado del producto: [`docs/requirements/04-current-state-post-mvp.mdc`](../requirements/04-current-state-post-mvp.mdc) §1 y §2.

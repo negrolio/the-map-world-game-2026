@@ -17,6 +17,7 @@ import { normalizeAppLocale } from './i18n/app-locale'
 import { translateApiErrorCode } from './i18n/translate-api-error'
 import {
   PRODUCT_RULES,
+  addSeenRiddleId,
   advanceToNextRoundOrFinish,
   applyAntiCheatIncident,
   beginPlayingSession,
@@ -24,6 +25,7 @@ import {
   createGameSession,
   fetchAiPrompts,
   getActivePlayerIdForRound,
+  getSeenRiddleIds,
   mapAiItemsToPool,
   submitRoundGuess,
   validateConfig,
@@ -146,6 +148,7 @@ export function App() {
         items: candidateIso2s.map((iso2) => ({ iso2 })),
         tags: config.tags ?? [],
         locale: appLocale,
+        excludedIds: getSeenRiddleIds(appLocale),
         signal: abortController.signal,
       })
 
@@ -161,10 +164,15 @@ export function App() {
           canRetry:
             promptsResult.error.code === 'LLM_UNAVAILABLE' ||
             promptsResult.error.code === 'LLM_RATE_LIMITED' ||
+            promptsResult.error.code === 'CONVEX_UNAVAILABLE' ||
             promptsResult.error.code === 'INTERNAL_ERROR',
           config,
         })
         return
+      }
+
+      for (const item of promptsResult.data.items) {
+        addSeenRiddleId(appLocale, item.riddleId)
       }
 
       const { pool, droppedCount } = mapAiItemsToPool({
