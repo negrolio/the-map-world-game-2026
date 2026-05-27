@@ -1,21 +1,23 @@
-# Convex + Vercel — entorno listo (pre-feature)
+# Convex + Vercel — entorno listo
 
 **Proyecto Convex:** `convex-country-riddles` (team `leo-mol-s-projects`, Vercel Marketplace).  
-**Dashboard dev:** [unique-echidna-841](https://dashboard.convex.dev/d/unique-echidna-841)
+**Dashboard dev:** [unique-echidna-841](https://dashboard.convex.dev/d/unique-echidna-841)  
+**Deployment prod:** `standing-fox-900` → `https://standing-fox-900.convex.cloud`  
+**Snapshot operativo (envs, build, decisiones):** [`../../../operations/deployment-state.md`](../../../operations/deployment-state.md)
 
 Arquitectura acordada: **Opción 1** — lógica en Vercel Functions (`api/` + `server/`), Convex solo como almacén. El frontend **no** llama a Convex directamente.
 
 ---
 
-## 1. Estado actual (post `npx convex dev --once`)
+## 1. Estado actual
 
 | Pieza | Estado |
 |-------|--------|
 | `convex` en `package.json` | Instalado (`1.39.1`, `--ignore-scripts`) |
-| Carpeta `convex/` | `_generated/`, `schema.ts` (vacío), `ping.ts` |
-| Credenciales CLI | `~/.convex/config.json` (local, no commitear) |
-| `.env.local` | Convex añadió `CONVEX_DEPLOYMENT`, `VITE_CONVEX_URL`, `VITE_CONVEX_SITE_URL` |
-| Vercel env | `CONVEX_DEPLOY_KEY` en Preview + Production (Marketplace) |
+| Carpeta `convex/` | `schema.ts` (`riddles`), `riddles.ts`, `ping.ts`, `_generated/` commiteado |
+| Deployment prod | `standing-fox-900` activo en Vercel (`CONVEX_URL` + build con `convex deploy`) |
+| Deployment dev | `unique-echidna-841` — iteración local de schema/funciones (`npm run convex:dev`) |
+| Vercel env | `CONVEX_URL`, `CONVEX_DEPLOY_KEY`, `GEMINI_API_KEY` (Production) |
 
 ---
 
@@ -31,12 +33,17 @@ Arquitectura acordada: **Opción 1** — lógica en Vercel Functions (`api/` + `
 
 ### Acción manual en `.env.local`
 
-Añadir (copiar el valor de `VITE_CONVEX_URL`):
+**Catálogo compartido (recomendado):** apuntar `CONVEX_URL` al deployment **prod** para que los riddles generados en local sirvan en Production (misma fuente de verdad que Vercel). Mantener `CONVEX_DEPLOYMENT=dev:unique-echidna-841` para que `npm run convex:dev` siga sincronizando código al deployment dev.
 
 ```bash
-# Mismo URL que VITE_CONVEX_URL; solo servidor (vercel dev / Functions). No usar VITE_* en server/.
-CONVEX_URL=https://<tu-deployment-dev>.convex.cloud
+# Runtime del backend local (vercel dev / Functions). Mismo host que prod Convex.
+CONVEX_URL=https://standing-fox-900.convex.cloud
+
+# CLI: convex dev sigue usando el deployment dev (no mezcla datos con prod).
+CONVEX_DEPLOYMENT=dev:unique-echidna-841
 ```
+
+**Alternativa (solo sandbox de datos):** `CONVEX_URL` al deployment dev (`https://unique-echidna-841.convex.cloud`). Útil para probar schema sin escribir en prod; los riddles no se comparten con Production.
 
 Sin `CONVEX_URL`, el adaptador Convex del backend no podrá conectar en local.
 
@@ -79,12 +86,12 @@ npx convex run ping:health
 
 ---
 
-## 4. Deploy en Vercel (cuando existan funciones en `convex/`)
+## 4. Deploy en Vercel
 
 **Build Command** (Dashboard → Settings → Build & Development Settings):
 
 ```bash
-npx convex deploy --cmd 'npm run build'
+npx convex deploy --typecheck=disable --cmd 'npm run build'
 ```
 
 Requisitos:
@@ -92,7 +99,9 @@ Requisitos:
 - `CONVEX_DEPLOY_KEY` ya provisionada por Marketplace.
 - `CONVEX_URL` apuntando al deployment **prod** de Convex.
 
-Hasta que no haya tablas/funciones de negocio, el build actual (`npm run build`) sigue funcionando sin este paso.
+`--typecheck=disable` evita un segundo typecheck del CLI de Convex que duplica `tsc -b` del proyecto y emitía falsos errores de narrowing en unions del backend (`AiPromptsResult`, `LearnResult`, etc.). La validación real sigue en `npm run build`.
+
+Cada deploy a Vercel sube schema + funciones de `convex/` a prod antes de compilar el front.
 
 ---
 

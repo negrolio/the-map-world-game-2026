@@ -1,10 +1,10 @@
 # Iteración: backend API (Vercel) — planificación
 
-**Estado actual (2026-05-26):**
+**Estado actual (2026-05-27):**
 
 - **Modo aprendizaje:** cerrado (Fase 1 + rate limit + Fase 2 deploy HTTPS). Ver [`modo-aprendizaje/04-fase-2-deploy.md`](./modo-aprendizaje/04-fase-2-deploy.md) y [`modo-aprendizaje/03-fase-1-checklist.md`](./modo-aprendizaje/03-fase-1-checklist.md).
 - **Modo AI trivia:** cerrado (implementación + rate limit + Fase 2 deploy notes). Ver [`modo-ai-trivia/03-deploy-fase-2.md`](./modo-ai-trivia/03-deploy-fase-2.md).
-- **Persistencia riddles en Convex:** implementado en repo (Fases 1–7 + 8.1 + 9.1–9.2 del plan); **pendiente** smoke local (Tarea 8.2) y deploy preview/prod + smoke HTTPS (Tarea 9.3). Ver [`riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md`](./riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md) y [`riddle-storage-convex/03-deploy-fase-2.md`](./riddle-storage-convex/03-deploy-fase-2.md).
+- **Persistencia riddles en Convex:** activo en Production (Convex prod + `GEMINI_API_KEY` + build con `convex deploy`). Snapshot: [`../../operations/deployment-state.md`](../../operations/deployment-state.md). Checklist operativo: [`riddle-storage-convex/03-deploy-fase-2.md`](./riddle-storage-convex/03-deploy-fase-2.md).
 
 Documentación de contexto para que un agente (o humano) pueda **planificar tareas** sin re-leer el hilo de diseño. Al promover nuevas ideas del backlog, crear carpeta hermana con `00-decision-…md`, `01-prd-…md`, etc., según [`.cursor/rules/docs-tasks-conventions.mdc`](../../../.cursor/rules/docs-tasks-conventions.mdc).
 
@@ -14,7 +14,8 @@ Documentación de contexto para que un agente (o humano) pueda **planificar tare
 | [`modo-aprendizaje/`](./modo-aprendizaje/) | **Modo aprendizaje** (cerrado): PRD, plan, deploy Fase 2 y `bugs-or-changes/` |
 | [`modo-ai-trivia/`](./modo-ai-trivia/) | **Modo AI trivia** (cerrado): decisión approach B, PRD, plan, deploy Fase 2 |
 | [`convex-setup/`](./convex-setup/) | **Convex + Vercel** (índice operativo): env vars, dev en dos terminales, deploy. Doc vivo |
-| [`riddle-storage-convex/`](./riddle-storage-convex/) | **Persistencia riddles en Convex** (implementado en repo, pendiente deploy): `00-decision` + `01-prd` + `02-plan` (checklist vivo) + `03-deploy-fase-2` |
+| [`../../operations/deployment-state.md`](../../operations/deployment-state.md) | **Snapshot deployment** (Vercel + Convex prod + envs; sin secretos) |
+| [`riddle-storage-convex/`](./riddle-storage-convex/) | **Persistencia riddles en Convex** (activo en prod): `00-decision` + `01-prd` + `02-plan` + `03-deploy-fase-2` |
 
 **Ideas de origen en backlog:** [`ideas-features-backlog.md`](../ideas-features-backlog.md)
 

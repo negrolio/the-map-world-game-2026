@@ -2,7 +2,7 @@
 
 **Audiencia:** operador humano del proyecto Vercel + Convex.
 **Estado:** ready (Fases 1–7 + 8.1 + 9.1–9.2 del plan están en `main`; este checklist guía la activación en preview/production).
-**Referencias:** [`02-plan-implementacion-riddle-storage-convex.md`](./02-plan-implementacion-riddle-storage-convex.md) Tareas 8.2 y 9.3, [`01-prd-riddle-storage-convex.md`](./01-prd-riddle-storage-convex.md) §8 Fase 2 y §5.4 RNF-T10, [`../convex-setup/00-entorno-convex-vercel.md`](../convex-setup/00-entorno-convex-vercel.md), [`.cursor/rules/privacy.mdc`](../../../../.cursor/rules/privacy.mdc), [`.cursor/rules/dependency-security.mdc`](../../../../.cursor/rules/dependency-security.mdc).
+**Referencias:** [`02-plan-implementacion-riddle-storage-convex.md`](./02-plan-implementacion-riddle-storage-convex.md) Tareas 8.2 y 9.3, [`01-prd-riddle-storage-convex.md`](./01-prd-riddle-storage-convex.md) §8 Fase 2 y §5.4 RNF-T10, [`../convex-setup/00-entorno-convex-vercel.md`](../convex-setup/00-entorno-convex-vercel.md), [`../../../operations/deployment-state.md`](../../../operations/deployment-state.md), [`.cursor/rules/privacy.mdc`](../../../../.cursor/rules/privacy.mdc), [`.cursor/rules/dependency-security.mdc`](../../../../.cursor/rules/dependency-security.mdc).
 
 Esta guía cubre las **Tareas 8.2 (smoke local prod-like)** y **9.3 (deploy notes)** del plan: arrancar Convex en local y verificar que la persistencia de riddles + `excludedIds` funcionan end-to-end, configurar las env vars en Vercel, hacer el deploy y validar HTTPS.
 
@@ -36,9 +36,12 @@ Confirmar que existen (sin commitear):
 
 ```bash
 CONVEX_DEPLOYMENT=dev:unique-echidna-841
-CONVEX_URL=https://unique-echidna-841.convex.cloud   # mismo host que VITE_CONVEX_URL pero sin prefijo
+# Catálogo compartido con prod (recomendado):
+CONVEX_URL=https://standing-fox-900.convex.cloud
 GEMINI_API_KEY=<key real o vacía para forzar LLM_UNAVAILABLE>
 ```
+
+> Ver decisión de catálogo único en [`../../../operations/deployment-state.md`](../../../operations/deployment-state.md) §Decisiones de operación.
 
 ### 2.2 Levantar el stack
 
@@ -115,10 +118,12 @@ Cuando todos estos casos pasen, marcar los checkboxes de **Tarea 8.2** en [`02-p
 En **Vercel → Settings → Build & Development Settings**, confirmar:
 
 ```bash
-npx convex deploy --cmd 'npm run build'
+npx convex deploy --typecheck=disable --cmd 'npm run build'
 ```
 
-(Ya documentado en [`../convex-setup/00-entorno-convex-vercel.md`](../convex-setup/00-entorno-convex-vercel.md) §4. Antes de esta iteración el comando estaba opcional; con `riddles` en uso pasa a **obligatorio**.)
+(Ya documentado en [`../convex-setup/00-entorno-convex-vercel.md`](../convex-setup/00-entorno-convex-vercel.md) §4. Con `riddles` en uso es **obligatorio**.)
+
+**Nota `--typecheck=disable`:** el CLI de Convex corre un typecheck propio sobre `api/` + `server/` con defaults distintos a `tsconfig.api.json`. Eso generaba líneas `error TS2339` en los build logs de Vercel aunque `npm run build` (`tsc -b`) pasara bien. Desactivarlo no relaja la calidad: el proyecto ya typechequea en `tsc -b` antes de `vite build`.
 
 ### 3.2 Variables de entorno (Preview + Production)
 
