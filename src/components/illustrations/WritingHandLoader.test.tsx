@@ -46,32 +46,36 @@ describe('WritingHandLoader', () => {
     expect(quillImage).toHaveAttribute('filter', 'url(#writing-hand-loader-remove-black)')
   })
 
-  it('respeta prefers-reduced-motion envolviendo keyframes en no-preference', () => {
+  it('inyecta las keyframes top-level (animación siempre activa, sin gate de prefers-reduced-motion)', () => {
+    // Desvío explícito de RF-A04 / RNF-A02 (decisión del PO 2026-05-28): el
+    // loader debe verse animado incluso si el sistema operativo pide reducir
+    // movimiento, porque es feedback funcional de "estoy trabajando".
     renderWithI18n(<WritingHandLoader />)
 
     const style = document.getElementById('writing-hand-loader-keyframes')
-    expect(style?.textContent).toMatch(/prefers-reduced-motion:\s*no-preference/)
+    expect(style?.textContent).not.toMatch(/prefers-reduced-motion/)
     expect(style?.textContent).toMatch(/@keyframes writing-hand-loader-quill\b/)
-    expect(style?.textContent).toMatch(/@keyframes writing-hand-loader-quill-rotate/)
+    expect(style?.textContent).toMatch(/@keyframes writing-hand-loader-quill-tilt/)
     expect(style?.textContent).toMatch(/@keyframes writing-hand-loader-cursive/)
   })
 
-  it('aplica un grupo de rotación anidado a la pluma con pivot en la nib (110,170)', () => {
+  it('anima la pluma con translate en el grupo y tilt en la imagen (pivot nib)', () => {
     renderWithI18n(<WritingHandLoader />)
 
     const quill = document.querySelector('.writing-hand-loader__quill')
-    const rotateGroup = quill?.querySelector('.writing-hand-loader__quill-rotate')
-    const quillImage = rotateGroup?.querySelector('image')
+    const quillImage = quill?.querySelector('image.writing-hand-loader__quill-tilt')
 
-    expect(rotateGroup).toBeInTheDocument()
     expect(quillImage).toBeInTheDocument()
+    expect(quill?.querySelector('.writing-hand-loader__quill-rotate')).toBeNull()
 
     const style = document.getElementById('writing-hand-loader-keyframes')
-    expect(style?.textContent).toMatch(/transform-box:\s*view-box/)
-    expect(style?.textContent).toMatch(/transform-origin:\s*110px\s+170px/)
+    expect(style?.textContent).toMatch(/@keyframes writing-hand-loader-quill-tilt/)
+    expect(style?.textContent).toMatch(
+      /translate\(25\.5px,\s*85px\)\s*rotate\(-3deg\)\s*translate\(-25\.5px,\s*-85px\)/,
+    )
   })
 
-  it('con matchMedia en reduce no aplica animación al grupo de la pluma fuera del media query', () => {
+  it('mantiene la animación incluso con matchMedia reportando reduce (desvío deliberado de RF-A04)', () => {
     vi.spyOn(window, 'matchMedia').mockImplementation((query: string) => {
       const prefersReduce = query.includes('prefers-reduced-motion') && query.includes('reduce')
       const noPreference =
@@ -90,11 +94,13 @@ describe('WritingHandLoader', () => {
 
     renderWithI18n(<WritingHandLoader />)
 
-    const quill = document.querySelector('.writing-hand-loader__quill')
-    expect(quill).toBeInTheDocument()
-    // En jsdom no se computa el media query; lo que validamos es que la
-    // animación vive dentro de `@media (prefers-reduced-motion: no-preference)`
-    // (verificado en el test anterior) y no como animación inline en el grupo.
-    expect(quill).not.toHaveStyle({ animation: expect.stringMatching(/writing-hand-loader/) })
+    // El componente no consulta matchMedia en runtime y el CSS no envuelve
+    // las keyframes en `@media (prefers-reduced-motion)`, por lo que la
+    // animación se aplica sin importar la preferencia del sistema.
+    const style = document.getElementById('writing-hand-loader-keyframes')
+    expect(style?.textContent).not.toMatch(/prefers-reduced-motion/)
+    expect(style?.textContent).toMatch(
+      /\.writing-hand-loader__quill\s*\{[^}]*animation:\s*writing-hand-loader-quill/,
+    )
   })
 })

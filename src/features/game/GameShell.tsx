@@ -268,8 +268,9 @@ export function GameShell({
             data-testid="ai-attempt-feedback"
             role="status"
             aria-live="polite"
-            className="mapgame-feedback-animate flex items-start gap-3 rounded-card border-2 border-wood-dark/80 bg-wood-dark/95 px-4 py-3 shadow-chunky-sm"
+            className="mapgame-feedback-animate rounded-card border-2 border-wood-dark/80 bg-wood-dark/95 px-4 py-3 shadow-chunky-sm"
           >
+            <div className="mapgame-feedback-animate-inner flex items-start gap-3">
             <p className="flex-1 font-display text-lg uppercase tracking-tight text-action md:text-2xl">
               {renderEmphasizedText(
                 t('ai.tryAgain', {
@@ -287,6 +288,7 @@ export function GameShell({
             >
               <span aria-hidden="true">×</span>
             </button>
+            </div>
           </div>
         ) : null}
         {showFeedbackMessage && roundGuess ? (
@@ -295,8 +297,9 @@ export function GameShell({
             data-testid="guess-feedback"
             role="status"
             aria-live="polite"
-            className="mapgame-feedback-animate flex flex-col gap-2 rounded-card border-2 border-wood-dark/80 bg-wood-dark/95 px-4 py-3 shadow-chunky-sm"
+            className="mapgame-feedback-animate rounded-card border-2 border-wood-dark/80 bg-wood-dark/95 px-4 py-3 shadow-chunky-sm"
           >
+            <div className="mapgame-feedback-animate-inner flex flex-col gap-2">
             <div className="flex items-start gap-3">
               <p
                 className={
@@ -335,6 +338,7 @@ export function GameShell({
             activeRound?.aiSource ? (
               <AiSourceLink source={activeRound.aiSource} />
             ) : null}
+            </div>
           </div>
         ) : null}
         {guessSubmitError ? (

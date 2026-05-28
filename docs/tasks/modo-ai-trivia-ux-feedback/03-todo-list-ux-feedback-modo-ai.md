@@ -460,6 +460,29 @@ Ambos se importan vía Vite (`import parchmentUrl from './assets/parchment.png'`
 
 Verificación: `tsc --noEmit`, `eslint` sobre archivos tocados y `vitest run` sobre los suites afectados (`WritingHandLoader.test.tsx` + `AiPromptsLoadingView.test.tsx`) → 9/9 verde tras incorporar la animación de rotación y la simplificación del layout.
 
+### Ajuste post-revisión UX (2026-05-28) — animaciones ignoran `prefers-reduced-motion: reduce`
+
+Tras smoke en dispositivo real (Samsung S22 Ultra / Chrome Android), las animaciones de Fase 1 (carteles de feedback `mapgame-feedback-animate` + `mapgame-feedback-animate-inner`, prompt-reveal `mapgame-prompt-reveal`) y Fase 5 (loader `WritingHandLoader`) no se veían porque el sistema operativo tiene activo "Eliminar animaciones" (devuelve `prefers-reduced-motion: reduce`).
+
+**Decisión del dueño del producto (2026-05-28):** ignorar `reduce` en estas animaciones específicas. Se priorizan dos motivos:
+
+- El **loader** es feedback funcional de "estoy trabajando"; sin la pluma escribiendo, el usuario percibe la pantalla como congelada durante 3–8 s de espera del proveedor LLM.
+- Los **carteles de respuesta/feedback** transmiten información de estado del juego (acertaste / fallaste / cambió la ronda); el pop-in y el pulse son parte de cómo el usuario los detecta sobre el mapa.
+
+**Implementación.** Se quitan los gates de media query previos:
+
+- `src/components/illustrations/WritingHandLoader.tsx` → las `@keyframes` y reglas `.writing-hand-loader__*` quedan top-level, sin envolver en `@media (prefers-reduced-motion: no-preference)`.
+- `src/styles/tokens.css` → se elimina el bloque `@media (prefers-reduced-motion: reduce) { … animation: none }` que neutralizaba `.mapgame-feedback-animate`, `.mapgame-feedback-animate-inner` y `.mapgame-prompt-reveal`.
+
+**Desvío explícito de RF-A04 y RNF-A02** (PRD §accesibilidad pedía respetar `prefers-reduced-motion`). Si en una iteración futura aparece feedback contrario (epilepsia / vestibular sensitivity), se puede:
+
+1. Reintroducir el `@media (reduce)` solo para el pulse de los carteles (mantener el pop-in que es corto y único) y para el `quill-tilt` del loader (mantener traslación + cursive, quitar oscilación).
+2. O exponer una preferencia en la UI separada del setting del sistema.
+
+**Tests adaptados.** `WritingHandLoader.test.tsx` invierte la aserción: el `<style>` inyectado **no** debe contener `prefers-reduced-motion`; las keyframes y la regla `.writing-hand-loader__quill { animation: … }` viven top-level. El test con `matchMedia` mockeado a reduce comprueba que la animación sigue presente (desvío deliberado documentado en el propio test).
+
+Verificación: `tsc --noEmit` + `vitest run` sobre suites tocadas → verde.
+
 ---
 
 ## Fase 6 — F5: resumen final con adivinanzas

@@ -192,8 +192,13 @@ h3,
  *
  * Pop-in al aparecer + pulso ligero mientras el cartel está visible. El
  * cartel se mantiene en pantalla hasta que el jugador presiona la X
- * (manejado en `GameShell.tsx`), por eso no animamos la salida. Respeta
- * `prefers-reduced-motion`.
+ * (manejado en `GameShell.tsx`), por eso no animamos la salida.
+ *
+ * Las animaciones NO respetan `prefers-reduced-motion: reduce` por decisión
+ * del dueño del producto (2026-05-28): los carteles transmiten información
+ * de estado del juego y se quiere garantizar que llamen la atención incluso
+ * en dispositivos con el sistema operativo pidiendo reducir movimiento
+ * (desvío explícito de RF-A04 / RNF-A02 — trazado en el todo de Fase 5).
  */
 @keyframes mapgame-feedback-pop {
   0% {
@@ -220,12 +225,18 @@ h3,
   }
 }
 
+/* Pop en el contenedor; pulse en hijo — WebKit/iOS no compone bien dos
+ * animaciones de `transform` en el mismo nodo (suelen quedar estáticos). */
 .mapgame-feedback-animate {
   transform-origin: center;
   will-change: transform, opacity;
-  animation:
-    mapgame-feedback-pop 320ms ease-out,
-    mapgame-feedback-pulse 1.6s ease-in-out 320ms infinite;
+  animation: mapgame-feedback-pop 320ms ease-out forwards;
+}
+
+.mapgame-feedback-animate-inner {
+  transform-origin: center;
+  will-change: transform;
+  animation: mapgame-feedback-pulse 1.6s ease-in-out 320ms infinite;
 }
 
 /* Prompt reveal — flash de pop (~1 s) al cambiar de ronda para avisar al
@@ -238,9 +249,3 @@ h3,
   animation: mapgame-feedback-pop 1000ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .mapgame-feedback-animate,
-  .mapgame-prompt-reveal {
-    animation: none;
-  }
-}

@@ -24,18 +24,19 @@ const LOADER_STYLE_ID = 'writing-hand-loader-keyframes'
  *   contenedor la recorte (la pluma siempre es la capa superior, jamás
  *   queda tapada por el pergamino).
  *
- * Composición de movimientos de la pluma (dos `<g>` anidados):
- * 1. Grupo exterior `.writing-hand-loader__quill` → `translate` recorriendo
- *    los tres renglones (gesto macro de "ir escribiendo línea por línea").
- * 2. Grupo interior `.writing-hand-loader__quill-rotate` → `rotate` oscilante
- *    con `transform-origin` fijado en la nib (110, 170) del viewBox y
- *    `transform-box: view-box` para que la coordenada del pivot sea estable
- *    entre navegadores. Simula el "punteo" vertical de la punta superior
- *    derecha mientras la nib permanece anclada sobre el renglón.
+ * Composición de movimientos de la pluma (sin dos `<g>` animados a la vez —
+ * WebKit/iOS suele ignorar animaciones `transform` anidadas en SVG):
+ * 1. Grupo `.writing-hand-loader__quill` → `translate` por los tres renglones.
+ * 2. `<image class="writing-hand-loader__quill-tilt">` → `rotate` con pivot en
+ *    la nib vía `translate() rotate() translate()` (SVG 1.1, estable en Safari).
  *
  * Sin nuevas dependencias de procesamiento de imágenes (regla
- * `dependency-security.mdc`); animaciones CSS dentro de
- * `@media (prefers-reduced-motion: no-preference)` (RF-F54 / RNF-A02).
+ * `dependency-security.mdc`). Las animaciones se aplican siempre (sin envolver
+ * en `@media (prefers-reduced-motion: no-preference)`): el loader es un
+ * indicador funcional de "estoy trabajando" y el dueño del producto decidió
+ * mantenerlo visible incluso con el sistema operativo pidiendo reducir
+ * movimiento (desvío explícito de RF-F54 / RF-A04 / RNF-A02 — ver Fase 5
+ * "Ajuste post-revisión UX 2026-05-28" en el todo).
  */
 export function WritingHandLoader({ className }: WritingHandLoaderProps) {
   return (
@@ -44,42 +45,43 @@ export function WritingHandLoader({ className }: WritingHandLoaderProps) {
       data-testid="writing-hand-loader"
     >
       <style id={LOADER_STYLE_ID}>{`
-        .writing-hand-loader__quill-rotate {
-          transform-box: view-box;
-          transform-origin: 110px 170px;
+        @keyframes writing-hand-loader-quill {
+          0%, 100% { transform: translate3d(0, 0, 0); }
+          28%      { transform: translate3d(150px, 0, 0); }
+          32%      { transform: translate3d(0, 40px, 0); }
+          58%      { transform: translate3d(150px, 40px, 0); }
+          62%      { transform: translate3d(0, 80px, 0); }
+          88%      { transform: translate3d(150px, 80px, 0); }
         }
-        @media (prefers-reduced-motion: no-preference) {
-          @keyframes writing-hand-loader-quill {
-            0%, 100% { transform: translate(0px, 0px); }
-            28%      { transform: translate(150px, 0px); }
-            32%      { transform: translate(0px, 40px); }
-            58%      { transform: translate(150px, 40px); }
-            62%      { transform: translate(0px, 80px); }
-            88%      { transform: translate(150px, 80px); }
+        /* Pivot en la nib (~15%, 50% del bbox 170×170) sin transform-origin SVG */
+        @keyframes writing-hand-loader-quill-tilt {
+          0%, 100% {
+            transform: translate(25.5px, 85px) rotate(-3deg) translate(-25.5px, -85px);
           }
-          @keyframes writing-hand-loader-quill-rotate {
-            0%, 100% { transform: rotate(-3deg); }
-            50%      { transform: rotate(3deg); }
+          50% {
+            transform: translate(25.5px, 85px) rotate(3deg) translate(-25.5px, -85px);
           }
-          @keyframes writing-hand-loader-cursive {
-            0%, 100% { opacity: 0.25; }
-            45%      { opacity: 0.95; }
-          }
-          .writing-hand-loader__quill {
-            animation: writing-hand-loader-quill 3.6s ease-in-out infinite;
-          }
-          .writing-hand-loader__quill-rotate {
-            animation: writing-hand-loader-quill-rotate 0.5s ease-in-out infinite;
-          }
-          .writing-hand-loader__cursive-line {
-            animation: writing-hand-loader-cursive 2.4s ease-in-out infinite;
-          }
-          .writing-hand-loader__cursive-line--delay-1 {
-            animation-delay: 0.4s;
-          }
-          .writing-hand-loader__cursive-line--delay-2 {
-            animation-delay: 0.8s;
-          }
+        }
+        @keyframes writing-hand-loader-cursive {
+          0%, 100% { opacity: 0.25; }
+          45%      { opacity: 0.95; }
+        }
+        .writing-hand-loader__quill {
+          will-change: transform;
+          animation: writing-hand-loader-quill 3.6s ease-in-out infinite;
+        }
+        .writing-hand-loader__quill-tilt {
+          will-change: transform;
+          animation: writing-hand-loader-quill-tilt 0.5s ease-in-out infinite;
+        }
+        .writing-hand-loader__cursive-line {
+          animation: writing-hand-loader-cursive 2.4s ease-in-out infinite;
+        }
+        .writing-hand-loader__cursive-line--delay-1 {
+          animation-delay: 0.4s;
+        }
+        .writing-hand-loader__cursive-line--delay-2 {
+          animation-delay: 0.8s;
         }
       `}</style>
       <svg
@@ -136,25 +138,20 @@ export function WritingHandLoader({ className }: WritingHandLoaderProps) {
           />
         </g>
 
-        {/* Pluma — bbox 170x170; la nib en aprox (15,85) % del JPEG queda en
-            (85+25.5, 26+144.5) = (110, 170), coincidente con el inicio del
-            primer renglón cuando translate = (0,0). Dos grupos anidados:
-              - exterior: translate por los tres renglones (gesto macro).
-              - interior: rotate oscilante con pivot fijo en la nib, para que
-                la punta superior derecha "vibre" mientras la nib permanece
-                anclada sobre el renglón (gesto micro de la mano que escribe). */}
+        {/* Pluma — bbox 170×170; la nib en ~(15,85) del JPEG → (110,170) del
+            viewBox con translate=(0,0). Un solo `<g>` animado + `<image>` con
+            tilt evita el bug de WebKit con dos transforms animados en cadena. */}
         <g className="writing-hand-loader__quill">
-          <g className="writing-hand-loader__quill-rotate">
-            <image
-              href={quillUrl}
-              x="85"
-              y="26"
-              width="170"
-              height="170"
-              preserveAspectRatio="xMidYMid meet"
-              filter="url(#writing-hand-loader-remove-black)"
-            />
-          </g>
+          <image
+            className="writing-hand-loader__quill-tilt"
+            href={quillUrl}
+            x="85"
+            y="26"
+            width="170"
+            height="170"
+            preserveAspectRatio="xMidYMid meet"
+            filter="url(#writing-hand-loader-remove-black)"
+          />
         </g>
       </svg>
     </div>
