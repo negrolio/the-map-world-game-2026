@@ -22,7 +22,7 @@ export interface AntiCheatPolicyResult {
  * - `true` durante una partida en curso con ronda activa abierta
  *   (sin `guess` aún), donde sí corresponde contar incidentes.
  */
-export function isAntiCheatActive(session: GameSession | null): boolean {
+export function isAntiCheatActive(session: GameSession | null): session is GameSession {
   if (!session || session.status !== 'playing') {
     return false
   }

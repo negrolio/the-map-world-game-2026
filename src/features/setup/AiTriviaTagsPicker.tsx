@@ -15,8 +15,6 @@ export interface AiTriviaTagsPickerProps {
   readonly className?: string
 }
 
-const PSEUDO_TAG_ALL = 'todas'
-
 const optionBase =
   'inline-flex cursor-pointer items-center gap-2 rounded-control border-2 border-wood-dark/40 bg-paper-mute px-3 py-1.5 font-body text-sm text-ink transition-colors hover:border-wood-dark/70 focus-within:border-wood-dark'
 
@@ -90,5 +88,3 @@ export function AiTriviaTagsPicker(props: AiTriviaTagsPickerProps) {
     </fieldset>
   )
 }
-
-export const __AI_TAGS_PSEUDO_TAG_ALL_FOR_TESTS = PSEUDO_TAG_ALL
