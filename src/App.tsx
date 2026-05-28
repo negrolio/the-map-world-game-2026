@@ -26,6 +26,7 @@ import {
   fetchAiPrompts,
   getActivePlayerIdForRound,
   getSeenRiddleIds,
+  isAntiCheatActive,
   mapAiItemsToPool,
   submitRoundGuess,
   validateConfig,
@@ -347,7 +348,7 @@ export function App() {
 
   const handleAntiCheatIncident = useCallback((source: 'window_blur' | 'document_hidden'): void => {
     setGameSession((currentSession) => {
-      if (!currentSession || currentSession.status !== 'playing') {
+      if (!isAntiCheatActive(currentSession)) {
         return currentSession
       }
 
@@ -361,7 +362,12 @@ export function App() {
   }, [tGame])
 
   useEffect(() => {
-    if (!gameSession || gameSession.status !== 'playing') {
+    // F3 (RF-I40..RF-I44): mientras la ronda activa esté cerrada o la partida
+    // no esté en 'playing', no se montan listeners → blur/visibilitychange no
+    // generan incidentes. La frescura de la condición durante la ventana del
+    // remount queda garantizada por la guarda atómica dentro de
+    // `handleAntiCheatIncident` (updater de setGameSession).
+    if (!isAntiCheatActive(gameSession)) {
       return
     }
 

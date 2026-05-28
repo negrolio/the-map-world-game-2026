@@ -282,53 +282,58 @@ Mapea a §"Fase 4" del plan técnico.
 
 ### Tarea 4.1 — Helper puro `isAntiCheatActive`
 
-- [ ] En [`src/services/anticheat-policy.ts`](../../../src/services/anticheat-policy.ts), agregar `export function isAntiCheatActive(session: GameSession | null): boolean`:
+- [x] En [`src/services/anticheat-policy.ts`](../../../src/services/anticheat-policy.ts), agregar `export function isAntiCheatActive(session: GameSession | null): boolean`:
   - `false` si `session === null` o `session.status !== 'playing'`.
   - `false` si la ronda activa tiene `guess` (cerrada).
   - `true` en cualquier otro caso (ronda abierta durante partida).
-- [ ] Sin cambios a `applyAntiCheatIncident` (no se acopla con el motor existente).
+- [x] Sin cambios a `applyAntiCheatIncident` (no se acopla con el motor existente). → Reexport agregado en [`src/services/index.ts`](../../../src/services/index.ts) siguiendo el patrón existente de `applyAntiCheatIncident`.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 4.2 — Guarda en listeners de `App.tsx`
 
-- [ ] En [`src/App.tsx`](../../../src/App.tsx) `useEffect` líneas 363-393, dentro de `handleWindowBlur` y `handleVisibilityChange`, antes de invocar `handleAntiCheatIncident(...)`, consultar el estado **fresco** de `gameSession` (vía `setGameSession(currentSession => …)` o ref) y llamar `isAntiCheatActive(currentSession)`. Si `false`, `return`.
-- [ ] Mantener el lock temporal de 750 ms existente (separa eventos consecutivos del mismo blur).
-- [ ] Confirmar que la cuenta de incidentes previos no se borra (RF-I41).
+- [x] En [`src/App.tsx`](../../../src/App.tsx) `useEffect` líneas 363-393, dentro de `handleWindowBlur` y `handleVisibilityChange`, antes de invocar `handleAntiCheatIncident(...)`, consultar el estado **fresco** de `gameSession` (vía `setGameSession(currentSession => …)` o ref) y llamar `isAntiCheatActive(currentSession)`. Si `false`, `return`. → **Desvío menor del plan §4.2 (más estricto):** la guarda vive en dos puntos para evitar leer un closure stale del handler:
+  1. **Early-return del `useEffect`** (`if (!isAntiCheatActive(gameSession)) return`): cuando la ronda activa pasa a `guess` (cerrada), el effect se desmonta y los listeners se remueven; al avanzar de ronda con `onAdvanceRound`, el effect se vuelve a montar.
+  2. **Guarda atómica dentro de `handleAntiCheatIncident`** (`setGameSession((currentSession) => { if (!isAntiCheatActive(currentSession)) return currentSession … })`): cubre la ventana corta entre `setGameSession(close round)` y el cleanup del effect, donde un handler todavía-registrado podría disparar con sesión closure-stale.
+
+  No se agrega guarda dentro de los handlers porque ahí el `gameSession` por closure es justamente el potencialmente stale; la frescura real la garantiza el updater de `setGameSession`.
+- [x] Mantener el lock temporal de 750 ms existente (separa eventos consecutivos del mismo blur).
+- [x] Confirmar que la cuenta de incidentes previos no se borra (RF-I41). → `applyAntiCheatIncident` sigue sumando `session.incidentCount + 1`; al desmontar/remontar el effect no se toca `incidentCount`.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 4.3 — Tests del helper y de integración
 
-- [ ] En [`src/services/anticheat-policy.test.ts`](../../../src/services/anticheat-policy.test.ts):
-  - `it('isAntiCheatActive devuelve false con session null')`.
-  - `it('isAntiCheatActive devuelve false con status != playing')`.
-  - `it('isAntiCheatActive devuelve false con ronda activa con guess')`.
-  - `it('isAntiCheatActive devuelve true con ronda activa abierta')`.
-- [ ] En [`src/App.test.tsx`](../../../src/App.test.tsx) (o test dedicado), simular partida modo AI:
-  - `it('blur con ronda cerrada no incrementa incidentCount')`.
-  - `it('blur con ronda abierta aborta partida en strict')`.
-  - `it('múltiples blur/visibilitychange con ronda cerrada → 0 incidentes')`.
+- [x] En [`src/services/anticheat-policy.test.ts`](../../../src/services/anticheat-policy.test.ts):
+  - `it('devuelve false con session null')`.
+  - `it('devuelve false con status != playing')` — cubre `setup`, `finished`, `aborted`.
+  - `it('devuelve false con ronda activa con guess (cerrada)')`.
+  - `it('devuelve true con ronda activa abierta durante partida')` — cubre strict y normal.
+- [x] En test dedicado [`src/App.anticheat-pause.test.tsx`](../../../src/App.anticheat-pause.test.tsx), simular partida en strict + country (el helper es agnóstico al modo, evita la complejidad de mockear `/v1/prompts/generate`):
+  - `it('blur con ronda cerrada no incrementa incidentCount ni aborta la partida')` — click en `geo-ar` cierra la ronda, blur posterior no aborta.
+  - `it('blur con ronda abierta sigue abortando en strict (regresion RF-I43)')` — sin click previo, blur aborta con `incidentCount === 1`.
+  - `it('multiples blur con ronda cerrada no acumulan incidentes y la siguiente ronda abierta sigue contando como 1')` — 3 blurs con ronda cerrada → ningún incidente; tras `advance-round-button`, blur con ronda abierta aborta con `incidentCount === 1`.
+- [x] **Nota técnica:** se introdujo `vi.mock('react-simple-maps', ...)` con una sola geografía (`AR`) — patrón heredado de [`WorldMap.test.tsx`](../../../src/components/WorldMap.test.tsx). Permite que el click en `geo-ar` invoque al `onClick` real del `WorldMap`, resuelva el ISO2 vía `resolveCountryClickFromTopologyProperties` y dispare `submitRoundGuess` → `Round.guess` queda asignado. Se elige archivo dedicado en lugar de extender `App.test.tsx` para no aplicar el mock global a todos los tests existentes.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ---
 
@@ -338,68 +343,122 @@ Mapea a §"Fase 5" del plan técnico.
 
 ### Tarea 5.1 — Componente `WritingHandLoader`
 
-- [ ] Crear directorio `src/components/illustrations/` (si no existe).
-- [ ] Crear [`src/components/illustrations/WritingHandLoader.tsx`](../../../src/components/illustrations/WritingHandLoader.tsx):
+- [x] Crear directorio `src/components/illustrations/` (si no existe).
+- [x] Crear [`src/components/illustrations/WritingHandLoader.tsx`](../../../src/components/illustrations/WritingHandLoader.tsx):
   - Componente nombrado, sin default export.
   - Props: `{ readonly className?: string }`.
   - SVG inline con escena chunky: papel (`#f5e6c4`), mano + pluma (`#7d6845` / `#3a2412`) sobre fondo pergamino.
   - `<style>` con `@keyframes` envuelto en `@media (prefers-reduced-motion: no-preference)`. Animaciones sugeridas: traslación leve de la pluma + opacidad de "trazo" en el papel.
   - `aria-hidden="true"` en el SVG raíz.
-- [ ] **Primera pasada del asistente**: si el resultado no luce bien, refinar el mismo SVG/CSS — sin cambiar a Lottie / GIF / dependencias externas (regla `dependency-security.mdc`).
+- [x] **Primera pasada del asistente**: si el resultado no luce bien, refinar el mismo SVG/CSS — sin cambiar a Lottie / GIF / dependencias externas (regla `dependency-security.mdc`).
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 5.2 — Tests del loader
 
-- [ ] Crear [`src/components/illustrations/WritingHandLoader.test.tsx`](../../../src/components/illustrations/WritingHandLoader.test.tsx):
+- [x] Crear [`src/components/illustrations/WritingHandLoader.test.tsx`](../../../src/components/illustrations/WritingHandLoader.test.tsx):
   - `it('renderiza un SVG con aria-hidden')` (smoke).
   - `it('respeta prefers-reduced-motion')` — si se decide testear vía `window.matchMedia` mock, validar que sin el query la animación queda inactiva.
-- [ ] Usar el wrapper [`src/test/render-with-i18n.tsx`](../../../src/test/render-with-i18n.tsx).
+- [x] Usar el wrapper [`src/test/render-with-i18n.tsx`](../../../src/test/render-with-i18n.tsx).
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 5.3 — Integrar en `AiPromptsLoadingView`
 
-- [ ] En [`src/features/game/AiPromptsLoadingView.tsx`](../../../src/features/game/AiPromptsLoadingView.tsx):
+- [x] En [`src/features/game/AiPromptsLoadingView.tsx`](../../../src/features/game/AiPromptsLoadingView.tsx):
   - Importar `WritingHandLoader` de `../../components/illustrations/WritingHandLoader`.
   - Renderizar `<WritingHandLoader className="mx-auto" />` entre el `<h1>` y el `<Panel>`.
   - Preservar copy (`ai.loadingBadge`, `ai.loadingTitle`, `ai.loadingLead`, `ai.loadingHint`, `ai.cancel`) y botón cancelar.
-- [ ] Verificar que `role="status"` del `<Alert>` sigue siendo el ancla de accesibilidad.
+- [x] Verificar que `role="status"` del `<Alert>` sigue siendo el ancla de accesibilidad.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 5.4 — Test de la vista de loading
 
-- [ ] Crear o ampliar `src/features/game/AiPromptsLoadingView.test.tsx`:
+- [x] Crear o ampliar `src/features/game/AiPromptsLoadingView.test.tsx`:
   - `it('renderiza WritingHandLoader')`.
   - `it('mantiene copy y botón cancelar')`.
   - `it('cancelar dispara onCancel')`.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
+
+### Ajuste post-revisión UX (2026-05-28)
+
+Tras smoke visual del usuario, se rehace el cuerpo de `WritingHandLoader.tsx` con un approach distinto al de la primera pasada. No se reabre la fase; se documenta acá para trazabilidad.
+
+**Motivación.** El SVG dibujado a mano (mano + pluma stylizadas) no se leía como mano. Se reemplaza por una composición de **dos imágenes provistas por el usuario** (`assets/parchment.png` con alpha y `assets/quill.jpg`, vía `import` Vite) renderizadas como `<image>` dentro de un único `<svg>` con animación CSS.
+
+**Eliminación del fondo de la pluma sin nuevas dependencias** (regla `dependency-security.mdc`). El JPEG de la pluma trae fondo negro; el sistema no tiene ImageMagick disponible y no se agregan deps de procesamiento (`sharp`, `pillow`, etc.). El pergamino se entrega como PNG RGBA, por lo que ya no requiere chroma-key en runtime.
+
+| Imagen | Técnica | Razón |
+|--------|---------|-------|
+| Pergamino (PNG con alpha) | Render directo en `<image>` (sin filter, sin backdrop) | El PNG ya trae el fondo recortado; intentos previos con chroma-key sobre JPEG dejaban asomar el `body::before` del juego. |
+| Pluma (JPEG fondo negro) | Filtro SVG `feColorMatrix` que mapea luminancia → alpha + `feComponentTransfer` cuasi-step (`slope=100`, `intercept=0`) | Cualquier píxel con luminancia ≥ 0.01 es totalmente opaco (azules oscuros, nib dorada y bordes anti-aliased preservados al 100 %); solo el negro puro cae a alpha 0. La iteración previa (`slope=20`) dejaba la pluma con apariencia translúcida. |
+| Pluma (recorte al final del renglón) | `overflow="visible"` en el `<svg>` raíz (atributo SVG + clase `overflow-visible`) | Sin esto, la animación `translate(150px, …)` saca el bbox del quill hasta `x=405` (fuera del `viewBox` 0–360) y el SVG lo recortaba como si el pergamino lo tapara. Con overflow visible la pluma siempre queda como capa superior. |
+
+**Animación.** Tres keyframes dentro de `@media (prefers-reduced-motion: no-preference)` (RF-F54 / RNF-A02):
+
+- `writing-hand-loader-quill` (3.6 s, ease-in-out, infinite, **grupo exterior**): la pluma se desplaza por **tres renglones**, escribiendo de izquierda a derecha (~26 % del ciclo por renglón) con saltos rápidos (~4 %) entre renglones. La nib del JPEG queda en aprox `(15, 85)` del bounding box, y el grupo arranca con la nib sobre el primer renglón en `(110, 170)` del `viewBox 0 0 360 380`.
+- `writing-hand-loader-quill-rotate` (0.5 s, ease-in-out, infinite, **grupo interior**): rotación oscilante de `-3deg` a `+3deg` con `transform-box: view-box` y `transform-origin: 110px 170px` (la nib). Simula el "punteo" vertical: la punta superior derecha sube/baja mientras la nib permanece anclada al renglón. Anidar este grupo dentro del que aplica el `translate` mantiene el pivot estable cuando la pluma se desplaza, porque la rotación se compone en el espacio local del hijo antes de la traslación del padre.
+- `writing-hand-loader-cursive` (2.4 s, ease-in-out, infinite): tres `<path>` Bezier que simulan letra cursiva, con `opacity` titilando entre `0.25` y `0.95`. Stagger vía `animation-delay` (`0`, `0.4s`, `0.8s`).
+
+**Assets**
+
+- `src/components/illustrations/assets/parchment.png` (206 KB, 360×379, PNG RGBA con alpha nativo).
+- `src/components/illustrations/assets/quill.jpg` (11 KB, redimensionado a 320×320 con `sips -Z 320`).
+
+Ambos se importan vía Vite (`import parchmentUrl from './assets/parchment.png'`) para que el bundler aplique hash + caché. Esto agrega dos requests al cargar el loader; se acepta como **desvío explícito de RNF-S05** ("Cero requests adicionales") porque el alternativa (preprocesar a data URL embebido) requiere una dependencia nueva. El patrón es consistente con `src/features/home/HomeView.tsx` y `src/features/learn/CountryLearnModal.tsx`, que ya importan PNGs vía Vite.
+
+**Estructura del DOM.**
+
+```text
+<div data-testid="writing-hand-loader" class="relative max-w-[320px]">
+  <svg viewBox="0 0 360 380" aria-hidden="true">
+    <defs>
+      <filter id="writing-hand-loader-remove-black">…</filter>
+    </defs>
+    <image href={parchmentUrl} />                                  <!-- PNG con alpha, sin filter -->
+    <g> (3 × path.cursive-line) </g>
+    <g class="writing-hand-loader__quill">                       <!-- translate por renglones -->
+      <g class="writing-hand-loader__quill-rotate">             <!-- rotate con pivot en la nib -->
+        <image href={quillUrl} filter="url(#writing-hand-loader-remove-black)" />
+      </g>
+    </g>
+  </svg>
+</div>
+```
+
+**Nombre del componente conservado.** Se mantiene `WritingHandLoader` para no tocar `AiPromptsLoadingView.tsx` ni el path del PRD §RF-F50. La "mano" se lee como metáfora floja: la pluma escribe sola sobre el pergamino.
+
+**Tests adaptados.** `WritingHandLoader.test.tsx` valida `.writing-hand-loader__quill` (presencia del `<image>` interno con filter `remove-black`) y los tres `.writing-hand-loader__cursive-line`. Añade tests para: pergamino sin atributo `filter` (regresión `body::before`), grupo de rotación anidado `.writing-hand-loader__quill-rotate` con `transform-box: view-box` y `transform-origin: 110px 170px`, y presencia del keyframe `writing-hand-loader-quill-rotate` dentro del media query. `AiPromptsLoadingView.test.tsx` se actualiza para reflejar el layout compacto: deja de aseverar `ai.loadingLead` / `ai.loadingHint` y agrega aserciones negativas (`queryByText` + `queryByRole('status')`) para garantizar que el panel ya no se renderiza.
+
+**Layout compacto (post-feedback UX).** Se eliminó el `<Panel>` con `ai.loadingLead` ("Pedimos N adivinanzas…") y el `<Alert>` con `ai.loadingHint` ("Mantenelo abierto…") porque el loader animado ya comunica la espera; los textos secundarios eran ruido. También se redujo el sizing global: título de `text-3xl md:text-4xl` a `text-2xl md:text-3xl`, contenedor de `max-w-2xl` a `max-w-md`, gap/padding de `gap-5 py-12` a `gap-4 py-10`, y el `max-w` interno del loader de `320px` a `240px` (-25 %). Las claves `ai.loadingLead` y `ai.loadingHint` quedan en `game.json` por si una iteración futura las reactiva. La prop `requestedItems` se conserva en `AiPromptsLoadingViewProps` por compatibilidad con `App.tsx`, pero ya no se desestructura en el cuerpo.
+
+Verificación: `tsc --noEmit`, `eslint` sobre archivos tocados y `vitest run` sobre los suites afectados (`WritingHandLoader.test.tsx` + `AiPromptsLoadingView.test.tsx`) → 9/9 verde tras incorporar la animación de rotación y la simplificación del layout.
 
 ---
 

@@ -1,12 +1,35 @@
 import { describe, expect, it } from 'vitest'
 
-import type { GameSession } from '../types'
-import { applyAntiCheatIncident } from './anticheat-policy'
+import type { GameSession, GameStatus } from '../types'
+import { applyAntiCheatIncident, isAntiCheatActive } from './anticheat-policy'
 
-function buildSession(antiCheatMode: 'normal' | 'strict'): GameSession {
+function buildSession(
+  antiCheatMode: 'normal' | 'strict',
+  overrides?: {
+    readonly status?: GameStatus
+    readonly withGuess?: boolean
+  },
+): GameSession {
+  const baseRound = {
+    id: 'round-1',
+    roundNumber: 1,
+    targetCountryCode: 'AR',
+    prompt: 'Argentina',
+  } as const
+  const round = overrides?.withGuess === true
+    ? {
+        ...baseRound,
+        guess: {
+          playerId: 'player-1',
+          selectedCountryCode: 'AR',
+          isCorrect: true,
+          answeredAtISO: '2026-01-01T00:00:00.000Z',
+        },
+      }
+    : baseRound
   return {
     id: 'session-1',
-    status: 'playing',
+    status: overrides?.status ?? 'playing',
     config: {
       players: ['Ana'],
       questionMode: 'country',
@@ -24,14 +47,7 @@ function buildSession(antiCheatMode: 'normal' | 'strict'): GameSession {
         wrongAnswers: 1,
       },
     ],
-    rounds: [
-      {
-        id: 'round-1',
-        roundNumber: 1,
-        targetCountryCode: 'AR',
-        prompt: 'Argentina',
-      },
-    ],
+    rounds: [round],
     activeRoundIndex: 0,
     incidentCount: 0,
     datasetVersion: 'test',
@@ -59,5 +75,26 @@ describe('applyAntiCheatIncident', () => {
     expect(result.nextSession.status).toBe('aborted')
     expect(result.nextSession.incidentCount).toBe(1)
     expect(result.nextSession.result?.totalRounds).toBe(1)
+  })
+})
+
+describe('isAntiCheatActive', () => {
+  it('devuelve false con session null', () => {
+    expect(isAntiCheatActive(null)).toBe(false)
+  })
+
+  it('devuelve false con status != playing', () => {
+    expect(isAntiCheatActive(buildSession('strict', { status: 'setup' }))).toBe(false)
+    expect(isAntiCheatActive(buildSession('strict', { status: 'finished' }))).toBe(false)
+    expect(isAntiCheatActive(buildSession('strict', { status: 'aborted' }))).toBe(false)
+  })
+
+  it('devuelve false con ronda activa con guess (cerrada)', () => {
+    expect(isAntiCheatActive(buildSession('strict', { withGuess: true }))).toBe(false)
+  })
+
+  it('devuelve true con ronda activa abierta durante partida', () => {
+    expect(isAntiCheatActive(buildSession('strict'))).toBe(true)
+    expect(isAntiCheatActive(buildSession('normal'))).toBe(true)
   })
 })

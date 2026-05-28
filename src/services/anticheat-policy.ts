@@ -9,6 +9,32 @@ export interface AntiCheatPolicyResult {
   readonly didAbortGame: boolean
 }
 
+/**
+ * Indica si los listeners anti-cheat deben contar incidentes para la sesión dada.
+ *
+ * F3 (UX feedback modo AI, PRD §4.4 RF-I40..RF-I45): mientras la ronda activa
+ * tiene `guess` (está cerrada) y el usuario aún no avanzó, los eventos
+ * `window_blur` / `document_hidden` se ignoran. Aplica a todos los modos.
+ *
+ * - `false` cuando `session === null` o `session.status !== 'playing'`.
+ * - `false` cuando la ronda activa ya tiene `guess` (ronda cerrada,
+ *   pendiente de `onAdvanceRound`).
+ * - `true` durante una partida en curso con ronda activa abierta
+ *   (sin `guess` aún), donde sí corresponde contar incidentes.
+ */
+export function isAntiCheatActive(session: GameSession | null): boolean {
+  if (!session || session.status !== 'playing') {
+    return false
+  }
+
+  const activeRound = session.rounds[session.activeRoundIndex]
+  if (activeRound?.guess) {
+    return false
+  }
+
+  return true
+}
+
 export function applyAntiCheatIncident(
   session: GameSession,
   incidentSource: AntiCheatIncidentSource,
