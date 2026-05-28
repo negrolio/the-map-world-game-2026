@@ -2,8 +2,10 @@ import { useTranslation } from 'react-i18next'
 
 import { Alert, Badge, ChunkyButton, Panel } from '../../components/ui'
 import { datasetVersion } from '../../data'
+import { normalizeAppLocale, type AppLocale } from '../../i18n/app-locale'
 import { answerAccuracyPercent, buildGameResult } from '../../services'
 import type { GameSession } from '../../types'
+import { AiRoundsSummary } from './AiRoundsSummary'
 
 export interface ResultsViewProps {
   readonly session: GameSession
@@ -20,8 +22,9 @@ export function ResultsView({
   onGoToSetup,
   onGoToHome,
 }: ResultsViewProps) {
-  const { t } = useTranslation('results')
+  const { t, i18n } = useTranslation('results')
   const { t: tCommon } = useTranslation('common')
+  const locale: AppLocale = normalizeAppLocale(i18n.language) ?? 'es'
 
   const outcome = session.result ?? buildGameResult(session.players, session.rounds.length)
   const winnerPlayer = outcome.winnerPlayerId
@@ -93,6 +96,9 @@ export function ResultsView({
             ))}
           </ol>
         </Panel>
+        {session.config.questionMode === 'ai' ? (
+          <AiRoundsSummary session={session} locale={locale} />
+        ) : null}
         <div className="flex flex-wrap gap-3">
           <ChunkyButton
             type="button"

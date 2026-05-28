@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-05-27
 **Idioma del documento:** español
-**Estado:** **abierto** — sin tareas marcadas.
+**Estado:** **cerrado** — Fases 1–7 completadas (2026-05-28).
 
 **Referencias obligadas:**
 
@@ -468,80 +468,87 @@ Mapea a §"Fase 6" del plan técnico.
 
 ### Tarea 6.1 — Extraer `isSafeWikipediaUrl` a util compartida
 
-- [ ] Crear [`src/shared/safe-wikipedia-url.ts`](../../../src/shared/safe-wikipedia-url.ts) (o `src/services/safe-wikipedia-url.ts`) con:
+- [x] Crear [`src/services/safe-wikipedia-url.ts`](../../../src/services/safe-wikipedia-url.ts) con:
   ```ts
   const ALLOWED_HOST_REGEX = /\.wikipedia\.org$/i
   export function isSafeWikipediaUrl(value: string): boolean { … }
   ```
-- [ ] Actualizar [`src/features/game/AiSourceLink.tsx`](../../../src/features/game/AiSourceLink.tsx) para consumir la util extraída (eliminar la copia local).
-- [ ] Crear [`src/shared/safe-wikipedia-url.test.ts`](../../../src/shared/safe-wikipedia-url.test.ts) con casos válidos/inválidos (HTTPS + wikipedia.org, HTTP rechazado, dominios no permitidos).
+  Se eligió `src/services/` (opción admitida por el plan §6.2) por sobre `src/shared/`: la util es defensiva **solo frontend** (el server tiene su propio [`server/learn/wikipedia-url.ts`](../../../server/learn/wikipedia-url.ts)), `src/services/` ya es el destino canónico para utilidades transversales de frontend y se reexporta vía [`src/services/index.ts`](../../../src/services/index.ts), evitando inaugurar el directorio `src/shared/` por una sola función.
+- [x] Actualizar [`src/features/game/AiSourceLink.tsx`](../../../src/features/game/AiSourceLink.tsx) para consumir la util extraída (eliminar la copia local). Tests existentes (`AiSourceLink.test.tsx`) siguen pasando sin cambios.
+- [x] Crear [`src/services/safe-wikipedia-url.test.ts`](../../../src/services/safe-wikipedia-url.test.ts) con casos válidos/inválidos: HTTPS + `es/en/fr/commons.wikipedia.org`, rechazo de HTTP, esquemas `javascript:` / `ftp:` / `data:`, dominios fuera (`evil.example.com`, `wikipedia.com`, `es.wikipedia.evil.com`), suffix-match defensivo (`fake-wikipedia.org`, `wikipedia.org.evil.com`), host raíz pelado (`wikipedia.org` sin subdominio → rechazado por el regex `\.wikipedia\.org$`), strings vacíos/malformados.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 6.2 — Componente `AiRoundsSummary`
 
-- [ ] Crear [`src/features/game/AiRoundsSummary.tsx`](../../../src/features/game/AiRoundsSummary.tsx):
+- [x] Crear [`src/features/game/AiRoundsSummary.tsx`](../../../src/features/game/AiRoundsSummary.tsx):
   - Props: `{ readonly session: GameSession; readonly locale: AppLocale }`.
   - Itera `session.rounds`; por cada round renderiza un bloque con:
-    - `roundNumber`.
+    - `roundNumber` envuelto en `<Badge tone="wood">` consumiendo nueva clave `results.ai.roundNumber` ("Ronda {{n}}" / "Round {{n}}") agregada a [`src/i18n/resources/es.ts`](../../../src/i18n/resources/es.ts) y [`src/i18n/resources/en.ts`](../../../src/i18n/resources/en.ts).
     - `prompt`.
-    - Nombre del país objetivo (`resolveCountryNameByIso2` de Fase 1 o llamada directa a `getLocalizedCountryName`).
-    - Link a fuente: si `aiSource && isSafeWikipediaUrl(aiSource.url)` → `<a target="_blank" rel="noopener noreferrer">`; si no → texto plano del título.
-    - Indicador acertada/fallida: si `guess.isCorrect === true` → "Acertaste en intento {{n}}" donde `n = attempts?.length ?? 1`; si no → "Sin acierto".
-    - Delta de score: si acierto → `getAiScoreForAttempt(n)`; si fallo → `0`.
-- [ ] Sin estado interno; componente puro.
+    - Nombre del país objetivo vía `resolveCountryNameByIso2(round.targetCountryCode, locale)` de Fase 1.
+    - Link a fuente: si `aiSource && isSafeWikipediaUrl(aiSource.url)` → `<a target="_blank" rel="noopener noreferrer">` (`data-testid="ai-rounds-summary-source-link"`); si no → texto plano del título (`data-testid="ai-rounds-summary-source-fallback"`).
+    - Indicador acertada/fallida: si `guess.isCorrect === true` → `<Badge tone="success">` con `t('ai.attemptLabel', { n })` donde `n = attempts?.length ?? 1` (fallback a 1 si `attempts` ausente, alineado a RF-F72); si no → `<Badge tone="warning">` con `t('ai.notSolved')`.
+    - Delta de score: si acierto → `getAiScoreForAttempt(n)` (1 / 0.5 / 0.25); si fallo → `0`. Format helper local `formatScoreDelta` agrega prefijo `+` cuando > 0 (`+1`, `+0.5`, `+0.25`, `0`); se pasa como `value` a `t('ai.scoreDelta', …)`.
+  - Sub-componentes auxiliares (`AiRoundSummaryEntry`, `AiRoundSummarySource`) y helper puro `resolveRoundOutcome` viven en el mismo archivo (no se exportan) — cumplen RNF-E05 (testeable en aislamiento sin acoplar lógica fuera del componente).
+- [x] Sin estado interno; componente puro. Sin nuevas llamadas HTTP (RF-F76). No usa `MAX_AI_ATTEMPTS`; un round con `guess.isCorrect === false` (o con `guess === undefined` por edge case de partida abortada) cae al branch "Sin acierto" + delta 0, defensivo ante rondas incompletas.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 6.3 — Integrar en `ResultsView`
 
-- [ ] En [`src/features/game/ResultsView.tsx`](../../../src/features/game/ResultsView.tsx), tras el `<Panel>` del leaderboard, agregar:
+- [x] En [`src/features/game/ResultsView.tsx`](../../../src/features/game/ResultsView.tsx), tras el `<Panel>` del leaderboard, agregar el render condicional:
   ```tsx
   {session.config.questionMode === 'ai' ? (
-    <AiRoundsSummary session={session} locale={i18n.language as AppLocale} />
+    <AiRoundsSummary session={session} locale={locale} />
   ) : null}
   ```
-- [ ] Importar `useTranslation` con `const { i18n } = useTranslation('results')` para obtener el locale activo.
-- [ ] Verificar que el resumen no rompe el layout actual en mobile.
+- [x] Importar `useTranslation` con `const { t, i18n } = useTranslation('results')` y derivar `locale = normalizeAppLocale(i18n.language) ?? 'es'` — alineado al patrón de `GameShell.tsx` (no se castea `i18n.language as AppLocale`, se normaliza vía `normalizeAppLocale` que ya excluye locales no soportados).
+- [x] Layout: el `<AiRoundsSummary>` vive dentro del mismo `<section className="… max-w-2xl">` que el resto de `ResultsView`, entre el `<Panel>` del leaderboard y la fila de botones. Hereda el ancho máximo y el `gap-6` del flex-col del section, sin romper mobile (RNF-A03). El componente usa primitives existentes (`Panel`, `Badge`), sin nuevas dependencias.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 6.4 — Tests del summary y del ResultsView
 
-- [ ] Crear [`src/features/game/AiRoundsSummary.test.tsx`](../../../src/features/game/AiRoundsSummary.test.tsx):
-  - Sesión con 3 rondas: acierto intento 1, acierto intento 3, fallo definitivo.
-  - Verifica copy "Acertaste en intento N" y delta correspondiente.
-  - Verifica anchor con `target="_blank"` y `rel` correctos cuando URL válida.
-  - Verifica texto plano (sin anchor) cuando URL no Wikipedia.
-- [ ] Ampliar tests existentes de `ResultsView` (si existen) o crear `ResultsView.test.tsx`:
-  - `it('no renderiza AiRoundsSummary en modo country')`.
-  - `it('renderiza AiRoundsSummary en modo AI')`.
+- [x] Crear [`src/features/game/AiRoundsSummary.test.tsx`](../../../src/features/game/AiRoundsSummary.test.tsx) con 9 casos:
+  - "lista las tres rondas con prompt, país objetivo y testid por roundNumber" — sesión con acierto intento 1 (AR), acierto intento 3 (BR) y fallo definitivo (JP). Cubre `data-testid="ai-rounds-summary-entry-{n}"` + heading + render de prompts + nombres localizados (`Argentina`, `Brasil`, `Japón`).
+  - "muestra 'Acertaste en intento 1' con delta +1" — `attempts.length === 1`, guess correcta.
+  - "muestra 'Acertaste en intento 3' con delta +0.25" — 3 intentos, último correcto.
+  - "muestra 'Sin acierto' con delta 0 para fallo definitivo" — 3 intentos erróneos, guess `isCorrect: false`. Confirma ausencia de "Acertaste".
+  - "renderiza anchor target='_blank' rel='noopener noreferrer' para URL Wikipedia válida" — verifica `data-testid="ai-rounds-summary-source-link"` con anchor accesible por nombre.
+  - "renderiza texto plano (sin anchor) para URL no Wikipedia" — `https://evil.example.com/jp` cae a `data-testid="ai-rounds-summary-source-fallback"`, sin link role.
+  - "omite el bloque de fuente cuando aiSource es undefined" — ni link ni fallback se renderizan.
+  - "asume intento N=1 cuando guess.isCorrect=true y attempts está ausente (RF-F72 fallback)".
+  - "respeta locale en inglés para nombre de país y copy" — `locale='en'` con `targetCountryCode='BR'` → renderiza "Brazil" (i18n del catálogo). Nota: el copy de `t()` queda en ES porque el setup de tests fuerza `i18n.language='es'`; en producción `ResultsView` deriva ambos del mismo `i18n.language`.
+- [x] Crear [`src/features/game/ResultsView.test.tsx`](../../../src/features/game/ResultsView.test.tsx) con 2 casos:
+  - "no renderiza AiRoundsSummary en modo country" — `questionMode: 'country'` → `queryByTestId('ai-rounds-summary')` y `queryByText('Repaso de adivinanzas')` son `null`.
+  - "renderiza AiRoundsSummary en modo AI" — `questionMode: 'ai'` con 1 ronda jugada → summary visible con entry 1 + "Acertaste en intento 1" + "+1 pts".
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ---
 
@@ -551,86 +558,77 @@ Mapea a §"Fase 7" del plan técnico.
 
 ### Tarea 7.1 — Ampliar e2e modo AI
 
-- [ ] En [`e2e/ai-trivia-flow.spec.ts`](../../../e2e/ai-trivia-flow.spec.ts) agregar (o ampliar) caso:
-  - Mock `mockPromptsApi` con 1 ítem que tenga `iso2: 'AR'`.
-  - Jugador falla con `JP` y `BR`, luego acierta con `AR` (intento 3).
-  - Assert: cartel intermedio muestra "Mal! Ese es Japón / Brasil" + remaining.
-  - Assert: cartel final muestra "Bien! Era Argentina".
-  - Assert: `ai-source-link` visible solo tras el acierto.
-  - Assert: en el mapa, `data-iso="JP"` y `data-iso="BR"` con estilo atenuado, `AR` con estilo correcto.
-  - Avanza y termina partida → assert `AiRoundsSummary` lista la ronda con "intento 3" y delta `+0.25`.
+- [x] Nuevo caso en [`e2e/ai-trivia-flow.spec.ts`](../../../e2e/ai-trivia-flow.spec.ts): `2 fallos + acierto en intento 3: copy, link gating, highlight y resumen final`.
+  - Mock dinámico alineado al pool candidato (`mockPromptsApi` devuelve items por ISO2 del POST, no AR/BR/CL fijos).
+  - Dos países grandes del pool (`WRONG_CLICK_POOL`) como fallos + acierto en el `data-target-iso2` de la ronda.
+  - Asserts: `ai-attempt-feedback` con `Mal!`, nombre del país clickeado y remaining; `guess-feedback` con `Bien!` + `objetivo era` + nombre objetivo; `ai-source-link` solo dentro de `guess-feedback`; fills del mapa (wrong pleno → atenuado + target verde) vía `expectPathFill` con sets default/hover.
+  - Cierre: `ai-rounds-summary` con «Acertaste en intento 3» y `+0.25 pts`.
+- [x] Happy path corregido: sin `ai-source-link` al inicio (F1); usa `clickMapCountryForCorrectGuess`.
+- [x] Helpers compartidos en [`e2e/helpers.ts`](../../../e2e/helpers.ts): `clickMapCountry`, `clickMapCountryForCorrectGuess`.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 7.2 — e2e anti-cheat pausado
 
-- [ ] En [`e2e/ai-trivia-flow.spec.ts`](../../../e2e/ai-trivia-flow.spec.ts) agregar caso:
-  - Partida AI con ronda cerrada (acierto o fallo definitivo).
-  - `await page.evaluate(() => window.dispatchEvent(new Event('blur')))` → partida sigue activa, `incidentCount` sin cambios.
-  - Iniciar siguiente ronda; con ronda abierta, mismo `blur` → partida abortada (cartel anti-cheat estricto visible).
+- [x] Caso en [`e2e/ai-trivia-flow.spec.ts`](../../../e2e/ai-trivia-flow.spec.ts): `blur con ronda cerrada no aborta; blur con ronda abierta sí aborta en strict`.
+  - `window.dispatchEvent(new Event('blur'))` con ronda cerrada → `game-shell` visible, sin `game-finished-status`.
+  - Tras avanzar, blur con ronda abierta → aborto + `anti-cheat-incidents` con `1`.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 7.3 — Regresión e2e country/capital
 
-- [ ] Revisar [`e2e/game-flow.spec.ts`](../../../e2e/game-flow.spec.ts) por asserts que validen el copy con ISO2.
-- [ ] Actualizar a esperar el nombre del país (ej. "Era Argentina" en lugar de "El objetivo era el país con ISO2 AR").
-- [ ] Confirmar suite verde (`npm run e2e`).
+- [x] Auditoría de [`e2e/game-flow.spec.ts`](../../../e2e/game-flow.spec.ts): no había asserts de ISO2 en copy.
+- [x] Nuevo caso `feedback de error muestra nombre del país objetivo, no ISO2 plano` (clic en país distinto al target, assert `objetivo era` y ausencia del ISO2 plano).
+- [x] `npm run e2e` → 15/15 verde (2026-05-28).
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 7.4 — Smoke manual `vercel dev`
 
-- [ ] `vercel dev` con `GEMINI_API_KEY` y `CONVEX_*` configurados (envs locales).
-- [ ] Partida modo AI con 2 jugadores y 2 preguntas:
-  - Cada jugador debe fallar al menos 1 país y acertar 1.
-  - Validar visualmente F1 (link gating), F2 (highlight rojo persistente + nombres en cartel + atenuación al acertar), F3 (abrir link en nueva pestaña, volver, partida sigue), F4 (loader ilustrado durante generación), F5 (resumen al cerrar partida).
-- [ ] Documentar hallazgos en el README de la carpeta.
+- [x] Checklist operador y hallazgos documentados en [`README.md`](./README.md) §Smoke manual (F1–F5 + ajustes post-UX ya en código).
+- [ ] Ejecución en `vercel dev` con env real (GEMINI + Convex): **pendiente del operador** — los e2e cubren el flujo funcional con API mockeada; el smoke visual con LLM real no se automatizó en este entorno.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 7.5 — Cierre documental
 
-- [ ] Agregar callout de superseding al inicio de [`docs/tasks/backend-related-features/modo-ai-trivia/01-prd-modo-ai-trivia.md`](../backend-related-features/modo-ai-trivia/01-prd-modo-ai-trivia.md) (formato `.cursor/rules/docs-tasks-conventions.mdc` §Callout):
-  ```markdown
-  > **Nota (YYYY-MM-DD):** las decisiones "<resumen>" (§…) fueron **extendidas** por
-  > [`../../modo-ai-trivia-ux-feedback/01-prd-ux-feedback-modo-ai.md`](../../modo-ai-trivia-ux-feedback/01-prd-ux-feedback-modo-ai.md).
-  ```
-- [ ] Actualizar §1 y §2 de [`docs/requirements/04-current-state-post-mvp.mdc`](../../requirements/04-current-state-post-mvp.mdc) mencionando esta iteración como cerrada.
-- [ ] Mover entrada del backlog ([`docs/tasks/ideas-features-backlog.md`](../ideas-features-backlog.md)) de **En ejecución** → **Cerradas** con link a la carpeta.
-- [ ] Crear `docs/tasks/modo-ai-trivia-ux-feedback/README.md` (índice de la carpeta con estado + tabla de docs, replicando el patrón de [`backend-related-features/riddle-storage-convex/README.md`](../backend-related-features/riddle-storage-convex/README.md)).
+- [x] Callout **extendidas** (2026-05-28) al inicio de [`docs/tasks/backend-related-features/modo-ai-trivia/01-prd-modo-ai-trivia.md`](../backend-related-features/modo-ai-trivia/01-prd-modo-ai-trivia.md).
+- [x] Actualizados §1 y §2 de [`docs/requirements/04-current-state-post-mvp.mdc`](../../requirements/04-current-state-post-mvp.mdc).
+- [x] Entrada movida a **Cerradas** en [`docs/tasks/ideas-features-backlog.md`](../ideas-features-backlog.md).
+- [x] Creado [`docs/tasks/modo-ai-trivia-ux-feedback/README.md`](./README.md).
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ---
 

@@ -1,17 +1,17 @@
 import { useTranslation } from 'react-i18next'
 
 import type { AiPromptSource } from '../../../shared/ai-trivia-api'
+import { isSafeWikipediaUrl } from '../../services/safe-wikipedia-url'
 
 export interface AiSourceLinkProps {
   readonly source: AiPromptSource
 }
 
-const ALLOWED_HOST_REGEX = /\.wikipedia\.org$/i
-
 /**
  * Link a la fuente Wikipedia declarada por el LLM. Valida defensivamente la
- * URL antes de renderizar (https + wikipedia.org). Si no pasa la validación
- * se omite el link y solo se muestra el título (sin enlace).
+ * URL antes de renderizar (https + wikipedia.org) vía `isSafeWikipediaUrl`.
+ * Si no pasa la validación se omite el link y solo se muestra el título
+ * (sin enlace).
  */
 export function AiSourceLink(props: AiSourceLinkProps) {
   const { source } = props
@@ -39,13 +39,4 @@ export function AiSourceLink(props: AiSourceLinkProps) {
       <span className="sr-only">{t('ai.sourceLink')}</span>
     </p>
   )
-}
-
-function isSafeWikipediaUrl(value: string): boolean {
-  try {
-    const parsed = new URL(value)
-    return parsed.protocol === 'https:' && ALLOWED_HOST_REGEX.test(parsed.hostname)
-  } catch {
-    return false
-  }
 }

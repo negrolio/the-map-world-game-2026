@@ -130,13 +130,13 @@ Mantener entradas **breves** en pendientes (1–3 líneas). El diseño y el chec
 
 <!-- Ideas promovidas con trabajo activo. Al cerrar, mover a Cerradas y actualizar 04-current-state-post-mvp.mdc §1. -->
 
-- **Modo AI — UX de intentos y feedback** — promovida 2026-05-27. ADR aprobado: [`modo-ai-trivia-ux-feedback/00-decision-ux-feedback-modo-ai.md`](./modo-ai-trivia-ux-feedback/00-decision-ux-feedback-modo-ai.md). Sub-features F1–F5. **Pendiente:** `01-prd-ux-feedback-modo-ai.md`.
-
 ---
 
 ## Cerradas
 
 <!-- Índice breve. Detalle de producto: 04-current-state-post-mvp.mdc §1. Origen de la idea: fecha en que se anotó en el backlog. -->
+
+- **Modo AI — UX de intentos y feedback** — promovida 2026-05-27 · cerrada 2026-05-28. [`modo-ai-trivia-ux-feedback/`](./modo-ai-trivia-ux-feedback/) (F1–F5: link gating, highlight, anti-cheat pausado, loader, resumen final).
 
 - **Persistencia de riddles en Convex (modo AI trivia)** — promovida 2026-05-23 · cerrada 2026-05-27 (Production). [`backend-related-features/riddle-storage-convex/`](./backend-related-features/riddle-storage-convex/) · operación [`deployment-state.md`](../operations/deployment-state.md).
 

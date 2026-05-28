@@ -40,6 +40,47 @@ export function buildMockLearnProfile(iso2: string) {
   }
 }
 
+/**
+ * Clic en un país del topojson. Reintenta hasta ver feedback (acierto o intento
+ * parcial en modo AI).
+ */
+export async function clickMapCountry(page: Page, iso2: string): Promise<void> {
+  const target = page.locator(`path[data-iso="${iso2}"]`).first()
+  await expect(target).toBeVisible({ timeout: 20_000 })
+  await target.scrollIntoViewIfNeeded()
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    await target.click({ force: true })
+    try {
+      await expect(
+        page.getByTestId('ai-attempt-feedback').or(page.getByTestId('guess-feedback')),
+      ).toBeVisible({ timeout: 4000 })
+      return
+    } catch {
+      if (attempt === 4) {
+        throw new Error(`No hubo feedback tras clic en ${iso2}`)
+      }
+    }
+  }
+}
+
+/** Reintenta el clic hasta cerrar la ronda (`guess-feedback`), útil en países chicos. */
+export async function clickMapCountryForCorrectGuess(page: Page, iso2: string): Promise<void> {
+  const target = page.locator(`path[data-iso="${iso2}"]`).first()
+  await expect(target).toBeVisible({ timeout: 20_000 })
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    await target.scrollIntoViewIfNeeded()
+    await target.click({ force: true })
+    try {
+      await expect(page.getByTestId('guess-feedback')).toBeVisible({ timeout: 4000 })
+      return
+    } catch {
+      if (attempt === 5) {
+        throw new Error(`No hubo guess-feedback tras clic en ${iso2}`)
+      }
+    }
+  }
+}
+
 export async function mockLearnApi(page: Page): Promise<void> {
   await page.route('**/api/v1/countries/*/learn**', async (route) => {
     const url = new URL(route.request().url())

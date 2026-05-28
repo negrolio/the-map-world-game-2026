@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import { goToSetup } from './helpers'
+import { clickMapCountryForCorrectGuess, goToSetup } from './helpers'
 
 test.describe('F8.2 — flujo e2e', () => {
   test('setup inválido: nombre vacío bloquea inicio y muestra error de schema', async ({ page }) => {
@@ -29,21 +29,7 @@ test.describe('F8.2 — flujo e2e', () => {
       const iso2 = await page.getByTestId('round-prompt').getAttribute('data-target-iso2')
       expect(iso2).toBeTruthy()
 
-      const target = page.locator(`path[data-iso="${iso2}"]`).first()
-      await expect(target).toBeVisible({ timeout: 20_000 })
-      await target.scrollIntoViewIfNeeded()
-
-      for (let attempt = 0; attempt < 3; attempt += 1) {
-        await target.click({ force: true })
-        try {
-          await expect(page.getByTestId('guess-feedback')).toBeVisible({ timeout: 5000 })
-          break
-        } catch {
-          if (attempt === 2) {
-            throw new Error(`No se registró respuesta tras clic en ISO ${iso2} (intento ${attempt + 1})`)
-          }
-        }
-      }
+      await clickMapCountryForCorrectGuess(page, iso2!)
 
       if (i < 1) {
         await page.getByTestId('advance-round-button').click()
@@ -56,6 +42,31 @@ test.describe('F8.2 — flujo e2e', () => {
     await expect(page.getByTestId('game-finished-status')).toBeVisible({ timeout: 20_000 })
     await expect(page.getByTestId('game-finished-status')).toContainText(/finalizada por rondas/i)
     await expect(page.locator('[data-testid^="finished-rank-"]')).toHaveCount(1)
+  })
+
+  test('feedback de error muestra nombre del país objetivo, no ISO2 plano', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await goToSetup(page)
+
+    await page.locator('#question-count').fill('1')
+    await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
+
+    await expect(page.getByTestId('game-shell')).toBeVisible()
+    await expect(page.locator('path[data-iso]')).not.toHaveCount(0, { timeout: 45_000 })
+
+    const targetIso2 = await page.getByTestId('round-prompt').getAttribute('data-target-iso2')
+    expect(targetIso2).toBeTruthy()
+
+    const wrongIso2 = targetIso2 === 'AR' ? 'BR' : 'AR'
+    const wrongTarget = page.locator(`path[data-iso="${wrongIso2}"]`).first()
+    await expect(wrongTarget).toBeVisible({ timeout: 20_000 })
+    await wrongTarget.scrollIntoViewIfNeeded()
+    await wrongTarget.click({ force: true })
+
+    const feedback = page.getByTestId('guess-feedback')
+    await expect(feedback).toBeVisible({ timeout: 5000 })
+    await expect(feedback).toContainText(/objetivo era/i)
+    await expect(feedback).not.toContainText(targetIso2!)
   })
 })
 

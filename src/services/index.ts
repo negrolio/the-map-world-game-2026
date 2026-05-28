@@ -55,3 +55,4 @@ export {
   clearSeenRiddleIds,
   getSeenRiddleIds,
 } from './ai-trivia-seen-ids'
+export { isSafeWikipediaUrl } from './safe-wikipedia-url'

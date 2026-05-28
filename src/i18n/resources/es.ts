@@ -127,6 +127,7 @@ export const esNamespaces = {
     goHome: 'Ir al home',
     ai: {
       summaryHeading: 'Repaso de adivinanzas',
+      roundNumber: 'Ronda {{n}}',
       attemptLabel: 'Acertaste en intento {{n}}',
       notSolved: 'Sin acierto',
       scoreDelta: '{{value}} pts',

@@ -127,6 +127,7 @@ export const enNamespaces = {
     goHome: 'Go to home',
     ai: {
       summaryHeading: 'Riddles recap',
+      roundNumber: 'Round {{n}}',
       attemptLabel: 'Correct on attempt {{n}}',
       notSolved: 'Not solved',
       scoreDelta: '{{value}} pts',
