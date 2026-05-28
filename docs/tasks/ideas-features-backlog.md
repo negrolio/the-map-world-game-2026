@@ -1,18 +1,30 @@
 # Backlog de ideas de features
 
-Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no** estén comprometidas en una iteración. El objetivo es no perder ideas y poder priorizarlas más adelante sin contaminar las tareas activas.
+Inbox liviano para anotar ideas que **aún no** están comprometidas. El objetivo es no perder ideas y priorizarlas sin contaminar las tareas activas.
 
-> Este archivo **no** es una lista de tareas en ejecución. Cuando una idea se decide trabajar, se promueve a una task formal en su carpeta de iteración (por ejemplo `docs/tasks/<nombre-iteracion>/NN-...md`) y se marca aquí como **promovida**.
-> Punto de entrada post-MVP: [`docs/requirements/04-current-state-post-mvp.mdc`](../requirements/04-current-state-post-mvp.mdc).
+> Este archivo **no** es la lista de tareas en ejecución ni el inventario de lo ya entregado.  
+> **Producto entregado (iteraciones cerradas):** [`docs/requirements/04-current-state-post-mvp.mdc`](../requirements/04-current-state-post-mvp.mdc) §1.  
+> **Operación (deploy, envs):** [`docs/operations/deployment-state.md`](../operations/deployment-state.md).
 
-## Cómo usarlo
+## Estados del backlog
 
-1. Anotá la idea en la sección **Ideas pendientes** con el formato de la plantilla.
-2. Si la idea queda descartada, moverla a **Descartadas** con una nota corta del motivo (sirve de memoria para no re-evaluarla desde cero).
-3. Si la idea se empieza a trabajar, moverla a **Promovidas a tarea** con el link al archivo de task creado.
-4. Mantener entradas **breves**: 1–3 líneas alcanzan. El detalle se desarrolla recién al promover la idea a task.
+| Sección | Significado |
+|---------|-------------|
+| **Ideas pendientes** | Idea anotada; nadie la comprometió todavía. |
+| **En ejecución** | Se decidió trabajarla: hay carpeta de iteración (`docs/tasks/<nombre>/`) o trabajo activo equivalente. **No implica que esté terminada.** |
+| **Cerradas** | Entregada en `main` (y en Production cuando aplique). Entrada breve + link; el detalle vive en §1 de `04-current-state-post-mvp.mdc`. |
+| **Descartadas** | Decidimos no hacerla (con motivo). |
 
-### Plantilla por idea
+### Flujo
+
+1. Nueva idea → **Ideas pendientes** (plantilla abajo).
+2. Al **empezar** el trabajo → **En ejecución** + crear/usar carpeta de iteración (PRD, plan, etc.).
+3. Al **cerrar** (merge + deploy si aplica) → **Cerradas** (una línea + links) y actualizar [`04-current-state-post-mvp.mdc`](../requirements/04-current-state-post-mvp.mdc) §1.
+4. Si se descarta → **Descartadas** con motivo corto.
+
+Mantener entradas **breves** en pendientes (1–3 líneas). El diseño y el checklist viven en la carpeta de iteración, no aquí.
+
+### Plantilla por idea (solo **Ideas pendientes**)
 
 ```md
 - **<Título corto y accionable>** — <fecha YYYY-MM-DD>
@@ -23,9 +35,51 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
   - Notas: <links a archivos relevantes, dependencias, riesgos, descubrimientos>
 ```
 
+---
+
 ## Ideas pendientes
 
 <!-- Agregar nuevas entradas arriba de esta lista, las más recientes primero. -->
+
+- **Modo AI — control de costo y robustez API (iteración candidata)** — 2026-05-27
+  - Contexto / problema: el modo AI puede generar muchas llamadas al LLM; además el backend a veces devuelve menos adivinanzas válidas de las pedidas (validaciones V1–V8 u otras causas).
+  - Sub-features:
+    - **C1. Topes en Setup para modo AI** — máximo **3 jugadores** y **5 preguntas por jugador** (hoy `PRODUCT_RULES.players.max = 6` y sin tope específico por modo en `src/services/product-rules.ts`). Validar en frontend y en request al backend.
+    - **C2. Reintentos hasta completar el batch** — si la API devuelve menos ítems de los solicitados, volver a llamar (frontend u orquestación server-side) hasta alcanzar la cantidad pedida o un tope de reintentos. Definir impacto en rate limit (`prompts:`), timeout del handler y `excludedIds`.
+  - Impacto estimado: infra / costos · alto.
+  - Esfuerzo estimado: medio–alto.
+  - Notas: al promover → `docs/tasks/modo-ai-trivia-cost-control/` con ADR sobre reintentos, límites y partial-failure. C1 y C2 son compensatorios (reintentos suben costo; topes lo acotan).
+
+- **Modo AI — pista vía justification (iteración candidata)** — 2026-05-27
+  - Contexto / problema: Convex ya persiste `justification` por riddle, pero el contrato `shared/ai-trivia-api.ts` (`AiPromptItem`) no lo expone al cliente; el jugador no puede pedir una pista ampliada durante la ronda.
+  - Sub-features:
+    - **H1. Exponer `justification` en la API** — extender `AiPromptItem` y el mapeo desde Convex/LLM.
+    - **H2. UX de pista en juego** — botón u opción “Pista” que muestra la ampliación del texto; definir si cuesta puntos, cuántas pistas por ronda y en qué intento está disponible.
+    - **H3. Persistencia en sesión** — registrar si se usó pista en `AiAttempt` o metadatos de ronda para el resumen final.
+  - Impacto estimado: UX / feature · medio.
+  - Esfuerzo estimado: medio.
+  - Notas: al promover → `docs/tasks/modo-ai-trivia-hints/` con `00-decision-*.md` + `01-prd-*.md` + callout en PRD AI trivia. Iteración separada del grupo UX-feedback: cambia contrato API y mecánica de juego.
+
+- **Mapa — auto-zoom post-respuesta (fit-bounds)** — 2026-05-27
+  - Contexto / problema: al cerrar una ronda con error, el mapa muestra el país correcto en amarillo y el seleccionado erróneo, pero la vista puede quedar lejos de ambos (ej. Japón vs Argentina). En modo AI, hasta 3 países erróneos + el correcto deben entrar en pantalla.
+  - Idea / dirección: utilidad `fit-bounds` que, dado un conjunto de ISO2, calcule `zoom` + `offset` del `MapViewport` actual para encuadrarlos con padding. Cross-mode: 2 países en country/capital, hasta 4 en AI. Reutilizar geometrías del TopoJSON y respetar `VIEWPORT_LIMITS` en `WorldMap.tsx`.
+  - Impacto estimado: UX · medio.
+  - Esfuerzo estimado: medio (geometría + viewport).
+  - Notas: entrada atómica; puede implementarse después del grupo **Modo AI — UX de intentos y feedback** (F2 pinta países; esta entrada mueve la cámara). Archivos: `WorldMap.tsx`, util nueva tipo `world-map-fit-bounds.ts`, `GameShell.tsx`.
+
+- **Setup redesign — menos web, más game** — 2026-05-27
+  - Contexto / problema: la pantalla de configuración se siente más “web app” que “juego de tablero”; no transmite la misma energía que el rediseño visual integral ya entregado.
+  - Idea / dirección: rediseñar `SetupView.tsx` con look & feel más lúdico (referencias board-game / arcade), manteniendo mobile-first, accesibilidad e i18n ES/EN. Requiere brief de diseño antes del PRD.
+  - Impacto estimado: UX · alto.
+  - Esfuerzo estimado: alto.
+  - Notas: al promover → `docs/tasks/setup-redesign/` con `00-decision-setup-look-and-feel.md` + `01-prd-*.md`. Continúa la línea de [`05-prd-rediseno-visual-brief-diseno.mdc`](../requirements/05-prd-rediseno-visual-brief-diseno.mdc).
+
+- **Audio del juego — música de fondo + mute** — 2026-05-27
+  - Contexto / problema: la experiencia es silenciosa; falta ambiente sonoro opcional sin molestar.
+  - Idea / dirección: track de fondo en loop (asset con licencia clara: CC0 o propio), botón mute persistente en HUD o Setup, primer play tras interacción del usuario (autoplay policies iOS/Safari). Persistir preferencia en `localStorage` con clave versionada (mismo patrón que i18n).
+  - Impacto estimado: UX · medio.
+  - Esfuerzo estimado: medio.
+  - Notas: al promover → `docs/tasks/audio-music/`; abstraer reproducción en servicio (`AudioController`) para testear sin hardware. Considerar `prefers-reduced-data` y `aria-label` del toggle.
 
 - **Botón “Setup”: el label no comunica que se abandona la partida** — 2026-05-10
   - Contexto / problema: al tocar el botón de setup durante una partida se navega a la pantalla de configuración y **se pierde el progreso** de la ronda en curso; el texto “Setup” suena a ajustes menores y no advierte que implica **salir / reiniciar flujo** de juego.
@@ -34,13 +88,6 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
   - Esfuerzo estimado: bajo–medio (según si solo copy o también modal de confirmación).
   - Notas: al promover, ubicar el componente del HUD que renderiza el botón y el handler que cambia `view` o estado de partida; alinear tono con el resto de la UI.
   - Tener en cuenta que en docs/requirements/01-prd-mvp-producto-y-requerimientos.mdc se especifica este boton, al actualizar tmb actualizar ese PRD
-
-- **Actualizar el Home** — 2026-05-10
-  - Contexto / problema: la pantalla de Home actual quedó atrás respecto a la evolución del juego (modos, catálogo ampliado, partida full-screen, etc.) y conviene refrescarla para reflejar mejor el producto y guiar al jugador nuevo.
-  - Idea / dirección: revisar contenido, jerarquía y CTA principal del Home; alinearlo con los modos y features ya existentes y dejar lugar para próximos (multilenguaje, modo aprendizaje, ranking si avanza el server). Definir qué se ve en primer pantallazo en mobile y desktop antes de tocar diseño.
-  - Impacto estimado: UX · medio.
-  - Esfuerzo estimado: medio (según alcance: copy + layout, o rediseño completo).
-  - Notas: pendiente de detalle. Cuando se promueva a tarea, decidir si el cambio es solo de copy/layout o también de arquitectura del estado de la app (`view === 'home'` en `src/App.tsx`). Considerar accesibilidad y consistencia visual con la partida y el setup. La app ya tiene **i18n ES/EN** (textos en `src/i18n/resources/`); el rediseño del Home puede aprovechar claves `home` / `common` sin rearmar infraestructura.
 
 - **Anticheat: no persistir puntaje y mensaje explícito al usuario** — 2026-05-10
   - Contexto / problema: si existe detección de uso indebido (scripts, automatización, manipulación de cliente), persistir puntajes daría una tabla de clasificación injusta y puede frustrar a jugadores legítimos si no entienden por qué “desapareció” el resultado.
@@ -63,7 +110,6 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
   - Esfuerzo estimado: medio.
   - Notas: archivos relevantes `src/components/WorldMap.tsx` y `src/components/world-map-baseline-viewport.ts`. Relación con MAP-UX-01.
 
-
 - **Persistencia de puntajes en servidor** — 2026-05-10
   - Contexto / problema: los puntajes viven solo en memoria de la sesión; al cerrar la app se pierden.
   - Idea / dirección: investigar backend simple para guardar partidas y puntajes (Supabase, Firebase, Cloudflare D1, Vercel + Postgres, etc.). Definir esquema mínimo: jugador, modo, ronda, puntaje, fecha. Decidir auth (anónimo vs identificado) y política de privacidad (sin PII innecesaria).
@@ -78,42 +124,35 @@ Inbox liviano para anotar ideas de features que vayan surgiendo y todavía **no*
   - Esfuerzo estimado: bajo.
   - Notas: revisar copy actual del overlay de feedback (relacionado con MAP-UX-02 F2.4). La base i18n ES/EN ya está en repo; cualquier mejora de tono debe hacerse en recursos `src/i18n/resources/` y claves por idioma.
 
-## Promovidas a tarea
+---
 
-<!-- Cuando una idea pase a ejecutarse, mover acá con link a la task creada. -->
+## En ejecución
 
-- **Persistencia de riddles en Convex (modo AI trivia)** — 2026-05-23 (**implementado en repo, pendiente smoke local + deploy preview/prod**)
-  - Origen: extensión del modo AI trivia ya implementado; reemplaza la caché in-memory con TTL por persistencia en Convex (tabla `riddles`, índices `by_lookup` / `by_origin`, L1 in-memory write-through, dedupe vía `excludedIds` en `localStorage` del cliente, `riddleId` opaco en la respuesta API).
-  - Entregado en `main`: schema + queries Convex, puerto `RiddleRepository` + adaptadores in-memory/Convex/L1, refactor de `generate-ai-prompts`, métricas `cache_hit_l1` / `cache_hit_l2` / `cache_miss` / `convex_errors`, código `503 CONVEX_UNAVAILABLE`, frontend `ai-trivia-seen-ids`, e2e Playwright actualizado. Caché legacy `ai-trivia-cache.ts` eliminada.
-  - Pendiente: Tarea 8.2 (smoke local con `vercel dev` + Convex) y Tarea 9.3 (deploy + smoke HTTPS) — ver [`backend-related-features/riddle-storage-convex/03-deploy-fase-2.md`](./backend-related-features/riddle-storage-convex/03-deploy-fase-2.md).
-  - Documentación: [`backend-related-features/riddle-storage-convex/README.md`](./backend-related-features/riddle-storage-convex/README.md) · ADR [`00-decision-persistencia-riddles-convex.md`](./backend-related-features/riddle-storage-convex/00-decision-persistencia-riddles-convex.md) · PRD [`01-prd-riddle-storage-convex.md`](./backend-related-features/riddle-storage-convex/01-prd-riddle-storage-convex.md) · plan [`02-plan-implementacion-riddle-storage-convex.md`](./backend-related-features/riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md).
+<!-- Ideas promovidas con trabajo activo. Al cerrar, mover a Cerradas y actualizar 04-current-state-post-mvp.mdc §1. -->
 
-- **Preguntas con IA (tags temáticos) — modo AI trivia** — 2026-05-22 (**cerrado en repo**)
-  - Entregado: tercer modo de quiz (`country` / `capital` / `ai`) con multi-select de tags (`historia`, `política`, `geografía`, `flora-y-fauna`, `cultura-general`, `música`, `literatura`, `cine`, `deportes`). Backend `POST /v1/prompts/generate` con LLM (Gemini Flash detrás del adaptador `LlmClient` agnóstico), validaciones V1–V8 (incluye verificación contra Wikipedia del artículo declarado), caché, fallback. Hasta 3 intentos por ronda con score escalonado (1 / 0.5 / 0.25). Anti-cheat fuerza `strict` en AI. Rate limit reusado del bucket `prompts:`. Métricas `ai_trivia.*` sin PII. Cartel de cierre de ronda con link Wikipedia.
-  - Documentación: índice [`backend-related-features/modo-ai-trivia/`](./backend-related-features/modo-ai-trivia/) · decisión approach [`00-decision-approach-ai-y-data-retrieval.md`](./backend-related-features/modo-ai-trivia/00-decision-approach-ai-y-data-retrieval.md) · PRD [`01-prd-modo-ai-trivia.md`](./backend-related-features/modo-ai-trivia/01-prd-modo-ai-trivia.md) · plan [`02-plan-implementacion-modo-ai-trivia.md`](./backend-related-features/modo-ai-trivia/02-plan-implementacion-modo-ai-trivia.md) · deploy [`03-deploy-fase-2.md`](./backend-related-features/modo-ai-trivia/03-deploy-fase-2.md).
-  - Persistencia: el PRD original especificaba "no DB; caché in-memory"; esa decisión fue **sustituida** por la iteración *Persistencia de riddles en Convex* listada arriba (ver callout en línea 3 del PRD AI trivia).
+- **Modo AI — UX de intentos y feedback** — promovida 2026-05-27. ADR aprobado: [`modo-ai-trivia-ux-feedback/00-decision-ux-feedback-modo-ai.md`](./modo-ai-trivia-ux-feedback/00-decision-ux-feedback-modo-ai.md). Sub-features F1–F5. **Pendiente:** `01-prd-ux-feedback-modo-ai.md`.
 
-- **Modo aprendizaje (explorar países sin penalizar)** — 2026-05-18 (**cerrado en repo**)
-  - Entregado: modo dedicado donde al clickear un país se abre una ficha Wikipedia (resumen + thumbnail) en el idioma del usuario, sin puntaje ni penalización. Backend Vercel Functions (`api/v1/learn/*` + `server/learn/`) con `WikipediaClient`, resolución vía Wikidata sitelinks (`shared/wikipedia-sitelinks.json`), caché y rate limit por IP. Frontend en `src/features/learn/`. Fase 1 + rate limit + Fase 2 deploy HTTPS cerrados.
-  - Documentación: índice [`backend-related-features/README.md`](./backend-related-features/README.md) · PRD [`modo-aprendizaje/01-prd-modo-aprendizaje.md`](./backend-related-features/modo-aprendizaje/01-prd-modo-aprendizaje.md) · checklist [`03-fase-1-checklist.md`](./backend-related-features/modo-aprendizaje/03-fase-1-checklist.md) · deploy [`04-fase-2-deploy.md`](./backend-related-features/modo-aprendizaje/04-fase-2-deploy.md) · bugs/cambios resueltos en [`bugs-or-changes/`](./backend-related-features/modo-aprendizaje/bugs-or-changes/) (incluye resolución de idioma Wikipedia y rediseño UX del Home).
+---
 
-- **Multilenguaje (i18n) con selector de idioma** — 2026-05-13 (**cerrado en repo**)
-  - Entregado: `i18next` + `react-i18next`; locales `es`/`en`; selector en Setup; persistencia en `localStorage` (clave versionada); `document.documentElement.lang`; errores API y validación por código → i18n; prompts de ronda según locale (`buildQuestionPool` + `country-localization` / `capital-es-map.json`). Estado del producto: [`docs/requirements/04-current-state-post-mvp.mdc`](../requirements/04-current-state-post-mvp.mdc) §1 y §2.
-  - Documentación: [`i18n-multilenguaje/README.md`](./i18n-multilenguaje/README.md) · PDR [`00-pdr-multilenguaje-i18n.md`](./i18n-multilenguaje/00-pdr-multilenguaje-i18n.md) · decisión datos [`01-decision-catalogo.md`](./i18n-multilenguaje/01-decision-catalogo.md).
-  - Notas: `npm install` del proyecto puede requerir `--legacy-peer-deps` por el peer de `react-simple-maps` con React 19; ver `package-lock.json` / README raíz si aplica.
+## Cerradas
 
-- **Vite: acceso desde dispositivo móvil real en red local** — 2026-05-10 (implementado en repo, sin task formal en carpeta de iteración)
-  - Hecho: `server.host: true` en `vite.config.ts` para que `npm run dev` escuche en la LAN.
-  - Pendiente opcional del backlog original: añadir al README la URL `http://<IP-local>:5173` (o el puerto que muestre Vite), firewall y avisos de red no confiable.
-  - Seguridad: solo afecta al servidor de desarrollo de Vite, no al build de producción (`vite build`). No se configuró `server.allowedHosts: true` (evitar rebinding amplio).
+<!-- Índice breve. Detalle de producto: 04-current-state-post-mvp.mdc §1. Origen de la idea: fecha en que se anotó en el backlog. -->
 
-- **Mapa en mobile: pan y zoom táctil (MAP-UX-06)** — 2026-05-13 (implementado en repo, sin task formal `NN-...md`)
-  - Hecho: `src/components/WorldMap.tsx` — Pointer Events con `setPointerCapture`, pan con un dedo y pinch con dos; rueda y ratón sin regresión. Tests en `src/components/WorldMap.test.tsx`.
-  - Documentación de estado: `docs/requirements/04-current-state-post-mvp.mdc` y nota en `docs/tasks/map-game-ux-and-data/01-mapa-zoom-pan-contenedor.md`. QA manual en dispositivo físico (Safari iOS / Chrome Android) sigue recomendable.
+- **Persistencia de riddles en Convex (modo AI trivia)** — promovida 2026-05-23 · cerrada 2026-05-27 (Production). [`backend-related-features/riddle-storage-convex/`](./backend-related-features/riddle-storage-convex/) · operación [`deployment-state.md`](../operations/deployment-state.md).
 
-- **Atajos para “siguiente pregunta” (solo desktop)** — 2026-05-13 (implementado en repo, sin task formal `NN-...md`)
-  - Alcance acordado: **solo teclado en desktop** (`Enter` / barra espaciadora) cuando ya hay respuesta en la ronda; **sin gestos extra en mobile** (el tap en el botón alcanza). Media query `(hover: hover) and (pointer: fine)` para no registrar el listener ni mostrar leyenda en táctil típico.
-  - Hecho: `src/features/game/GameShell.tsx` — listener global con guardas de foco (no robar Enter/Space de otros `button`/`input`/etc.; el propio CTA de avance delega en el comportamiento nativo del botón). Leyenda pequeña bajo el label y `aria-keyshortcuts` solo en ese caso. Tests: `src/features/game/GameShell.test.tsx`.
+- **Preguntas con IA (tags temáticos) — modo AI trivia** — promovida 2026-05-22. [`backend-related-features/modo-ai-trivia/`](./backend-related-features/modo-ai-trivia/). Persistencia original in-memory → sustituida por iteración Convex (arriba).
+
+- **Modo aprendizaje (explorar países sin penalizar)** — promovida 2026-05-18. [`backend-related-features/modo-aprendizaje/`](./backend-related-features/modo-aprendizaje/).
+
+- **Multilenguaje (i18n) con selector de idioma** — promovida 2026-05-13. [`i18n-multilenguaje/`](./i18n-multilenguaje/).
+
+- **Vite: acceso desde dispositivo móvil real en red local** — anotada 2026-05-10 · cerrada en repo (sin carpeta `NN-...md`). `server.host: true` en `vite.config.ts`. Pendiente opcional: documentar en README la URL LAN.
+
+- **Mapa en mobile: pan y zoom táctil (MAP-UX-06)** — anotada 2026-05-13 · cerrada en repo (sin carpeta `NN-...md`). `WorldMap.tsx` + tests. Ver también [`map-game-ux-and-data/01-mapa-zoom-pan-contenedor.md`](./map-game-ux-and-data/01-mapa-zoom-pan-contenedor.md).
+
+- **Atajos para “siguiente pregunta” (solo desktop)** — anotada 2026-05-13 · cerrada en repo (sin carpeta `NN-...md`). `GameShell.tsx` + tests.
+
+---
 
 ## Descartadas
 

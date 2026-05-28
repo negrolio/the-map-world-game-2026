@@ -4,7 +4,7 @@
 
 - **Modo aprendizaje:** cerrado (Fase 1 + rate limit + Fase 2 deploy HTTPS). Ver [`modo-aprendizaje/04-fase-2-deploy.md`](./modo-aprendizaje/04-fase-2-deploy.md) y [`modo-aprendizaje/03-fase-1-checklist.md`](./modo-aprendizaje/03-fase-1-checklist.md).
 - **Modo AI trivia:** cerrado (implementación + rate limit + Fase 2 deploy notes). Ver [`modo-ai-trivia/03-deploy-fase-2.md`](./modo-ai-trivia/03-deploy-fase-2.md).
-- **Persistencia riddles en Convex:** activo en Production (Convex prod + `GEMINI_API_KEY` + build con `convex deploy`). Snapshot: [`../../operations/deployment-state.md`](../../operations/deployment-state.md). Checklist operativo: [`riddle-storage-convex/03-deploy-fase-2.md`](./riddle-storage-convex/03-deploy-fase-2.md).
+- **Persistencia riddles en Convex:** cerrado (activo en Production desde 2026-05-27). Snapshot: [`../../operations/deployment-state.md`](../../operations/deployment-state.md). Referencia operativa: [`riddle-storage-convex/03-deploy-fase-2.md`](./riddle-storage-convex/03-deploy-fase-2.md).
 
 Documentación de contexto para que un agente (o humano) pueda **planificar tareas** sin re-leer el hilo de diseño. Al promover nuevas ideas del backlog, crear carpeta hermana con `00-decision-…md`, `01-prd-…md`, etc., según [`.cursor/rules/docs-tasks-conventions.mdc`](../../../.cursor/rules/docs-tasks-conventions.mdc).
 
@@ -15,7 +15,7 @@ Documentación de contexto para que un agente (o humano) pueda **planificar tare
 | [`modo-ai-trivia/`](./modo-ai-trivia/) | **Modo AI trivia** (cerrado): decisión approach B, PRD, plan, deploy Fase 2 |
 | [`convex-setup/`](./convex-setup/) | **Convex + Vercel** (índice operativo): env vars, dev en dos terminales, deploy. Doc vivo |
 | [`../../operations/deployment-state.md`](../../operations/deployment-state.md) | **Snapshot deployment** (Vercel + Convex prod + envs; sin secretos) |
-| [`riddle-storage-convex/`](./riddle-storage-convex/) | **Persistencia riddles en Convex** (activo en prod): `00-decision` + `01-prd` + `02-plan` + `03-deploy-fase-2` |
+| [`riddle-storage-convex/`](./riddle-storage-convex/) | **Persistencia riddles en Convex** (cerrado, prod): `00-decision` + `01-prd` + `02-plan` + `03-deploy-fase-2` |
 
 **Ideas de origen en backlog:** [`ideas-features-backlog.md`](../ideas-features-backlog.md)
 

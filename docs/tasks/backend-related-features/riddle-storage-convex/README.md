@@ -1,6 +1,6 @@
 # Persistencia de riddles en Convex
 
-**Estado (2026-05-27):** **activo en Production** — esquema Convex `riddles` con índices `by_lookup` / `by_origin`, puerto `RiddleRepository` + adaptadores InMemory / Convex / L1 write-through, refactor de `generate-ai-prompts`, dedupe vía `excludedIds`, respuesta API con `riddleId`, código `503 CONVEX_UNAVAILABLE`, métricas `cache_hit_l1` / `cache_hit_l2` / `cache_miss` / `convex_errors`. Snapshot operativo: [`../../../operations/deployment-state.md`](../../../operations/deployment-state.md). Guía deploy: [`03-deploy-fase-2.md`](./03-deploy-fase-2.md).
+**Estado (2026-05-27):** **cerrado** (activo en Production) — esquema Convex `riddles` con índices `by_lookup` / `by_origin`, puerto `RiddleRepository` + adaptadores InMemory / Convex / L1 write-through, refactor de `generate-ai-prompts`, dedupe vía `excludedIds`, respuesta API con `riddleId`, código `503 CONVEX_UNAVAILABLE`, métricas `cache_hit_l1` / `cache_hit_l2` / `cache_miss` / `convex_errors`. Snapshot operativo: [`../../../operations/deployment-state.md`](../../../operations/deployment-state.md). Guía deploy: [`03-deploy-fase-2.md`](./03-deploy-fase-2.md).
 
 | Documento | Rol |
 |-----------|-----|

@@ -5,7 +5,7 @@ alwaysApply: false
 
 # Estado actual post-MVP — The Map World Game 2026
 
-**Estado de referencia:** 2026-05-26 (actualizado con cierre de **modo aprendizaje**, **modo AI trivia** y avance en `main` de **persistencia de riddles en Convex** —pendiente smoke local y deploy preview/prod—).
+**Estado de referencia:** 2026-05-27 (incluye cierre de **persistencia de riddles en Convex** activa en Production).
 
 Este documento es el punto de entrada para entender dónde está hoy la app y cómo avanzar sin mezclar definiciones cerradas del MVP con nuevas features.
 
@@ -51,13 +51,14 @@ También está cerrada la iteración **Modo AI trivia** (preguntas redactadas po
 - [`../tasks/backend-related-features/modo-ai-trivia/01-prd-modo-ai-trivia.md`](../tasks/backend-related-features/modo-ai-trivia/01-prd-modo-ai-trivia.md): PRD formal (con callout de superseding hacia `riddle-storage-convex/` en lo relativo a persistencia).
 - [`../tasks/backend-related-features/modo-ai-trivia/03-deploy-fase-2.md`](../tasks/backend-related-features/modo-ai-trivia/03-deploy-fase-2.md): operativa de deploy y métricas.
 
-Iteración **Persistencia de riddles en Convex** (extiende modo AI trivia): **implementada en `main`** (Fases 1–7 + 8.1 + 9.1–9.2 del plan), **pendiente** smoke local (Tarea 8.2) y deploy preview/prod + smoke HTTPS (Tarea 9.3). Cuando esos dos pasos cierren, este bloque pasa al listado de iteraciones cerradas. Documentación:
+También está cerrada la iteración **Persistencia de riddles en Convex** (extiende modo AI trivia; activa en Production desde 2026-05-27):
 
-- [`../tasks/backend-related-features/riddle-storage-convex/README.md`](../tasks/backend-related-features/riddle-storage-convex/README.md): índice vivo de la iteración.
+- [`../tasks/backend-related-features/riddle-storage-convex/README.md`](../tasks/backend-related-features/riddle-storage-convex/README.md): índice de la iteración.
 - [`../tasks/backend-related-features/riddle-storage-convex/00-decision-persistencia-riddles-convex.md`](../tasks/backend-related-features/riddle-storage-convex/00-decision-persistencia-riddles-convex.md): ADR D1–D9.
 - [`../tasks/backend-related-features/riddle-storage-convex/01-prd-riddle-storage-convex.md`](../tasks/backend-related-features/riddle-storage-convex/01-prd-riddle-storage-convex.md): PRD formal con §0 de cambios respecto a iteraciones previas.
-- [`../tasks/backend-related-features/riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md`](../tasks/backend-related-features/riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md): plan vivo con checklist por fase.
-- [`../tasks/backend-related-features/riddle-storage-convex/03-deploy-fase-2.md`](../tasks/backend-related-features/riddle-storage-convex/03-deploy-fase-2.md): operativa de smoke local + deploy + métricas + rollback.
+- [`../tasks/backend-related-features/riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md`](../tasks/backend-related-features/riddle-storage-convex/02-plan-implementacion-riddle-storage-convex.md): plan con checklist por fase.
+- [`../tasks/backend-related-features/riddle-storage-convex/03-deploy-fase-2.md`](../tasks/backend-related-features/riddle-storage-convex/03-deploy-fase-2.md): operativa de smoke + deploy + métricas + rollback.
+- Snapshot operativo: [`../operations/deployment-state.md`](../operations/deployment-state.md).
 
 Estos archivos quedan como **documentación histórica y trazabilidad**. No conviene seguir agregando nuevas fases o features dentro de ellos salvo correcciones de estado, links o aclaraciones de decisiones ya tomadas (regla en [`../../.cursor/rules/docs-tasks-conventions.mdc`](../../.cursor/rules/docs-tasks-conventions.mdc)).
 
@@ -81,7 +82,7 @@ La app ya cuenta con:
 - **Internacionalización (ES/EN):** `i18next` + `react-i18next`; idioma inicial según `localStorage` (clave versionada) → navegador normalizado (`es`/`en`) → fallback **`es`**; persistencia al cambiar; `document.documentElement.lang` sincronizado; selector de idioma en **Setup** (`#app-locale`). Recursos en `src/i18n/` (namespaces `common`, `home`, `setup`, `game`, `results`, `aria`, `app`, `validation`, `errors`). Tests globales fijan `es` en `src/test/setup.ts`; errores de API y validación Zod se muestran por **código** → claves i18n. **Datos de preguntas:** prompts localizados vía `buildQuestionPool` con `locale` y capa `src/data/country-localization.ts` + `capital-es-map.json` (detalle en [`01-decision-catalogo.md`](../tasks/i18n-multilenguaje/01-decision-catalogo.md)). E2E ajustados a copy bilingüe y locale forzado donde hace falta.
 - **Modo aprendizaje:** modo de exploración libre (sin puntaje) con ficha Wikipedia por país. Backend en Vercel Functions (`api/v1/learn/*` + `server/learn/`) con `WikipediaClient`, resolución de idioma vía Wikidata sitelinks (`shared/wikipedia-sitelinks.json`), caché y rate limit por IP. Frontend en `src/features/learn/`. Deploy HTTPS en producción.
 - **Modo AI trivia:** tercera opción de quiz junto a `country` / `capital`; el `prompt` lo redacta un LLM (Gemini Flash detrás del adaptador `LlmClient`) con multi-select de tags temáticos (`historia`, `política`, `geografía`, `flora-y-fauna`, `cultura-general`, `música`, `literatura`, `cine`, `deportes`). Hasta 3 intentos por ronda con score escalonado (1/0.5/0.25). Backend valida la salida del LLM con reglas V1–V8 (incluye verificación contra Wikipedia del artículo declarado) y emite código `LLM_UNAVAILABLE` / `INSUFFICIENT_GROUNDING_BATCH` si no puede generar; el frontend muestra loading + error views específicos. Anti-cheat fuerza modo `strict` en AI. Rate limit reusado del bucket `prompts:`. Backend en `api/v1/prompts/generate.ts` + `server/prompts/`, frontend en `src/features/setup/AiTriviaTagsPicker*`, `src/features/game/Ai*View*`. Métricas `ai_trivia.*` sin PII en logs server.
-- **Persistencia de riddles en Convex (modo AI trivia):** los riddles validados por V1–V8 se persisten indefinidamente en una tabla `riddles` de Convex (campos: `iso2`, `tag`, `locale`, `riddle`, `source`, `difficulty`, `justification`, `llmProvider`, `validationVersion`, `createdAt`; índices `by_lookup` y `by_origin`). Caché de dos niveles: L1 in-memory por proceso (write-through, sin TTL) + L2 Convex como fuente de verdad. El cliente evita repetir riddles vía `localStorage` (`aiTrivia:seenIds:<locale>`, cap 500) propagando `excludedIds` en cada request; el server devuelve `riddleId` opaco por ítem. Errores Convex → `503 CONVEX_UNAVAILABLE`. Implementado en repo; activación en preview/prod (con Build Command `npx convex deploy --cmd 'npm run build'`) pendiente.
+- **Persistencia de riddles en Convex (modo AI trivia):** los riddles validados por V1–V8 se persisten indefinidamente en una tabla `riddles` de Convex (campos: `iso2`, `tag`, `locale`, `riddle`, `source`, `difficulty`, `justification`, `llmProvider`, `validationVersion`, `createdAt`; índices `by_lookup` y `by_origin`). Caché de dos niveles: L1 in-memory por proceso (write-through, sin TTL) + L2 Convex como fuente de verdad. El cliente evita repetir riddles vía `localStorage` (`aiTrivia:seenIds:<locale>`, cap 500) propagando `excludedIds` en cada request; el server devuelve `riddleId` opaco por ítem. Errores Convex → `503 CONVEX_UNAVAILABLE`. Activo en Production (Convex prod `standing-fox-900`, Build Command `npx convex deploy --typecheck=disable --cmd 'npm run build'`). Detalle operativo en [`../operations/deployment-state.md`](../operations/deployment-state.md).
 
 Pendientes deliberados que siguen siendo opcionales desde el cierre MVP:
 
@@ -94,11 +95,10 @@ Pendientes deliberados que siguen siendo opcionales desde el cierre MVP:
 
 Las nuevas features no deberían agregarse al plan MVP cerrado. El flujo recomendado es:
 
-1. Registrar ideas livianas en [`../tasks/ideas-features-backlog.md`](../tasks/ideas-features-backlog.md).
-2. Cuando una idea se decide trabajar, promoverla a una carpeta propia de iteración en `docs/tasks/<nombre-iteracion>/`.
-3. Crear dentro de esa carpeta una lista de tareas ejecutables, idealmente en bloques de 1–4 horas.
-4. Si la feature cambia una definición estable de producto, crear o actualizar un PRD post-MVP específico.
-5. Al cerrar la iteración, registrar evidencia, tests y links desde este documento si pasa a ser parte del estado actual.
+1. Registrar ideas livianas en [`../tasks/ideas-features-backlog.md`](../tasks/ideas-features-backlog.md) → sección **Ideas pendientes**.
+2. Al empezar el trabajo → mover a **En ejecución** en el backlog y crear/usar carpeta `docs/tasks/<nombre-iteracion>/`.
+3. Crear dentro de esa carpeta PRD/plan/checklist según [`.cursor/rules/docs-tasks-conventions.mdc`](../../.cursor/rules/docs-tasks-conventions.mdc).
+4. Al cerrar → mover a **Cerradas** en el backlog (entrada breve) y actualizar **este documento** §1 y §2.
 
 Estructura sugerida para una nueva iteración:
 

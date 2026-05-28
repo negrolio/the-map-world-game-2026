@@ -35,6 +35,7 @@ import {
   MAP_DEFAULT_PALETTE,
   MAP_OUT_OF_REGION_PALETTE,
   MAP_REVEALED_TARGET_PALETTE,
+  MAP_WRONG_SELECTION_DIMMED_PALETTE,
   MAP_WRONG_SELECTION_PALETTE,
 } from './world-map-palette'
 
@@ -42,6 +43,14 @@ export interface MapAnswerFeedback {
   readonly selectedIso2: IsoCountryCode
   readonly targetIso2: IsoCountryCode
   readonly isCorrect: boolean
+  /**
+   * F2 (PRD UX feedback modo AI, RF-F20..RF-F24): ISO2 de selecciones erróneas
+   * acumuladas durante la ronda. Solo se popula en modo AI con
+   * `Round.attempts`; ausente en country/capital. Mientras la ronda está
+   * abierta se pintan con `MAP_WRONG_SELECTION_PALETTE`; al cerrar con
+   * `isCorrect === true` se atenúan con `MAP_WRONG_SELECTION_DIMMED_PALETTE`.
+   */
+  readonly wrongSelectionsIso2?: readonly IsoCountryCode[]
 }
 
 export interface WorldMapProps {
@@ -49,7 +58,12 @@ export interface WorldMapProps {
   readonly onCountryClick?: (iso2: IsoCountryCode | null) => void
   /** País elegido vs objetivo: colorea el mapa tras responder (F3.4). */
   readonly mapFeedback?: MapAnswerFeedback | null
-  /** Mientras hay feedback de ronda, se bloquea el clic y el cursor. */
+  /**
+   * Bloquea clic en países (p. ej. ronda cerrada con `guess` y botón Siguiente).
+   * El highlight visual (`mapFeedback`) no implica bloqueo: en modo AI con
+   * intentos parciales el mapa sigue aceptando clics mientras `answerLocked` es
+   * `false` (RF-F20..F24).
+   */
   readonly answerLocked?: boolean
   /** Modo aprendizaje: bloquea clic en país, pan y zoom (p. ej. modal abierto). */
   readonly mapInteractionLocked?: boolean
@@ -213,7 +227,20 @@ function toGeographyStyle(
   }
 }
 
-/** MAP-UX-05 / F5.4: el feedback de ronda gana al dimming regional; `interactionLocked` congela hover fuera del feedback. */
+/**
+ * MAP-UX-05 / F5.4: el feedback de ronda gana al dimming regional;
+ * `interactionLocked` congela hover fuera del feedback.
+ *
+ * F2 (PRD UX feedback modo AI, RF-F20..RF-F24) — precedencias al consumir
+ * `wrongSelectionsIso2`:
+ *  1. `isCorrect && iso2 === targetIso2` → verde pleno.
+ *  2. `isCorrect && wrongSelectionsIso2.includes(iso2)` → rojo atenuado.
+ *  3. `!isCorrect && iso2 === selectedIso2` → rojo pleno (gana sobre wrongSelections).
+ *  4. `!isCorrect && wrongSelectionsIso2.includes(iso2)` → rojo pleno.
+ *  5. `!isCorrect && iso2 === targetIso2` → amarillo (revealing target en ronda
+ *     cerrada con fallo). GameShell evita disparar este caso durante una
+ *     ronda AI abierta poblando `targetIso2` con la última selección.
+ */
 function geographyStyleForIso(
   iso2: string | undefined,
   mapFeedback: MapAnswerFeedback | null | undefined,
@@ -221,14 +248,21 @@ function geographyStyleForIso(
   regionFilter: RegionFilter,
 ): GeographyCssStyle {
   if (iso2 && mapFeedback) {
-    const { selectedIso2, targetIso2, isCorrect } = mapFeedback
+    const { selectedIso2, targetIso2, isCorrect, wrongSelectionsIso2 } = mapFeedback
 
     if (isCorrect && iso2 === targetIso2) {
       return toGeographyStyle(MAP_CORRECT_TARGET_PALETTE, interactionLocked)
     }
 
+    if (isCorrect && wrongSelectionsIso2 && wrongSelectionsIso2.includes(iso2)) {
+      return toGeographyStyle(MAP_WRONG_SELECTION_DIMMED_PALETTE, interactionLocked)
+    }
+
     if (!isCorrect) {
       if (iso2 === selectedIso2) {
+        return toGeographyStyle(MAP_WRONG_SELECTION_PALETTE, interactionLocked)
+      }
+      if (wrongSelectionsIso2 && wrongSelectionsIso2.includes(iso2)) {
         return toGeographyStyle(MAP_WRONG_SELECTION_PALETTE, interactionLocked)
       }
       if (iso2 === targetIso2) {
@@ -260,6 +294,30 @@ type WorldMapGeographyRowProps = {
   readonly i18nLanguage: string
 }
 
+function wrongSelectionsEqual(
+  a: readonly IsoCountryCode[] | undefined,
+  b: readonly IsoCountryCode[] | undefined,
+): boolean {
+  if (a === b) {
+    return true
+  }
+  if (!a || !b) {
+    // Tratamos `undefined` y `[]` como equivalentes: ninguno modifica el render.
+    const aLen = a?.length ?? 0
+    const bLen = b?.length ?? 0
+    return aLen === 0 && bLen === 0
+  }
+  if (a.length !== b.length) {
+    return false
+  }
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) {
+      return false
+    }
+  }
+  return true
+}
+
 function mapFeedbackShallowEqual(a: MapAnswerFeedback | null, b: MapAnswerFeedback | null): boolean {
   if (a === b) {
     return true
@@ -270,7 +328,8 @@ function mapFeedbackShallowEqual(a: MapAnswerFeedback | null, b: MapAnswerFeedba
   return (
     a.selectedIso2 === b.selectedIso2 &&
     a.targetIso2 === b.targetIso2 &&
-    a.isCorrect === b.isCorrect
+    a.isCorrect === b.isCorrect &&
+    wrongSelectionsEqual(a.wrongSelectionsIso2, b.wrongSelectionsIso2)
   )
 }
 
@@ -398,7 +457,7 @@ function WorldMapInner({
   const activePointersRef = useRef(new Map<number, { clientX: number; clientY: number }>())
   /** Separación entre los dos dedos en el último frame de pinch (ratio incremental). */
   const pinchLastDistanceRef = useRef<number | null>(null)
-  const locked = answerLocked || Boolean(mapFeedback) || mapInteractionLocked
+  const locked = answerLocked || mapInteractionLocked
   const instructionsId = 'world-map-instructions'
   const mapInteractionLockedRef = useRef(mapInteractionLocked)
 

@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-05-25 (avance marcado: 2026-05-26)
 **Idioma del documento:** español
-**Estado:** Fases 1–7 + 8.1 + 9.1 + 9.2 completadas en repo. Pendiente: **8.2** (smoke local con `vercel dev` + Convex) y **9.3** (deploy preview/prod + smoke HTTPS).
+**Estado:** **cerrado** (2026-05-27) — Fases 1–9.3 en repo y Production. Tarea **8.2** (smoke local formal) sigue recomendada para diagnóstico local; smoke HTTPS documentado en [`../../../operations/deployment-state.md`](../../../operations/deployment-state.md) §Smoke rápido.
 
 **Referencias obligadas:**
 
@@ -338,19 +338,19 @@ Ritual obligatorio (§0):
 
 ### Tarea 9.3 — Deploy notes (no toca código del feature)
 
-> **Pendiente** — depende de push a `main` + deploy preview/prod en Vercel. El checklist operativo vive en [`03-deploy-fase-2.md`](./03-deploy-fase-2.md); marcar checkboxes acá una vez ejecutados los pasos de ese doc.
+> **Cerrado** 2026-05-27 — Production activa. Evidencia: [`../../../operations/deployment-state.md`](../../../operations/deployment-state.md), [`03-deploy-fase-2.md`](./03-deploy-fase-2.md) §4.
 
-- [ ] Verificar que **Vercel Build Command** sea `npx convex deploy --cmd 'npm run build'` (RF-B66; ya documentado en `convex-setup/` §4).
-- [ ] Confirmar que `CONVEX_URL` y `CONVEX_DEPLOY_KEY` están en Vercel **Preview** y **Production** apuntando al deployment **prod** de Convex (no al `dev:unique-echidna-841`).
-- [ ] Smoke HTTPS post-deploy: 2 requests con `excludedIds` devuelven `riddleId` distintos cuando hay ≥ 2 variantes.
+- [x] Verificar que **Vercel Build Command** sea `npx convex deploy --typecheck=disable --cmd 'npm run build'` (RF-B66; documentado en `convex-setup/` §4).
+- [x] Confirmar que `CONVEX_URL` y `CONVEX_DEPLOY_KEY` están en Vercel **Preview** y **Production** apuntando al deployment **prod** de Convex (`standing-fox-900`, no `dev:unique-echidna-841`).
+- [x] Smoke HTTPS post-deploy documentado (§Smoke rápido en `deployment-state.md`).
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ---
 

@@ -1,7 +1,7 @@
 # Persistencia riddles en Convex — Deploy Fase 2
 
 **Audiencia:** operador humano del proyecto Vercel + Convex.
-**Estado:** ready (Fases 1–7 + 8.1 + 9.1–9.2 del plan están en `main`; este checklist guía la activación en preview/production).
+**Estado:** cerrado en Production (2026-05-27). Este documento queda como referencia operativa (smoke, rollback, métricas). Snapshot: [`../../../operations/deployment-state.md`](../../../operations/deployment-state.md).
 **Referencias:** [`02-plan-implementacion-riddle-storage-convex.md`](./02-plan-implementacion-riddle-storage-convex.md) Tareas 8.2 y 9.3, [`01-prd-riddle-storage-convex.md`](./01-prd-riddle-storage-convex.md) §8 Fase 2 y §5.4 RNF-T10, [`../convex-setup/00-entorno-convex-vercel.md`](../convex-setup/00-entorno-convex-vercel.md), [`../../../operations/deployment-state.md`](../../../operations/deployment-state.md), [`.cursor/rules/privacy.mdc`](../../../../.cursor/rules/privacy.mdc), [`.cursor/rules/dependency-security.mdc`](../../../../.cursor/rules/dependency-security.mdc).
 
 Esta guía cubre las **Tareas 8.2 (smoke local prod-like)** y **9.3 (deploy notes)** del plan: arrancar Convex en local y verificar que la persistencia de riddles + `excludedIds` funcionan end-to-end, configurar las env vars en Vercel, hacer el deploy y validar HTTPS.

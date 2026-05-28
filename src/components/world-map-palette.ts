@@ -54,6 +54,19 @@ export const MAP_WRONG_SELECTION_PALETTE: MapGeographyStyle = {
   pressed: { fill: '#9a8662' },
 }
 
+/**
+ * Variante atenuada del wrong selection (~50 % opacity en fill y stroke), token
+ * derivado del `MAP_WRONG_SELECTION_PALETTE` base. Se usa exclusivamente
+ * cuando el jugador acertó en un intento posterior y los países erróneos
+ * previos deben quedar visibles pero secundarios al verde del target
+ * (PRD UX feedback modo AI, RF-F23). No reemplaza al palette base.
+ */
+export const MAP_WRONG_SELECTION_DIMMED_PALETTE: MapGeographyStyle = {
+  default: { fill: 'rgba(217, 76, 56, 0.5)', stroke: 'rgba(122, 37, 21, 0.5)', strokeWidth: 0.65 },
+  hover: { fill: 'rgba(181, 56, 36, 0.5)', stroke: 'rgba(122, 37, 21, 0.5)', strokeWidth: 0.65 },
+  pressed: { fill: 'rgba(154, 134, 98, 0.5)' },
+}
+
 /** Target country revealed after a wrong answer. */
 export const MAP_REVEALED_TARGET_PALETTE: MapGeographyStyle = {
   default: { fill: '#fdd835', stroke: '#8a7100', strokeWidth: 0.65 },

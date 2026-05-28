@@ -187,3 +187,60 @@ h3,
   font-family: var(--font-display);
   letter-spacing: 0.04em;
 }
+
+/* Game shell — feedback messages
+ *
+ * Pop-in al aparecer + pulso ligero mientras el cartel está visible. El
+ * cartel se mantiene en pantalla hasta que el jugador presiona la X
+ * (manejado en `GameShell.tsx`), por eso no animamos la salida. Respeta
+ * `prefers-reduced-motion`.
+ */
+@keyframes mapgame-feedback-pop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes mapgame-feedback-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.mapgame-feedback-animate {
+  transform-origin: center;
+  will-change: transform, opacity;
+  animation:
+    mapgame-feedback-pop 320ms ease-out,
+    mapgame-feedback-pulse 1.6s ease-in-out 320ms infinite;
+}
+
+/* Prompt reveal — flash de pop (~1 s) al cambiar de ronda para avisar al
+ * jugador que el texto de la adivinanza cambió. Reutiliza la misma keyframe
+ * que el feedback pero sin pulse loop. El componente fuerza remount con
+ * `key={roundNumber}` para re-disparar la animación cada vez. */
+.mapgame-prompt-reveal {
+  transform-origin: center left;
+  will-change: transform, opacity;
+  animation: mapgame-feedback-pop 1000ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mapgame-feedback-animate,
+  .mapgame-prompt-reveal {
+    animation: none;
+  }
+}

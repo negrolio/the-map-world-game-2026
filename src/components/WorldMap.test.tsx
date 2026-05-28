@@ -197,6 +197,29 @@ describe('WorldMap', () => {
     expect(onCountryClick).not.toHaveBeenCalled()
   })
 
+  it('permite click de pais con mapFeedback de intentos parciales si answerLocked es false', () => {
+    const onCountryClick = vi.fn()
+    renderWithI18n(
+      <WorldMap
+        onCountryClick={onCountryClick}
+        mapFeedback={{
+          selectedIso2: 'UY',
+          targetIso2: 'UY',
+          isCorrect: false,
+          wrongSelectionsIso2: ['UY'],
+        }}
+      />,
+    )
+
+    const geo = screen.getByTestId('geo-de')
+    const ptr = { pointerId: 1, pointerType: 'mouse', button: 0, clientX: 8, clientY: 8 }
+    fireEvent.pointerDown(geo, { ...ptr, buttons: 1 })
+    fireEvent.pointerUp(geo, { ...ptr, buttons: 0 })
+    fireEvent.click(geo)
+
+    expect(onCountryClick).toHaveBeenCalledWith('DE')
+  })
+
   it('dispara onCountryClick al seleccionar un pais con puntero tipo mouse', () => {
     const onCountryClick = vi.fn()
     renderWithI18n(<WorldMap onCountryClick={onCountryClick} />)
@@ -294,6 +317,43 @@ describe('WorldMap', () => {
     expect(screen.getByTestId('geo-de')).toHaveStyle({ fill: 'rgb(253, 216, 53)' })
     // MAP_OUT_OF_REGION_PALETTE.default.fill = '#3a2412'
     expect(screen.getByTestId('geo-ar')).toHaveStyle({ fill: 'rgb(58, 36, 18)' })
+  })
+
+  // PRD UX feedback modo AI — F2 (RF-F20..RF-F24)
+  it('renderiza wrongSelectionsIso2 con el estilo de selección errónea (rojo pleno)', () => {
+    renderWithI18n(
+      <WorldMap
+        mapFeedback={{
+          // selected/target apuntan a un ISO2 inexistente en el mock para
+          // aislar el efecto de `wrongSelectionsIso2` sobre 'AR'.
+          selectedIso2: 'XX',
+          targetIso2: 'XX',
+          isCorrect: false,
+          wrongSelectionsIso2: ['AR'],
+        }}
+      />,
+    )
+
+    // MAP_WRONG_SELECTION_PALETTE.default.fill = '#d94c38'
+    expect(screen.getByTestId('geo-ar')).toHaveStyle({ fill: 'rgb(217, 76, 56)' })
+  })
+
+  it('atenúa los wrong al cerrar con isCorrect=true y target en verde pleno', () => {
+    renderWithI18n(
+      <WorldMap
+        mapFeedback={{
+          selectedIso2: 'DE',
+          targetIso2: 'DE',
+          isCorrect: true,
+          wrongSelectionsIso2: ['AR'],
+        }}
+      />,
+    )
+
+    // MAP_CORRECT_TARGET_PALETTE.default.fill = '#7cb342'
+    expect(screen.getByTestId('geo-de')).toHaveStyle({ fill: 'rgb(124, 179, 66)' })
+    // MAP_WRONG_SELECTION_DIMMED_PALETTE.default.fill = 'rgba(217, 76, 56, 0.5)'
+    expect(screen.getByTestId('geo-ar')).toHaveStyle({ fill: 'rgba(217, 76, 56, 0.5)' })
   })
 
   it('al cambiar regionFilter centra la proyeccion en el continente y deja pan/zoom en home', () => {
