@@ -1,6 +1,6 @@
 # UX feedback modo AI trivia
 
-**Estado (2026-05-28):** **cerrado** — Fases 1–7 del plan implementadas; suite Vitest y Playwright e2e verdes en local.
+**Estado (2026-05-29):** **cerrado** — Fases 1–7 del plan implementadas; suite Vitest y Playwright e2e verdes en local; smoke con env real cubierto durante la iteración (validación distribuida tras cada tarea contra `vercel dev` + Gemini + Convex; los ajustes post-UX 2026-05-27/28 son evidencia documental).
 
 | Documento | Rol |
 |-----------|-----|
@@ -31,6 +31,8 @@ Util compartida: `src/services/safe-wikipedia-url.ts` (`isSafeWikipediaUrl`).
 ## Smoke manual (`vercel dev`) — checklist operador
 
 Requiere `GEMINI_API_KEY` y `CONVEX_*` en `.env.local`. No sustituye los e2e; valida integración real con LLM/Convex y percepción visual.
+
+**Estado:** cubierto de forma distribuida durante la iteración. El operador validó cada fase tras su implementación contra la app corriendo con env real; los ajustes post-UX (ver sección siguiente) son evidencia documental de ese smoke en vivo.
 
 1. Partida AI: 2 jugadores × 2 preguntas.
 2. **F1:** el link no aparece en intentos parciales; sí tras cerrar la ronda (dentro del modal de feedback).

@@ -1,7 +1,7 @@
 # PRD — UX de intentos y feedback en modo AI trivia
 
-**Estado:** aprobado para descomposición en plan/tasks
-**Fecha:** 2026-05-27
+**Estado:** **cerrado** (2026-05-29) — F1–F5 entregados; Vitest + Playwright verdes; smoke con env real cubierto a lo largo de la iteración.
+**Fecha:** 2026-05-27 (cierre 2026-05-29)
 **Idioma del documento:** español
 **Audiencia:** desarrollo (frontend), QA, planificación de tareas
 

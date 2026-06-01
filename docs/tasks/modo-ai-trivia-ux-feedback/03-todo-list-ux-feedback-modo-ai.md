@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-05-27
 **Idioma del documento:** español
-**Estado:** **cerrado** — Fases 1–7 completadas (2026-05-28).
+**Estado:** **cerrado** — Fases 1–7 completadas (2026-05-28); smoke con env real cubierto durante la iteración (cierre formal 2026-05-29).
 
 **Referencias obligadas:**
 
@@ -628,7 +628,7 @@ Ritual obligatorio (§0):
 ### Tarea 7.4 — Smoke manual `vercel dev`
 
 - [x] Checklist operador y hallazgos documentados en [`README.md`](./README.md) §Smoke manual (F1–F5 + ajustes post-UX ya en código).
-- [ ] Ejecución en `vercel dev` con env real (GEMINI + Convex): **pendiente del operador** — los e2e cubren el flujo funcional con API mockeada; el smoke visual con LLM real no se automatizó en este entorno.
+- [x] Ejecución en `vercel dev` con env real (GEMINI + Convex): **smoke distribuido cubierto** durante la iteración. El operador validó cada fase contra la app corriendo con env real después de cada tarea (no concentrado al final): los ajustes post-revisión UX 2026-05-27 (copy "objetivo era", layout del modal de feedback, animación pop+pulse, X de cierre, prompt-reveal) y 2026-05-28 (rework del `WritingHandLoader` con assets PNG/JPEG, layout compacto del loading, desvío de `prefers-reduced-motion`) son evidencia de smoke en vivo: surgieron de jugar partidas AI reales contra Gemini + Convex, no de los e2e (que están mockeados). Los e2e Playwright (15/15 verdes 2026-05-28) cubren el flujo funcional integrado con API mockeada; el smoke visual cubrió la integración con LLM real.
 
 Ritual obligatorio (§0):
 
