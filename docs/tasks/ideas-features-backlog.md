@@ -44,7 +44,7 @@ Mantener entradas **breves** en pendientes (1–3 líneas). El diseño y el chec
 - **Modo AI — control de costo y robustez API (iteración candidata)** — 2026-05-27
   - Contexto / problema: el modo AI puede generar muchas llamadas al LLM; además el backend a veces devuelve menos adivinanzas válidas de las pedidas (validaciones V1–V8 u otras causas).
   - Sub-features:
-    - **C1. Topes en Setup para modo AI** — máximo **3 jugadores** y **5 preguntas por jugador** (hoy `PRODUCT_RULES.players.max = 6` y sin tope específico por modo en `src/services/product-rules.ts`). Validar en frontend y en request al backend.
+    - **C1. Topes en Setup para modo AI** — **parcialmente cerrado** en [`setup-redesign/00-decision-setup-look-and-feel.md`](./setup-redesign/00-decision-setup-look-and-feel.md) (2026-06-01): máximo **2 jugadores** y **5 preguntas fijas** (ocultas en UI). Pendiente: validación alineada en backend/request si aplica. El tope histórico de **3 jugadores** quedó sustituido por esta decisión.
     - **C2. Reintentos hasta completar el batch** — si la API devuelve menos ítems de los solicitados, volver a llamar (frontend u orquestación server-side) hasta alcanzar la cantidad pedida o un tope de reintentos. Definir impacto en rate limit (`prompts:`), timeout del handler y `excludedIds`.
   - Impacto estimado: infra / costos · alto.
   - Esfuerzo estimado: medio–alto.
@@ -66,13 +66,6 @@ Mantener entradas **breves** en pendientes (1–3 líneas). El diseño y el chec
   - Impacto estimado: UX · medio.
   - Esfuerzo estimado: medio (geometría + viewport).
   - Notas: entrada atómica; puede implementarse después del grupo **Modo AI — UX de intentos y feedback** (F2 pinta países; esta entrada mueve la cámara). Archivos: `WorldMap.tsx`, util nueva tipo `world-map-fit-bounds.ts`, `GameShell.tsx`.
-
-- **Setup redesign — menos web, más game** — 2026-05-27
-  - Contexto / problema: la pantalla de configuración se siente más “web app” que “juego de tablero”; no transmite la misma energía que el rediseño visual integral ya entregado.
-  - Idea / dirección: rediseñar `SetupView.tsx` con look & feel más lúdico (referencias board-game / arcade), manteniendo mobile-first, accesibilidad e i18n ES/EN. Requiere brief de diseño antes del PRD.
-  - Impacto estimado: UX · alto.
-  - Esfuerzo estimado: alto.
-  - Notas: al promover → `docs/tasks/setup-redesign/` con `00-decision-setup-look-and-feel.md` + `01-prd-*.md`. Continúa la línea de [`05-prd-rediseno-visual-brief-diseno.mdc`](../requirements/05-prd-rediseno-visual-brief-diseno.mdc).
 
 - **Audio del juego — música de fondo + mute** — 2026-05-27
   - Contexto / problema: la experiencia es silenciosa; falta ambiente sonoro opcional sin molestar.
@@ -129,6 +122,8 @@ Mantener entradas **breves** en pendientes (1–3 líneas). El diseño y el chec
 ## En ejecución
 
 <!-- Ideas promovidas con trabajo activo. Al cerrar, mover a Cerradas y actualizar 04-current-state-post-mvp.mdc §1. -->
+
+- **Setup redesign — menos web, más game** — promovida 2026-06-01. [`setup-redesign/`](./setup-redesign/) — decisión [`00-decision-setup-look-and-feel.md`](./setup-redesign/00-decision-setup-look-and-feel.md); pendiente PRD e implementación. Lobby (cards de modo + Jugar ahora) + panel pergamino; AI: 2 jugadores, 5 preguntas fijas.
 
 ---
 
