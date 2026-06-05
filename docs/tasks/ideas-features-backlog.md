@@ -118,6 +118,8 @@ Mantener entradas **breves** en pendientes (1–3 líneas). El diseño y el chec
 
 - **Mapa — centrado adaptativo post-respuesta (auto-zoom)** — promovida 2026-06-05. Doc único: [`map-game-ux-and-data/06-auto-zoom-centrado-adaptativo.md`](./map-game-ux-and-data/06-auto-zoom-centrado-adaptativo.md). Rediseño respecto a la idea original "fit-bounds 2–4 países": ahora **centra solo el país correcto** + **gate de zoom** adaptativo por dispositivo, con animación suave.
 
+- **Mapa — coloreo de países distinguibles (tonos por adyacencia)** — anotada y promovida 2026-06-05. Doc único: [`map-game-ux-and-data/07-coloreo-paises-distinguibles.md`](./map-game-ux-and-data/07-coloreo-paises-distinguibles.md). Cada país un tono de la paleta actual; ningún limítrofe comparte tono (coloreo de grafo derivado del TopoJSON). Idea nueva, sin paso previo por "Ideas pendientes".
+
 ---
 
 ## Cerradas
