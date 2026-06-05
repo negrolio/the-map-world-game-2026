@@ -20,6 +20,10 @@ function clickHomeGameCard(): void {
   fireEvent.click(screen.getByTestId('home-card-game'))
 }
 
+function openSetupOptions(): void {
+  fireEvent.click(screen.getByTestId('setup-options-toggle'))
+}
+
 describe('App', () => {
   afterEach(() => {
     restoreTestViewportWidth()
@@ -61,31 +65,46 @@ describe('App', () => {
     renderWithI18n(<App />)
 
     clickHomeGameCard()
+    openSetupOptions()
 
-    expect(screen.getByText(/Cantidad de jugadores/i)).toBeInTheDocument()
-    expect(screen.getByText(/Modo de preguntas/i)).toBeInTheDocument()
-    expect(screen.getByText(/Cobertura geográfica/i)).toBeInTheDocument()
+    expect(screen.getByText(/Cantidad de jugadores \(1–6\)/i)).toBeInTheDocument()
+    expect(screen.getByTestId('setup-mode-country')).toBeInTheDocument()
+    expect(screen.getByText(/Elige un continente/i)).toBeInTheDocument()
     expect(screen.getByText(/Anti-cheat/i)).toBeInTheDocument()
     expect(screen.getByText(/Número de preguntas/i)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Iniciar partida/i })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /Jugar ahora/i })).toHaveLength(1)
+  })
+
+  it('mantiene el panel pergamino oculto hasta presionar Opciones', () => {
+    renderWithI18n(<App />)
+
+    clickHomeGameCard()
+
+    expect(screen.queryByText(/Número de preguntas/i)).not.toBeInTheDocument()
+
+    openSetupOptions()
+
+    expect(screen.getByText(/Número de preguntas/i)).toBeInTheDocument()
   })
 
   it('bloquea iniciar partida y muestra feedback cuando la configuracion es invalida', () => {
     renderWithI18n(<App />)
 
     clickHomeGameCard()
+    openSetupOptions()
 
     const firstPlayerInput = screen.getByDisplayValue('Jugador 1')
     fireEvent.change(firstPlayerInput, { target: { value: '   ' } })
 
     expect(screen.getByText(/Configuración inválida/i)).toBeInTheDocument()
     expect(screen.getAllByText(/no pueden estar vacíos/i).length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByRole('button', { name: /Iniciar partida/i })).toBeDisabled()
+    expect(screen.getAllByRole('button', { name: /Jugar ahora/i })[0]).toBeDisabled()
   })
 
   it('marca accesibilidad basica cuando hay error en setup', () => {
     renderWithI18n(<App />)
     clickHomeGameCard()
+    openSetupOptions()
 
     const firstPlayerInput = screen.getByDisplayValue('Jugador 1')
     fireEvent.change(firstPlayerInput, { target: { value: '   ' } })
@@ -98,7 +117,7 @@ describe('App', () => {
     renderWithI18n(<App />)
 
     clickHomeGameCard()
-    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Jugar ahora/i })[0])
 
     expect(screen.getByTestId('world-map-root')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Mapa mundial — 110m/i })).toBeInTheDocument()
@@ -108,7 +127,7 @@ describe('App', () => {
     renderWithI18n(<App />)
 
     clickHomeGameCard()
-    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Jugar ahora/i })[0])
 
     const prompt = screen.getByTestId('round-prompt')
     expect(prompt.textContent).toMatch(/¿Dónde está |¿Dónde queda la capital /)
@@ -120,7 +139,7 @@ describe('App', () => {
     renderWithI18n(<App />)
 
     clickHomeGameCard()
-    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Jugar ahora/i })[0])
 
     expect(screen.getByTestId('game-players-hud')).toBeInTheDocument()
     const desktopCard = screen.getByTestId('player-hud-player-1')
@@ -135,7 +154,7 @@ describe('App', () => {
     renderWithI18n(<App />)
 
     clickHomeGameCard()
-    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Jugar ahora/i })[0])
 
     const mobileRow = screen.getByTestId('player-hud-mobile-player-1')
     expect(mobileRow).toBeVisible()
@@ -148,7 +167,7 @@ describe('App', () => {
     renderWithI18n(<App />)
 
     clickHomeGameCard()
-    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Jugar ahora/i })[0])
 
     expect(screen.getByRole('region', { name: /Mapa interactivo de países/i })).toBeInTheDocument()
     expect(screen.getByText(/Usá Tab para navegar países/i)).toBeInTheDocument()
@@ -158,8 +177,9 @@ describe('App', () => {
     renderWithI18n(<App />)
 
     clickHomeGameCard()
+    openSetupOptions()
     fireEvent.click(screen.getByRole('radio', { name: /Estricto/i }))
-    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Jugar ahora/i })[0])
 
     fireEvent.blur(window)
 
@@ -171,8 +191,9 @@ describe('App', () => {
     renderWithI18n(<App />)
 
     clickHomeGameCard()
+    openSetupOptions()
     fireEvent.click(screen.getByRole('radio', { name: /Estricto/i }))
-    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Jugar ahora/i })[0])
     fireEvent.blur(window)
 
     expect(screen.getByTestId('game-finished-status')).toHaveTextContent(/abortada por anti-cheat/i)
@@ -187,7 +208,7 @@ describe('App', () => {
     renderWithI18n(<App />)
 
     clickHomeGameCard()
-    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Jugar ahora/i })[0])
 
     expect(screen.getByTestId('game-shell')).toBeInTheDocument()
     expect(screen.getByTestId('game-overlay-top')).toBeInTheDocument()
@@ -199,7 +220,7 @@ describe('App', () => {
     renderWithI18n(<App />)
 
     clickHomeGameCard()
-    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Jugar ahora/i })[0])
 
     const nav = screen.getByTestId('game-overlay-nav')
     expect(nav).toContainElement(screen.getByRole('button', { name: /Volver al setup/i }))
@@ -210,7 +231,7 @@ describe('App', () => {
     renderWithI18n(<App />)
 
     clickHomeGameCard()
-    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Jugar ahora/i })[0])
 
     expect(screen.queryByTestId('map-click-feedback')).not.toBeInTheDocument()
     expect(screen.queryByText(/Último clic — ISO2/i)).not.toBeInTheDocument()
@@ -220,9 +241,98 @@ describe('App', () => {
     renderWithI18n(<App />)
 
     clickHomeGameCard()
-    fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+    fireEvent.click(screen.getAllByRole('button', { name: /Jugar ahora/i })[0])
 
     const root = screen.getByTestId('world-map-root')
     expect(root).toHaveAttribute('data-fullbleed', 'true')
+  })
+
+  it('no muestra textos obsoletos del setup redesign', () => {
+    renderWithI18n(<App />)
+
+    clickHomeGameCard()
+    openSetupOptions()
+
+    expect(screen.queryByText(/Modo de preguntas/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Cobertura geográfica/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/Elige un continente/i)).toBeInTheDocument()
+  })
+
+  it('el boton Opciones cambia su label en modo AI', () => {
+    renderWithI18n(<App />)
+
+    clickHomeGameCard()
+
+    expect(screen.getByTestId('setup-options-toggle')).toHaveTextContent(/^Opciones$/i)
+
+    fireEvent.click(screen.getByTestId('setup-mode-ai'))
+
+    expect(screen.getByTestId('setup-options-toggle')).toHaveTextContent(/Opciones \(elige tags\)/i)
+  })
+
+  it('en modo AI oculta anti-cheat y número de preguntas', () => {
+    renderWithI18n(<App />)
+
+    clickHomeGameCard()
+    fireEvent.click(screen.getByTestId('setup-mode-ai'))
+    openSetupOptions()
+
+    expect(screen.queryByText(/Anti-cheat/i)).not.toBeInTheDocument()
+    expect(screen.queryByLabelText(/Número de preguntas/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/Tags temáticos/i)).toBeInTheDocument()
+  })
+
+  it('al entrar en AI recorta jugadores a 2 y muestra aviso', () => {
+    renderWithI18n(<App />)
+
+    clickHomeGameCard()
+    openSetupOptions()
+
+    fireEvent.change(screen.getByLabelText(/Cantidad de jugadores \(1–6\)/i), {
+      target: { value: '4' },
+    })
+
+    expect(screen.getByDisplayValue('Jugador 4')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('setup-mode-ai'))
+
+    expect(screen.getByLabelText(/Cantidad de jugadores \(1–2\)/i)).toHaveValue('2')
+    expect(screen.getByDisplayValue('Jugador 1')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Jugador 2')).toBeInTheDocument()
+    expect(screen.queryByDisplayValue('Jugador 3')).not.toBeInTheDocument()
+    expect(screen.getByTestId('setup-notice')).toHaveTextContent(/máximo de 2 jugadores/i)
+  })
+
+  it('en modo AI limita las opciones de jugadores a 2', () => {
+    renderWithI18n(<App />)
+
+    clickHomeGameCard()
+    fireEvent.click(screen.getByTestId('setup-mode-ai'))
+    openSetupOptions()
+
+    const playerCountSelect = screen.getByLabelText(/Cantidad de jugadores \(1–2\)/i)
+    const optionValues = within(playerCountSelect)
+      .getAllByRole('option')
+      .map((option) => (option as HTMLOptionElement).value)
+    expect(optionValues).toEqual(['1', '2'])
+
+    fireEvent.change(playerCountSelect, { target: { value: '2' } })
+    expect(playerCountSelect).toHaveValue('2')
+  })
+
+  it('al salir de AI resetea preguntas a 5 sin restaurar jugadores', () => {
+    renderWithI18n(<App />)
+
+    clickHomeGameCard()
+    openSetupOptions()
+
+    fireEvent.change(screen.getByLabelText(/Cantidad de jugadores \(1–6\)/i), {
+      target: { value: '4' },
+    })
+    fireEvent.click(screen.getByTestId('setup-mode-ai'))
+    fireEvent.click(screen.getByTestId('setup-mode-country'))
+
+    expect(screen.getByLabelText(/Cantidad de jugadores \(1–6\)/i)).toHaveValue('2')
+    expect(screen.getByLabelText(/Número de preguntas/i)).toHaveValue(5)
   })
 })

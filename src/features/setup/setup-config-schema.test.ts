@@ -11,6 +11,15 @@ const validConfig: GameConfig = {
   questionCount: 5,
 }
 
+const validAiConfig: GameConfig = {
+  players: ['Ana', 'Luis'],
+  questionMode: 'ai',
+  regionFilter: 'world',
+  antiCheatMode: 'strict',
+  questionCount: 5,
+  tags: [],
+}
+
 describe('validateSetupConfigSchema', () => {
   it('acepta una configuracion valida de setup', () => {
     const result = validateSetupConfigSchema(validConfig)
@@ -27,5 +36,32 @@ describe('validateSetupConfigSchema', () => {
 
     expect(result.isValid).toBe(false)
     expect(result.errors).toContain('schema.playerNameEmpty')
+  })
+
+  it('acepta configuracion AI valida con 2 jugadores y 5 preguntas', () => {
+    const result = validateSetupConfigSchema(validAiConfig)
+
+    expect(result.isValid).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  it('rechaza configuracion AI con mas de 2 jugadores', () => {
+    const result = validateSetupConfigSchema({
+      ...validAiConfig,
+      players: ['Ana', 'Luis', 'Pepe'],
+    })
+
+    expect(result.isValid).toBe(false)
+    expect(result.errors).toContain('schema.aiPlayersMax')
+  })
+
+  it('rechaza configuracion AI cuando questionCount no es 5', () => {
+    const result = validateSetupConfigSchema({
+      ...validAiConfig,
+      questionCount: 3,
+    })
+
+    expect(result.isValid).toBe(false)
+    expect(result.errors).toContain('schema.aiFixedQuestionCount')
   })
 })

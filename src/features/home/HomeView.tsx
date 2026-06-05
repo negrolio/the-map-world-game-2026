@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import homeCardGameUrl from '../../assets/home-card-game.png'
 import homeCardLearnUrl from '../../assets/home-card-learn.png'
-import { Badge, FieldSelect } from '../../components/ui'
+import { FieldSelect } from '../../components/ui'
 import type { AppLocale } from '../../i18n/app-locale'
 import { SUPPORTED_LOCALES, normalizeAppLocale } from '../../i18n/app-locale'
 import { HomeModeCard } from './HomeModeCard'
@@ -34,10 +34,9 @@ export function HomeView({ onStartSetup, onStartLearn }: HomeViewProps) {
 
   return (
     <main className="min-h-screen bg-paper text-ink">
-      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-8 px-6 py-8 md:py-12">
+      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-8 px-6 py-8 md:gap-12 md:pt-24 md:pb-16">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex flex-col items-center gap-3 text-center sm:items-start sm:text-left">
-            <Badge tone="warning">{t('badge')}</Badge>
             <h1 className="font-display text-4xl uppercase tracking-tight text-wood-dark md:text-5xl">
               {tCommon('appTitle')}
             </h1>

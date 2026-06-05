@@ -18,7 +18,7 @@ export {
   sortPlayersByTurnOrder,
 } from './turn-engine'
 export type { SubmitRoundGuessInput, SubmitRoundGuessSuccess } from './game-round-service'
-export { PRODUCT_RULES, getQuestionCountLimits } from './product-rules'
+export { PRODUCT_RULES, getMaxPlayersForMode, getQuestionCountLimits } from './product-rules'
 export { buildQuestionPool } from './build-question-pool'
 export type { BuildQuestionPoolInput, BuildQuestionPoolResult, QuestionPoolItem } from './build-question-pool'
 export { validateConfig } from './validate-config'

@@ -25,6 +25,7 @@ import {
   createGameSession,
   fetchAiPrompts,
   getActivePlayerIdForRound,
+  getMaxPlayersForMode,
   getSeenRiddleIds,
   isAntiCheatActive,
   mapAiItemsToPool,
@@ -51,6 +52,7 @@ export function App() {
   const { t: tApp } = useTranslation('app')
   const { t: tGame } = useTranslation('game')
   const { t: tErr } = useTranslation('errors')
+  const { t: tSetup } = useTranslation('setup')
   const { i18n } = useTranslation()
 
   const [currentView, setCurrentView] = useState<AppView>('home')
@@ -62,6 +64,7 @@ export function App() {
   const [questionCount, setQuestionCount] = useState<number>(5)
   const [tags, setTags] = useState<readonly AiTriviaTagId[]>([])
   const [setupSubmitMessage, setSetupSubmitMessage] = useState<string | null>(null)
+  const [setupNotice, setSetupNotice] = useState<string | null>(null)
   const [gameSession, setGameSession] = useState<GameSession | null>(null)
   const [guessSubmitError, setGuessSubmitError] = useState<string | null>(null)
   const [antiCheatNotice, setAntiCheatNotice] = useState<string | null>(null)
@@ -222,9 +225,32 @@ export function App() {
     setCurrentView('game')
   }
 
+  function handleQuestionModeChange(nextMode: QuestionMode): void {
+    if (nextMode === questionMode) {
+      return
+    }
+
+    setSetupNotice(null)
+
+    if (nextMode === 'ai') {
+      setQuestionCount(PRODUCT_RULES.ai.fixedQuestionCount)
+      if (playerCount > PRODUCT_RULES.ai.maxPlayers) {
+        const maxPlayers = PRODUCT_RULES.ai.maxPlayers
+        setPlayerCount(maxPlayers)
+        setPlayers((currentPlayers) => currentPlayers.slice(0, maxPlayers))
+        setSetupNotice(tSetup('aiPlayersClamped', { max: maxPlayers }))
+      }
+    } else if (questionMode === 'ai') {
+      setQuestionCount(PRODUCT_RULES.ai.fixedQuestionCount)
+    }
+
+    setQuestionMode(nextMode)
+  }
+
   function handlePlayerCountChange(nextPlayerCount: number): void {
+    const effectiveMax = getMaxPlayersForMode(questionMode)
     const boundedCount = Math.min(
-      PRODUCT_RULES.players.max,
+      effectiveMax,
       Math.max(PRODUCT_RULES.players.min, nextPlayerCount),
     )
 
@@ -271,6 +297,7 @@ export function App() {
       setSetupSubmitMessage(tApp('fixConfigBeforeStart'))
       return
     }
+    setSetupNotice(null)
     void startGameWithConfig(setupDraft)
   }
 
@@ -507,16 +534,16 @@ export function App() {
         antiCheatMode={effectiveAntiCheatMode}
         questionCount={questionCount}
         tags={tags}
-        setupDraft={setupDraft}
         availableQuestionsForRegion={availableQuestionsForRegion}
         validationResult={validationResult}
         schemaIsValid={schemaValidationResult.isValid}
         schemaOnlyErrors={schemaOnlyErrors}
         canStartGame={canStartGame}
         setupSubmitMessage={setupSubmitMessage}
+        setupNotice={setupNotice}
         onPlayerCountChange={handlePlayerCountChange}
         onPlayerNameChange={handlePlayerNameChange}
-        onQuestionModeChange={setQuestionMode}
+        onQuestionModeChange={handleQuestionModeChange}
         onRegionFilterChange={handleRegionFilterChange}
         onAntiCheatModeChange={setAntiCheatMode}
         onQuestionCountChange={setQuestionCount}

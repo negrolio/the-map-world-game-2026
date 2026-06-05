@@ -66,8 +66,9 @@ function clickHomeGameCard(): void {
 function startStrictCountryGame(): void {
   renderWithI18n(<App />)
   clickHomeGameCard()
+  fireEvent.click(screen.getByTestId('setup-options-toggle'))
   fireEvent.click(screen.getByRole('radio', { name: /Estricto/i }))
-  fireEvent.click(screen.getByRole('button', { name: /Iniciar partida/i }))
+  fireEvent.click(screen.getAllByRole('button', { name: /Jugar ahora/i })[0])
 }
 
 describe('App — anti-cheat pausa entre rondas (F3 / RF-I40..RF-I45)', () => {

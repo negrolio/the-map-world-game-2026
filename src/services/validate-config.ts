@@ -40,7 +40,15 @@ export function validateConfig(input: ValidateConfigInput): ConfigValidationResu
     })
   }
 
-  if (config.players.length > PRODUCT_RULES.players.max) {
+  if (config.questionMode === 'ai') {
+    if (config.players.length > PRODUCT_RULES.ai.maxPlayers) {
+      errors.push({
+        field: 'players',
+        messageKey: 'validation.config.aiPlayersMax',
+        messageValues: { max: PRODUCT_RULES.ai.maxPlayers },
+      })
+    }
+  } else if (config.players.length > PRODUCT_RULES.players.max) {
     errors.push({
       field: 'players',
       messageKey: 'validation.config.playersMax',
@@ -62,7 +70,18 @@ export function validateConfig(input: ValidateConfigInput): ConfigValidationResu
     })
   }
 
-  if (config.questionCount < questionLimits.min || config.questionCount > questionLimits.max) {
+  if (config.questionMode === 'ai') {
+    if (config.questionCount !== PRODUCT_RULES.ai.fixedQuestionCount) {
+      errors.push({
+        field: 'questionCount',
+        messageKey: 'validation.config.aiFixedQuestionCount',
+        messageValues: { count: PRODUCT_RULES.ai.fixedQuestionCount },
+      })
+    }
+  } else if (
+    config.questionCount < questionLimits.min ||
+    config.questionCount > questionLimits.max
+  ) {
     errors.push({
       field: 'questionCount',
       messageKey: 'validation.config.questionCountRange',

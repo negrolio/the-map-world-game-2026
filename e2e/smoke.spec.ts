@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-import { goToHome, selectAppLocale } from './helpers'
+import { goToHome, selectAppLocale, clickStartGame } from './helpers'
 
 test('muestra la home del MVP frontend', async ({ page }) => {
   await page.goto('/')
@@ -18,7 +18,7 @@ test('partida en pantalla completa: shell + overlay top/bottom + sin scroll de p
   await goToHome(page)
   await selectAppLocale(page, 'es')
   await page.getByTestId('home-card-game').click()
-  await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
+  await clickStartGame(page)
 
   await expect(page.getByTestId('game-shell')).toBeVisible()
   await expect(page.getByTestId('game-overlay-top')).toBeVisible()

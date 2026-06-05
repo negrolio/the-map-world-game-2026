@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test'
 
-import { clickMapCountry, clickMapCountryForCorrectGuess, goToSetup } from './helpers'
+import { clickMapCountry, clickMapCountryForCorrectGuess, clickStartGame, goToSetup, selectSetupMode } from './helpers'
 
 interface MockPromptItem {
   readonly riddleId: string
@@ -141,19 +141,20 @@ const COUNTRY_NAME_ES: Readonly<Record<string, string>> = {
 /** Países grandes y habituales en el topo 110m para clics e2e fiables. */
 const WRONG_CLICK_POOL = ['AR', 'BR', 'CL', 'JP', 'UY', 'US', 'CA', 'DE'] as const
 
+const AI_FIXED_QUESTION_COUNT = 5
+
 async function startAiGame(
   page: Page,
-  options: { readonly questionCount: string; readonly items?: readonly MockPromptItem[] },
+  options?: { readonly items?: readonly MockPromptItem[] },
 ): Promise<void> {
-  if (options.items) {
+  if (options?.items) {
     await mockPromptsApi(page, options.items)
   } else {
     await mockPromptsApi(page)
   }
   await goToSetup(page)
-  await page.getByRole('radio', { name: /IA Trivia|AI Trivia/i }).check()
-  await page.locator('#question-count').fill(options.questionCount)
-  await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
+  await selectSetupMode(page, 'ai')
+  await clickStartGame(page)
   // Con API mockeada el loading puede ser tan breve que no alcance a pintarse.
   await expect(page.getByTestId('game-shell')).toBeVisible({ timeout: 20_000 })
   await expect(page.locator('path[data-iso]')).not.toHaveCount(0, { timeout: 45_000 })
@@ -180,11 +181,9 @@ test.describe('AI trivia mode — happy path', () => {
     await mockPromptsApi(page)
     await goToSetup(page)
 
-    await page.getByRole('radio', { name: /IA Trivia|AI Trivia/i }).check()
+    await selectSetupMode(page, 'ai')
 
-    await page.locator('#question-count').fill('3')
-
-    await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
+    await clickStartGame(page)
 
     await expect(page.getByTestId('game-shell')).toBeVisible({ timeout: 20_000 })
     await expect(page.getByTestId('round-prompt')).toBeVisible()
@@ -193,7 +192,7 @@ test.describe('AI trivia mode — happy path', () => {
 
     await expect(page.locator('path[data-iso]')).not.toHaveCount(0, { timeout: 45_000 })
 
-    for (let i = 0; i < 3; i += 1) {
+    for (let i = 0; i < AI_FIXED_QUESTION_COUNT; i += 1) {
       const iso2 = await page.getByTestId('round-prompt').getAttribute('data-target-iso2')
       expect(iso2).toBeTruthy()
       await clickMapCountryForCorrectGuess(page, iso2!)
@@ -231,9 +230,8 @@ test.describe('AI trivia mode — dedupe via excludedIds', () => {
     })
 
     await goToSetup(page)
-    await page.getByRole('radio', { name: /IA Trivia|AI Trivia/i }).check()
-    await page.locator('#question-count').fill('3')
-    await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
+    await selectSetupMode(page, 'ai')
+    await clickStartGame(page)
     await expect(page.getByTestId('game-shell')).toBeVisible({ timeout: 20_000 })
 
     expect(callCount).toBeGreaterThanOrEqual(1)
@@ -241,9 +239,8 @@ test.describe('AI trivia mode — dedupe via excludedIds', () => {
 
     await page.goto('/')
     await goToSetup(page)
-    await page.getByRole('radio', { name: /IA Trivia|AI Trivia/i }).check()
-    await page.locator('#question-count').fill('3')
-    await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
+    await selectSetupMode(page, 'ai')
+    await clickStartGame(page)
     await expect(page.getByTestId('game-shell')).toBeVisible({ timeout: 20_000 })
 
     expect(callCount).toBeGreaterThanOrEqual(2)
@@ -262,7 +259,7 @@ test.describe('AI trivia mode — UX feedback (F1–F5)', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
-    await startAiGame(page, { questionCount: '1' })
+    await startAiGame(page)
 
     const targetIso2 = await page.getByTestId('round-prompt').getAttribute('data-target-iso2')
     expect(targetIso2).toBeTruthy()
@@ -305,6 +302,14 @@ test.describe('AI trivia mode — UX feedback (F1–F5)', () => {
     await expectPathFill(page, wrongIso2List[1]!, FILL_WRONG_DIMMED)
 
     await page.getByTestId('advance-round-button').click()
+
+    for (let round = 1; round < AI_FIXED_QUESTION_COUNT; round += 1) {
+      const iso2 = await page.getByTestId('round-prompt').getAttribute('data-target-iso2')
+      expect(iso2).toBeTruthy()
+      await clickMapCountryForCorrectGuess(page, iso2!)
+      await page.getByTestId('advance-round-button').click()
+    }
+
     await expect(page.getByTestId('game-finished-status')).toBeVisible({ timeout: 20_000 })
     await expect(page.getByTestId('ai-rounds-summary')).toBeVisible()
     await expect(page.getByText(/Acertaste en intento 3/i)).toBeVisible()
@@ -317,7 +322,7 @@ test.describe('AI trivia mode — anti-cheat pausado entre rondas (F3)', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
-    await startAiGame(page, { questionCount: '2' })
+    await startAiGame(page)
 
     const targetIso2 = await page.getByTestId('round-prompt').getAttribute('data-target-iso2')
     expect(targetIso2).toBeTruthy()
@@ -346,9 +351,8 @@ test.describe('AI trivia mode — error paths', () => {
   test('error 503 INSUFFICIENT_GROUNDING_BATCH → muestra mensaje y permite reintentar', async ({ page }) => {
     await mockPromptsApiFailure(page, 'INSUFFICIENT_GROUNDING_BATCH', 503)
     await goToSetup(page)
-    await page.getByRole('radio', { name: /IA Trivia|AI Trivia/i }).check()
-    await page.locator('#question-count').fill('3')
-    await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
+    await selectSetupMode(page, 'ai')
+    await clickStartGame(page)
 
     const errorMessage = page.getByTestId('ai-prompts-error-message')
     await expect(errorMessage).toBeVisible({ timeout: 20_000 })
@@ -360,9 +364,8 @@ test.describe('AI trivia mode — error paths', () => {
   test('error 429 LLM_RATE_LIMITED → mensaje específico de rate limit', async ({ page }) => {
     await mockPromptsApiFailure(page, 'LLM_RATE_LIMITED', 429)
     await goToSetup(page)
-    await page.getByRole('radio', { name: /IA Trivia|AI Trivia/i }).check()
-    await page.locator('#question-count').fill('3')
-    await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
+    await selectSetupMode(page, 'ai')
+    await clickStartGame(page)
 
     const errorMessage = page.getByTestId('ai-prompts-error-message')
     await expect(errorMessage).toBeVisible({ timeout: 20_000 })

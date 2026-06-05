@@ -5,7 +5,7 @@ alwaysApply: false
 
 # Estado actual post-MVP — The Map World Game 2026
 
-**Estado de referencia:** 2026-05-28 (incluye cierre de **UX feedback modo AI trivia** y **persistencia de riddles en Convex** activa en Production).
+**Estado de referencia:** 2026-06-04 (incluye cierre de **Setup redesign — menos web, más game**, **UX feedback modo AI trivia** y **persistencia de riddles en Convex** activa en Production).
 
 Este documento es el punto de entrada para entender dónde está hoy la app y cómo avanzar sin mezclar definiciones cerradas del MVP con nuevas features.
 
@@ -58,6 +58,13 @@ También está cerrada la iteración **UX feedback modo AI trivia** (F1–F5 sob
 - [`../tasks/modo-ai-trivia-ux-feedback/01-prd-ux-feedback-modo-ai.md`](../tasks/modo-ai-trivia-ux-feedback/01-prd-ux-feedback-modo-ai.md): PRD formal.
 - [`../tasks/modo-ai-trivia-ux-feedback/03-todo-list-ux-feedback-modo-ai.md`](../tasks/modo-ai-trivia-ux-feedback/03-todo-list-ux-feedback-modo-ai.md): checklist de ejecución (Fases 1–7).
 
+También está cerrada la iteración **Setup redesign — menos web, más game** (lobby con cards de modo + "Jugar ahora", panel pergamino reordenado, reglas de modo AI y limpieza UX; 2026-06-04):
+
+- [`../tasks/setup-redesign/README.md`](../tasks/setup-redesign/README.md): índice y resumen de entregables.
+- [`../tasks/setup-redesign/00-decision-setup-look-and-feel.md`](../tasks/setup-redesign/00-decision-setup-look-and-feel.md): ADR D1–D9.
+- [`../tasks/setup-redesign/01-prd-setup-redesign.md`](../tasks/setup-redesign/01-prd-setup-redesign.md): PRD formal.
+- [`../tasks/setup-redesign/02-plan-implementacion-setup-redesign.md`](../tasks/setup-redesign/02-plan-implementacion-setup-redesign.md) y [`03-todo-list-setup-redesign.md`](../tasks/setup-redesign/03-todo-list-setup-redesign.md): plan y checklist por fases.
+
 También está cerrada la iteración **Persistencia de riddles en Convex** (extiende modo AI trivia; activa en Production desde 2026-05-27):
 
 - [`../tasks/backend-related-features/riddle-storage-convex/README.md`](../tasks/backend-related-features/riddle-storage-convex/README.md): índice de la iteración.
@@ -75,8 +82,9 @@ Estos archivos quedan como **documentación histórica y trazabilidad**. No conv
 
 La app ya cuenta con:
 
-- Setup de partida para 1–6 jugadores.
+- Setup de partida para 1–6 jugadores, rediseñado como **lobby** (2026-06-04): 3 cards de modo (`SetupModeCard`/`SetupModeCardGroup`) + CTA "Jugar ahora" sobre el panel pergamino reordenado; sin JSON preview ni cartel de "configuración válida".
 - Modo país/capital.
+- **Modo AI desde el setup:** máximo 2 jugadores (recorte automático con aviso) y 5 preguntas fijas ocultas; reglas en `PRODUCT_RULES.ai` + `validateConfig` + schema Zod (`getMaxPlayersForMode`).
 - Filtro mundo/continente.
 - Mapa interactivo con zoom, pan, reset, selección por país y reacción visual por continente; **pan y pinch-zoom táctiles** (Pointer Events en `WorldMap`, MAP-UX-06, 2026-05-13).
 - Turnos locales, HUD responsive, puntaje, ranking y fin de partida.

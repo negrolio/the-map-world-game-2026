@@ -1,6 +1,6 @@
 # PRD — Setup redesign: menos web, más game
 
-**Estado:** **borrador** — pendiente de aprobación humana antes de plan e implementación.
+**Estado:** **cerrado** (2026-06-04) — implementado y verificado (`tsc`/`lint`/`test` verdes). Trazabilidad de ejecución en [`03-todo-list-setup-redesign.md`](./03-todo-list-setup-redesign.md) y resumen en [`README.md`](./README.md).
 **Fecha:** 2026-06-04
 **Idioma del documento:** español
 **Audiencia:** desarrollo (frontend), QA, planificación de tareas

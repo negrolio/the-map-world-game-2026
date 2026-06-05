@@ -12,6 +12,15 @@ const buildConfig = (overrides: Partial<GameConfig> = {}): GameConfig => ({
   ...overrides,
 })
 
+const buildAiConfig = (overrides: Partial<GameConfig> = {}): GameConfig =>
+  buildConfig({
+    questionMode: 'ai',
+    antiCheatMode: 'strict',
+    questionCount: 5,
+    players: ['Ana', 'Luis'],
+    ...overrides,
+  })
+
 describe('validateConfig', () => {
   it('invalida configuracion con 0 jugadores', () => {
     const result = validateConfig({
@@ -64,5 +73,53 @@ describe('validateConfig', () => {
     expect(result.isValid).toBe(true)
     expect(result.errors).toHaveLength(0)
     expect(result.questionLimits).toEqual({ min: 1, max: 8 })
+  })
+
+  it('valida configuracion AI con 2 jugadores y 5 preguntas fijas', () => {
+    const result = validateConfig({
+      config: buildAiConfig(),
+      poolSize: 10,
+    })
+
+    expect(result.isValid).toBe(true)
+    expect(result.errors).toHaveLength(0)
+  })
+
+  it('invalida configuracion AI con mas de 2 jugadores', () => {
+    const result = validateConfig({
+      config: buildAiConfig({
+        players: ['Ana', 'Luis', 'Pepe'],
+      }),
+      poolSize: 10,
+    })
+
+    expect(result.isValid).toBe(false)
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: 'players',
+          messageKey: 'validation.config.aiPlayersMax',
+          messageValues: { max: 2 },
+        }),
+      ]),
+    )
+  })
+
+  it('invalida configuracion AI cuando questionCount no es 5', () => {
+    const result = validateConfig({
+      config: buildAiConfig({ questionCount: 3 }),
+      poolSize: 10,
+    })
+
+    expect(result.isValid).toBe(false)
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          field: 'questionCount',
+          messageKey: 'validation.config.aiFixedQuestionCount',
+          messageValues: { count: 5 },
+        }),
+      ]),
+    )
   })
 })

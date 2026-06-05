@@ -44,7 +44,7 @@ Mantener entradas **breves** en pendientes (1–3 líneas). El diseño y el chec
 - **Modo AI — control de costo y robustez API (iteración candidata)** — 2026-05-27
   - Contexto / problema: el modo AI puede generar muchas llamadas al LLM; además el backend a veces devuelve menos adivinanzas válidas de las pedidas (validaciones V1–V8 u otras causas).
   - Sub-features:
-    - **C1. Topes en Setup para modo AI** — **parcialmente cerrado** en [`setup-redesign/00-decision-setup-look-and-feel.md`](./setup-redesign/00-decision-setup-look-and-feel.md) (2026-06-01): máximo **2 jugadores** y **5 preguntas fijas** (ocultas en UI). Pendiente: validación alineada en backend/request si aplica. El tope histórico de **3 jugadores** quedó sustituido por esta decisión.
+    - **C1. Topes en Setup para modo AI** — **cerrado** (frontend) en [`setup-redesign/`](./setup-redesign/) (2026-06-04): máximo **2 jugadores** y **5 preguntas fijas** (ocultas en UI), reglas en `PRODUCT_RULES.ai` + `validateConfig` + schema Zod. Pendiente opcional: validación alineada en backend/request si aplica. El tope histórico de **3 jugadores** quedó sustituido por esta decisión.
     - **C2. Reintentos hasta completar el batch** — si la API devuelve menos ítems de los solicitados, volver a llamar (frontend u orquestación server-side) hasta alcanzar la cantidad pedida o un tope de reintentos. Definir impacto en rate limit (`prompts:`), timeout del handler y `excludedIds`.
   - Impacto estimado: infra / costos · alto.
   - Esfuerzo estimado: medio–alto.
@@ -123,13 +123,15 @@ Mantener entradas **breves** en pendientes (1–3 líneas). El diseño y el chec
 
 <!-- Ideas promovidas con trabajo activo. Al cerrar, mover a Cerradas y actualizar 04-current-state-post-mvp.mdc §1. -->
 
-- **Setup redesign — menos web, más game** — promovida 2026-06-01. [`setup-redesign/`](./setup-redesign/) — decisión [`00-decision-setup-look-and-feel.md`](./setup-redesign/00-decision-setup-look-and-feel.md); pendiente PRD e implementación. Lobby (cards de modo + Jugar ahora) + panel pergamino; AI: 2 jugadores, 5 preguntas fijas.
+_Sin iteraciones en ejecución._
 
 ---
 
 ## Cerradas
 
 <!-- Índice breve. Detalle de producto: 04-current-state-post-mvp.mdc §1. Origen de la idea: fecha en que se anotó en el backlog. -->
+
+- **Setup redesign — menos web, más game** — promovida 2026-06-01 · cerrada 2026-06-04. [`setup-redesign/`](./setup-redesign/) — lobby (cards de modo + Jugar ahora) + panel pergamino; modo AI con máx. 2 jugadores y 5 preguntas fijas ocultas; limpieza UX (sin JSON ni cartel de config válida). Cierra también la sub-feature **C1** de *Modo AI — control de costo* (topes en Setup).
 
 - **Modo AI — UX de intentos y feedback** — promovida 2026-05-27 · cerrada 2026-05-28. [`modo-ai-trivia-ux-feedback/`](./modo-ai-trivia-ux-feedback/) (F1–F5: link gating, highlight, anti-cheat pausado, loader, resumen final).
 

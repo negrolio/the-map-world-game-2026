@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { PRODUCT_RULES, getQuestionCountLimits } from './product-rules'
+import { PRODUCT_RULES, getMaxPlayersForMode, getQuestionCountLimits } from './product-rules'
 
 describe('PRODUCT_RULES', () => {
   it('expone reglas MVP de scoring y hints', () => {
@@ -8,6 +8,22 @@ describe('PRODUCT_RULES', () => {
     expect(PRODUCT_RULES.scoring.correctAnswerPoints).toBe(10)
     expect(PRODUCT_RULES.scoring.wrongAnswerPoints).toBe(-5)
     expect(PRODUCT_RULES.hints.enabledInMvpUi).toBe(false)
+  })
+
+  it('expone reglas de modo AI en setup', () => {
+    expect(PRODUCT_RULES.ai.maxPlayers).toBe(2)
+    expect(PRODUCT_RULES.ai.fixedQuestionCount).toBe(5)
+  })
+})
+
+describe('getMaxPlayersForMode', () => {
+  it('limita a 2 jugadores en modo AI', () => {
+    expect(getMaxPlayersForMode('ai')).toBe(2)
+  })
+
+  it('permite hasta 6 jugadores en modos país y capital', () => {
+    expect(getMaxPlayersForMode('country')).toBe(6)
+    expect(getMaxPlayersForMode('capital')).toBe(6)
   })
 })
 

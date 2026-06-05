@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-06-04
 **Idioma del documento:** español
-**Estado:** **pendiente** — Fases 1–7 sin iniciar.
+**Estado:** **cerrada** (2026-06-04) — Fases 1–6 completas; Fase 7 con e2e/specs y cierre documental hechos. Pendiente operativo no bloqueante: `npm run e2e` local + smoke manual 390px.
 
 **Referencias obligadas:**
 
@@ -50,62 +50,62 @@ Mapea a §Fase 1 del plan. RF-S30, RF-S37.
 
 ### Tarea 1.1 — Extender `PRODUCT_RULES`
 
-- [ ] En [`src/services/product-rules.ts`](../../../src/services/product-rules.ts), agregar:
+- [x] En [`src/services/product-rules.ts`](../../../src/services/product-rules.ts), agregar:
   ```ts
   ai: { maxPlayers: 2, fixedQuestionCount: 5 }
   ```
-- [ ] Helper opcional `getMaxPlayersForMode(questionMode: QuestionMode): number` (export desde `product-rules.ts` o `services/index.ts`).
-- [ ] Actualizar [`src/services/product-rules.test.ts`](../../../src/services/product-rules.test.ts): asserts de `PRODUCT_RULES.ai` y helper si existe.
+- [x] Helper opcional `getMaxPlayersForMode(questionMode: QuestionMode): number` (export desde `product-rules.ts` o `services/index.ts`).
+- [x] Actualizar [`src/services/product-rules.test.ts`](../../../src/services/product-rules.test.ts): asserts de `PRODUCT_RULES.ai` y helper si existe.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear — `npm run test -- src/services/product-rules.test.ts`
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear — `npm run test -- src/services/product-rules.test.ts`
 
 ### Tarea 1.2 — `validateConfig` con reglas AI
 
-- [ ] En [`src/services/validate-config.ts`](../../../src/services/validate-config.ts), cuando `questionMode === 'ai'`:
+- [x] En [`src/services/validate-config.ts`](../../../src/services/validate-config.ts), cuando `questionMode === 'ai'`:
   - `players.length > PRODUCT_RULES.ai.maxPlayers` → error field `players`, clave `validation.config.aiPlayersMax` con `{{max}}`.
   - `questionCount !== PRODUCT_RULES.ai.fixedQuestionCount` → error field `questionCount`, clave `validation.config.aiFixedQuestionCount` con `{{count}}`.
-- [ ] Mantener reglas país/capital sin regresión (max 6 global).
-- [ ] Ampliar [`src/services/validate-config.test.ts`](../../../src/services/validate-config.test.ts):
+- [x] Mantener reglas país/capital sin regresión (max 6 global).
+- [x] Ampliar [`src/services/validate-config.test.ts`](../../../src/services/validate-config.test.ts):
   - AI válido: 2 jugadores, 5 preguntas, strict.
   - AI inválido: 3 jugadores.
   - AI inválido: `questionCount !== 5`.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear — `npm run test -- src/services/validate-config.test.ts`
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear — `npm run test -- src/services/validate-config.test.ts`
 
 ### Tarea 1.3 — Schema Zod alineado
 
-- [ ] En [`src/features/setup/setup-config-schema.ts`](../../../src/features/setup/setup-config-schema.ts), agregar `.superRefine` para modo AI:
+- [x] En [`src/features/setup/setup-config-schema.ts`](../../../src/features/setup/setup-config-schema.ts), agregar `.superRefine` para modo AI:
   - jugadores ≤ `PRODUCT_RULES.ai.maxPlayers`
   - `questionCount === PRODUCT_RULES.ai.fixedQuestionCount`
-- [ ] Mensajes: `schema.aiPlayersMax`, `schema.aiFixedQuestionCount` (o convención alineada al repo).
-- [ ] Ampliar [`src/features/setup/setup-config-schema.test.ts`](../../../src/features/setup/setup-config-schema.test.ts) con fixtures AI válidos/inválidos.
+- [x] Mensajes: `schema.aiPlayersMax`, `schema.aiFixedQuestionCount` (o convención alineada al repo).
+- [x] Ampliar [`src/features/setup/setup-config-schema.test.ts`](../../../src/features/setup/setup-config-schema.test.ts) con fixtures AI válidos/inválidos.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear — `npm run test -- src/features/setup/setup-config-schema.test.ts`
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear — `npm run test -- src/features/setup/setup-config-schema.test.ts`
 
 ### Cierre de Fase 1
 
-- [ ] **Review** — diff completo de `product-rules`, `validate-config`, `setup-config-schema` y tests; sin archivos fuera de alcance.
-- [ ] **Buscar errores** — `npx tsc --noEmit` + `npm run lint`.
-- [ ] **Testear** — `npm run test -- src/services/product-rules.test.ts src/services/validate-config.test.ts src/features/setup/setup-config-schema.test.ts`
-- [ ] **Corregir** — cualquier fallo antes de Fase 2.
+- [x] **Review** — diff completo de `product-rules`, `validate-config`, `setup-config-schema` y tests; sin archivos fuera de alcance.
+- [x] **Buscar errores** — `npx tsc --noEmit` + `npm run lint`.
+- [x] **Testear** — `npm run test -- src/services/product-rules.test.ts src/services/validate-config.test.ts src/features/setup/setup-config-schema.test.ts`
+- [x] **Corregir** — cualquier fallo antes de Fase 2.
 
 ---
 
@@ -115,7 +115,7 @@ Mapea a §Fase 2 del plan. RF-S28, RF-S40, RF-S50, D9.
 
 ### Tarea 2.1 — Claves nuevas (ES + EN)
 
-- [ ] [`src/i18n/resources/es.ts`](../../../src/i18n/resources/es.ts):
+- [x] [`src/i18n/resources/es.ts`](../../../src/i18n/resources/es.ts):
   - `setup.modeLegend` — "Elegí un modo"
   - `setup.startGame` — "Jugar ahora"
   - `setup.regionLabel` — "Elige un continente"
@@ -126,36 +126,36 @@ Mapea a §Fase 2 del plan. RF-S28, RF-S40, RF-S50, D9.
   - `home.gameCard.description`, `home.gameCard.ariaLabel` — tres modos
   - `validation.config.aiPlayersMax`, `validation.config.aiFixedQuestionCount`
   - `validation.schema.aiPlayersMax`, `validation.schema.aiFixedQuestionCount` (si aplica)
-- [ ] Replicar en [`src/i18n/resources/en.ts`](../../../src/i18n/resources/en.ts) con copy del PRD §2 / decisión D3.
+- [x] Replicar en [`src/i18n/resources/en.ts`](../../../src/i18n/resources/en.ts) con copy del PRD §2 / decisión D3.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear — `npx tsc --noEmit`
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear — `npx tsc --noEmit`
 
 ### Tarea 2.2 — Eliminar claves obsoletas
 
-- [ ] Borrar de ES + EN: `setup.validConfig`, `setup.configPreviewHeading`, `setup.aiStrictRequired`, `setup.questionModeLegend`.
-- [ ] Grep en repo: confirmar cero referencias a claves eliminadas (`rg 'validConfig|configPreviewHeading|aiStrictRequired|questionModeLegend'`).
-- [ ] Actualizar consumidores que aún referencien claves viejas (p. ej. [`SetupView.tsx`](../../../src/features/setup/SetupView.tsx) si compila antes de Fase 4 — puede requerir stub temporal o hacer en la misma tarea).
+- [x] Borrar de ES + EN: `setup.validConfig`, `setup.configPreviewHeading`, `setup.aiStrictRequired`, `setup.questionModeLegend`.
+- [x] Grep en repo: confirmar cero referencias a claves eliminadas (`rg 'validConfig|configPreviewHeading|aiStrictRequired|questionModeLegend'`).
+- [x] Actualizar consumidores que aún referencien claves viejas (p. ej. [`SetupView.tsx`](../../../src/features/setup/SetupView.tsx) si compila antes de Fase 4 — puede requerir stub temporal o hacer en la misma tarea).
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear — `npx tsc --noEmit` + grep sin referencias rotas
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear — `npx tsc --noEmit` + grep sin referencias rotas
 
 ### Cierre de Fase 2
 
-- [ ] **Review** — solo `es.ts`, `en.ts` y fixes de referencias; copy ES/EN pareado.
-- [ ] **Buscar errores** — `npx tsc --noEmit` + `npm run lint`.
-- [ ] **Testear** — `npm run test` (suite completa por si App/Setup aún referencian claves); corregir roturas de compilación.
-- [ ] **Corregir** — antes de Fase 3.
+- [x] **Review** — solo `es.ts`, `en.ts` y fixes de referencias; copy ES/EN pareado.
+- [x] **Buscar errores** — `npx tsc --noEmit` + `npm run lint`.
+- [x] **Testear** — `npm run test` (suite completa por si App/Setup aún referencian claves); corregir roturas de compilación.
+- [x] **Corregir** — antes de Fase 3.
 
 ---
 
@@ -165,7 +165,7 @@ Mapea a §Fase 3 del plan. RF-S20–S23.
 
 ### Tarea 3.1 — `SetupModeCard`
 
-- [ ] Crear [`src/features/setup/SetupModeCard.tsx`](../../../src/features/setup/SetupModeCard.tsx) basado en [`HomeModeCard.tsx`](../../../src/features/home/HomeModeCard.tsx):
+- [x] Crear [`src/features/setup/SetupModeCard.tsx`](../../../src/features/setup/SetupModeCard.tsx) basado en [`HomeModeCard.tsx`](../../../src/features/home/HomeModeCard.tsx):
   - Solo nombre (sin descripción).
   - Altura compacta móvil; más alta en `md:`.
   - Fondo CSS por variante (`country` | `capital` | `ai`) — gradientes con tokens; sin PNG.
@@ -174,15 +174,15 @@ Mapea a §Fase 3 del plan. RF-S20–S23.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear — tests de Tarea 3.3 si ya existen; si no, `tsc` + render manual
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear — tests de Tarea 3.3 si ya existen; si no, `tsc` + render manual
 
 ### Tarea 3.2 — `SetupModeCardGroup`
 
-- [ ] Crear grupo (mismo archivo o [`SetupModeCardGroup.tsx`](../../../src/features/setup/SetupModeCardGroup.tsx)):
+- [x] Crear grupo (mismo archivo o [`SetupModeCardGroup.tsx`](../../../src/features/setup/SetupModeCardGroup.tsx)):
   - `role="radiogroup"` + título visible `setup.modeLegend` con `aria-labelledby`.
   - Tres opciones con `data-testid`: `setup-mode-country`, `setup-mode-capital`, `setup-mode-ai`.
   - Radio nativo oculto visualmente o `role="radio"` + `aria-checked`.
@@ -191,16 +191,16 @@ Ritual obligatorio (§0):
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear — tests Tarea 3.3
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear — tests Tarea 3.3
 
 ### Tarea 3.3 — Export y tests unitarios
 
-- [ ] Export en [`src/features/setup/index.ts`](../../../src/features/setup/index.ts).
-- [ ] Crear [`src/features/setup/SetupModeCard.test.tsx`](../../../src/features/setup/SetupModeCard.test.tsx):
+- [x] Export en [`src/features/setup/index.ts`](../../../src/features/setup/index.ts).
+- [x] Crear [`src/features/setup/SetupModeCard.test.tsx`](../../../src/features/setup/SetupModeCard.test.tsx):
   - Render 3 cards + legend.
   - Click selecciona; borde/aria-checked.
   - testids presentes.
@@ -208,18 +208,18 @@ Ritual obligatorio (§0):
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear — `npm run test -- src/features/setup/SetupModeCard.test.tsx`
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear — `npm run test -- src/features/setup/SetupModeCard.test.tsx`
 
 ### Cierre de Fase 3
 
-- [ ] **Review** — componentes aislados; sin wiring en SetupView aún (o mínimo).
-- [ ] **Buscar errores** — `npx tsc --noEmit` + `npm run lint`.
-- [ ] **Testear** — `npm run test -- src/features/setup/SetupModeCard.test.tsx`
-- [ ] **Corregir** — antes de Fase 4.
+- [x] **Review** — componentes aislados; sin wiring en SetupView aún (o mínimo).
+- [x] **Buscar errores** — `npx tsc --noEmit` + `npm run lint`.
+- [x] **Testear** — `npm run test -- src/features/setup/SetupModeCard.test.tsx`
+- [x] **Corregir** — antes de Fase 4.
 
 ---
 
@@ -229,54 +229,54 @@ Mapea a §Fase 4 del plan. RF-S10–S14, RF-S24–S27.
 
 ### Tarea 4.1 — Estructura de layout
 
-- [ ] Refactor [`src/features/setup/SetupView.tsx`](../../../src/features/setup/SetupView.tsx):
+- [x] Refactor [`src/features/setup/SetupView.tsx`](../../../src/features/setup/SetupView.tsx):
   1. **Lobby** (fuera de `Panel`): `SetupModeCardGroup` + `ChunkyButton` ancho "Jugar ahora" (`disabled={!canStartGame}`).
   2. Encabezado: badge + título + lead (i18n Fase 2).
   3. **Panel** orden: tags (AI) → idioma → jugadores → continente → anti-cheat (no AI) → preguntas + bloque rango (no AI) → alerts error only.
   4. **Pie:** segundo "Jugar ahora" + "Volver al home".
-- [ ] Eliminar preview JSON y rama `validConfig`.
-- [ ] Quitar prop `setupDraft` de `SetupViewProps` y call site en [`App.tsx`](../../../src/App.tsx) si ya no se usa.
-- [ ] Quitar `FieldRadioGroup` de modo (reemplazado por cards en lobby).
+- [x] Eliminar preview JSON y rama `validConfig`.
+- [x] Quitar prop `setupDraft` de `SetupViewProps` y call site en [`App.tsx`](../../../src/App.tsx) si ya no se usa.
+- [x] Quitar `FieldRadioGroup` de modo (reemplazado por cards en lobby).
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear — `tsc` + tests SetupView Tarea 4.3
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear — `tsc` + tests SetupView Tarea 4.3
 
 ### Tarea 4.2 — Toast de recorte AI (UI)
 
-- [ ] Prop `setupNotice: string | null` en `SetupViewProps`.
-- [ ] Render `Alert tone="info"` con `aria-live="polite"` cuando hay notice.
-- [ ] Auto-ocultar ~4–5 s (`useEffect` + timeout en SetupView o coordinado con App en Fase 5).
+- [x] Prop `setupNotice: string | null` en `SetupViewProps`.
+- [x] Render `Alert tone="info"` con `aria-live="polite"` cuando hay notice.
+- [x] Auto-ocultar ~4–5 s (`useEffect` + timeout en SetupView o coordinado con App en Fase 5).
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear — test SetupView: notice visible y desaparece (fake timers)
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear — test SetupView: notice visible y desaparece (fake timers)
 
 ### Tarea 4.3 — Responsividad y props dinámicas
 
-- [ ] `grid grid-cols-3 gap-2 md:gap-4` en cards.
-- [ ] Prop `playerMax` para `max` del input de jugadores (wired en Fase 5; stub `6` hasta entonces si hace falta).
-- [ ] Verificar layout en viewport 390px (test Vitest con `innerWidth` opcional).
+- [x] `grid grid-cols-3 gap-2 md:gap-4` en cards.
+- [x] `max` del input de jugadores vía `getMaxPlayersForMode(questionMode)` en SetupView (sin prop `playerMax` redundante).
+- [x] Verificar layout en viewport 390px (test Vitest con `innerWidth` opcional).
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 4.4 — Tests `SetupView`
 
-- [ ] Crear [`src/features/setup/SetupView.test.tsx`](../../../src/features/setup/SetupView.test.tsx):
+- [x] Crear [`src/features/setup/SetupView.test.tsx`](../../../src/features/setup/SetupView.test.tsx):
   - Lobby: 3 cards + 2 botones "Jugar ahora".
   - Modo AI: tags primero; sin anti-cheat, preguntas ni bloque rango.
   - Modo país: anti-cheat y preguntas visibles.
@@ -285,18 +285,18 @@ Ritual obligatorio (§0):
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear — `npm run test -- src/features/setup/SetupView.test.tsx`
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear — `npm run test -- src/features/setup/SetupView.test.tsx`
 
 ### Cierre de Fase 4
 
-- [ ] **Review** — SetupView + App (props); lobby fuera del pergamino; sin JSON/éxito.
-- [ ] **Buscar errores** — `npx tsc --noEmit` + `npm run lint`.
-- [ ] **Testear** — `npm run test -- src/features/setup/`
-- [ ] **Corregir** — actualizar [`App.test.tsx`](../../../src/App.test.tsx) si ya falla por copy/layout (mínimo para compilar).
+- [x] **Review** — SetupView + App (props); lobby fuera del pergamino; sin JSON/éxito.
+- [x] **Buscar errores** — `npx tsc --noEmit` + `npm run lint`.
+- [x] **Testear** — `npm run test -- src/features/setup/`
+- [x] **Corregir** — actualizar [`App.test.tsx`](../../../src/App.test.tsx) si ya falla por copy/layout (mínimo para compilar).
 
 ---
 
@@ -306,69 +306,69 @@ Mapea a §Fase 5 del plan. RF-S31–S36.
 
 ### Tarea 5.1 — `handleQuestionModeChange`
 
-- [ ] En [`src/App.tsx`](../../../src/App.tsx), reemplazar `onQuestionModeChange={setQuestionMode}` por handler:
+- [x] En [`src/App.tsx`](../../../src/App.tsx), reemplazar `onQuestionModeChange={setQuestionMode}` por handler:
   - **Entrar AI:** `questionCount → 5`; si `playerCount > 2` → slice players a 2, `setPlayerCount(2)`, `setSetupNotice(t('setup.aiPlayersClamped'))`.
   - **Salir AI:** `questionCount → 5`; no restaurar playerCount.
   - `setQuestionMode(next)`.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 5.2 — `handlePlayerCountChange` con max dinámico
 
-- [ ] `effectiveMax = getMaxPlayersForMode(questionMode)` (o ternario con `PRODUCT_RULES.ai.maxPlayers`).
-- [ ] Aplicar bound en lugar de `PRODUCT_RULES.players.max` fijo.
+- [x] `effectiveMax = getMaxPlayersForMode(questionMode)` (o ternario con `PRODUCT_RULES.ai.maxPlayers`).
+- [x] Aplicar bound en lugar de `PRODUCT_RULES.players.max` fijo.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 5.3 — Estado toast y wiring
 
-- [ ] `setupNotice` state en App; pasar a `SetupView`.
-- [ ] Pasar `playerMax` a SetupView.
-- [ ] Limpiar notice al cambiar modo (opcional: al iniciar partida).
-- [ ] Confirmar `effectiveAntiCheatMode` sin cambios.
+- [x] `setupNotice` state en App; pasar a `SetupView`.
+- [x] `max` jugadores vía `getMaxPlayersForMode` en SetupView (sin prop `playerMax` extra).
+- [x] Limpiar notice al cambiar modo (opcional: al iniciar partida).
+- [x] Confirmar `effectiveAntiCheatMode` sin cambios.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear
 
 ### Tarea 5.4 — Actualizar `App.test.tsx`
 
-- [ ] Setup: ya no "Modo de preguntas" / "Cobertura geográfica"; sí "Elige un continente".
-- [ ] Dos botones "Jugar ahora".
-- [ ] AI: 4 jugadores en país → card AI → 2 jugadores + notice.
-- [ ] AI: sin input "Número de preguntas".
-- [ ] Inicio partida country/capital sin regresión.
+- [x] Setup: ya no "Modo de preguntas" / "Cobertura geográfica"; sí "Elige un continente".
+- [x] Dos botones "Jugar ahora".
+- [x] AI: 4 jugadores en país → card AI → 2 jugadores + notice.
+- [x] AI: sin input "Número de preguntas".
+- [x] Inicio partida country/capital sin regresión.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear — `npm run test -- src/App.test.tsx`
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear — `npm run test -- src/App.test.tsx`
 
 ### Cierre de Fase 5
 
-- [ ] **Review** — App handlers + props SetupView; lógica AI acotada.
-- [ ] **Buscar errores** — `npx tsc --noEmit` + `npm run lint`.
-- [ ] **Testear** — `npm run test -- src/App.test.tsx src/features/setup/`
-- [ ] **Corregir** — antes de Fase 6.
+- [x] **Review** — App handlers + props SetupView; lógica AI acotada.
+- [x] **Buscar errores** — `npx tsc --noEmit` + `npm run lint`.
+- [x] **Testear** — `npm run test -- src/App.test.tsx src/features/setup/`
+- [x] **Corregir** — antes de Fase 6.
 
 ---
 
@@ -418,25 +418,25 @@ Mapea a §Fase 7 del plan.
 
 ### Tarea 7.1 — Helpers e2e
 
-- [ ] En [`e2e/helpers.ts`](../../../e2e/helpers.ts):
+- [x] En [`e2e/helpers.ts`](../../../e2e/helpers.ts):
   - `clickStartGame(page)` — `/Jugar ahora|Play now/i`.
   - `selectSetupMode(page, mode)` — click en `setup-mode-*`.
   - Ajustar `goToSetup` si hace falta esperar lobby.
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [ ] Testear — `npm run e2e -- e2e/helpers.ts` (requiere `npx playwright install` local)
 
 ### Tarea 7.2 — Actualizar specs existentes
 
-- [ ] [`e2e/smoke.spec.ts`](../../../e2e/smoke.spec.ts) — CTA "Jugar ahora".
-- [ ] [`e2e/game-flow.spec.ts`](../../../e2e/game-flow.spec.ts) — CTA + sin radios de modo / textos eliminados.
-- [ ] [`e2e/ai-trivia-flow.spec.ts`](../../../e2e/ai-trivia-flow.spec.ts) — idem.
-- [ ] [`e2e/learn-flow.spec.ts`](../../../e2e/learn-flow.spec.ts) — si referencia setup copy.
+- [x] [`e2e/smoke.spec.ts`](../../../e2e/smoke.spec.ts) — CTA "Jugar ahora".
+- [x] [`e2e/game-flow.spec.ts`](../../../e2e/game-flow.spec.ts) — CTA + sin radios de modo / textos eliminados.
+- [x] [`e2e/ai-trivia-flow.spec.ts`](../../../e2e/ai-trivia-flow.spec.ts) — cards AI, 5 preguntas fijas, CTA nuevo.
+- [x] [`e2e/learn-flow.spec.ts`](../../../e2e/learn-flow.spec.ts) — sin cambios de copy setup.
 
 Ritual obligatorio (§0):
 
@@ -448,7 +448,7 @@ Ritual obligatorio (§0):
 
 ### Tarea 7.3 — Nuevos escenarios e2e
 
-- [ ] Crear [`e2e/setup-redesign.spec.ts`](../../../e2e/setup-redesign.spec.ts) (o ampliar `game-flow`):
+- [x] Crear [`e2e/setup-redesign.spec.ts`](../../../e2e/setup-redesign.spec.ts):
   - Path rápido: card País + CTA superior → mapa.
   - AI clamp: 4 jugadores → AI → 2 + toast.
   - AI oculta preguntas y anti-cheat.
@@ -464,10 +464,10 @@ Ritual obligatorio (§0):
 
 ### Tarea 7.4 — Verificación final automatizada
 
-- [ ] `npx tsc --noEmit`
-- [ ] `npm run lint`
-- [ ] `npm run test`
-- [ ] `npm run e2e`
+- [x] `npx tsc --noEmit`
+- [x] `npm run lint`
+- [x] `npm run test` (483 tests)
+- [ ] `npm run e2e` (pendiente: `npx playwright install` en entorno local)
 
 Ritual obligatorio (§0):
 
@@ -495,19 +495,19 @@ Ritual obligatorio (§0):
 
 ### Tarea 7.6 — Cierre documental
 
-- [ ] Callout superseding al inicio de [`docs/requirements/01-prd-mvp-producto-y-requerimientos.mdc`](../../requirements/01-prd-mvp-producto-y-requerimientos.mdc) §RF-01.
-- [ ] Actualizar [`docs/tasks/setup-redesign/README.md`](./README.md): estado cerrado, entregables, verificación.
-- [ ] Mover entrada en [`docs/tasks/ideas-features-backlog.md`](../ideas-features-backlog.md) → **Cerradas**.
-- [ ] Actualizar [`docs/requirements/04-current-state-post-mvp.mdc`](../../requirements/04-current-state-post-mvp.mdc) §1.
-- [ ] Marcar [`01-prd-setup-redesign.md`](./01-prd-setup-redesign.md) como **cerrado** (fecha merge).
+- [x] Callout superseding al inicio de [`docs/requirements/01-prd-mvp-producto-y-requerimientos.mdc`](../../requirements/01-prd-mvp-producto-y-requerimientos.mdc) §RF-01.
+- [x] Actualizar [`docs/tasks/setup-redesign/README.md`](./README.md): estado cerrado, entregables, verificación.
+- [x] Mover entrada en [`docs/tasks/ideas-features-backlog.md`](../ideas-features-backlog.md) → **Cerradas** (+ C1 control de costo AI marcado cerrado en frontend).
+- [x] Actualizar [`docs/requirements/04-current-state-post-mvp.mdc`](../../requirements/04-current-state-post-mvp.mdc) §1 y §2.
+- [x] Marcar [`01-prd-setup-redesign.md`](./01-prd-setup-redesign.md) como **cerrado** (2026-06-04).
 
 Ritual obligatorio (§0):
 
-- [ ] Review
-- [ ] Analizar los cambios
-- [ ] Buscar errores
-- [ ] Corregir
-- [ ] Testear — lint docs si aplica
+- [x] Review
+- [x] Analizar los cambios
+- [x] Buscar errores
+- [x] Corregir
+- [x] Testear — lint docs si aplica
 
 ### Cierre de Fase 7
 

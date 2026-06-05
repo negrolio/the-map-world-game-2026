@@ -39,6 +39,27 @@ export const setupConfigSchema = z
     (value) => value.questionMode !== 'ai' || value.antiCheatMode === 'strict',
     { message: 'schema.aiRequiresStrict', path: ['antiCheatMode'] },
   )
+  .superRefine((value, context) => {
+    if (value.questionMode !== 'ai') {
+      return
+    }
+
+    if (value.players.length > PRODUCT_RULES.ai.maxPlayers) {
+      context.addIssue({
+        code: 'custom',
+        message: 'schema.aiPlayersMax',
+        path: ['players'],
+      })
+    }
+
+    if (value.questionCount !== PRODUCT_RULES.ai.fixedQuestionCount) {
+      context.addIssue({
+        code: 'custom',
+        message: 'schema.aiFixedQuestionCount',
+        path: ['questionCount'],
+      })
+    }
+  })
 
 export interface SetupSchemaValidationResult {
   readonly isValid: boolean

@@ -1,14 +1,15 @@
 import { expect, test } from '@playwright/test'
 
-import { clickMapCountryForCorrectGuess, goToSetup } from './helpers'
+import { clickMapCountryForCorrectGuess, clickStartGame, goToSetup, openSetupOptions } from './helpers'
 
 test.describe('F8.2 — flujo e2e', () => {
   test('setup inválido: nombre vacío bloquea inicio y muestra error de schema', async ({ page }) => {
     await goToSetup(page)
+    await openSetupOptions(page)
 
     await page.locator('#player-name-1').fill('')
 
-    await expect(page.getByRole('button', { name: /Iniciar partida|Start game/i })).toBeDisabled()
+    await expect(page.getByRole('button', { name: /Jugar ahora|Play now/i }).first()).toBeDisabled()
     await expect(page.getByText(/no pueden estar vacíos|cannot be empty/i).first()).toBeVisible()
     await expect(page.getByTestId('game-shell')).toHaveCount(0)
   })
@@ -16,9 +17,10 @@ test.describe('F8.2 — flujo e2e', () => {
   test('happy path: 2 rondas con clics en mapa hasta resultados', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await goToSetup(page)
+    await openSetupOptions(page)
 
     await page.locator('#question-count').fill('2')
-    await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
+    await clickStartGame(page)
 
     await expect(page.getByTestId('game-shell')).toBeVisible()
     await expect(page.getByTestId('round-prompt')).toBeVisible()
@@ -47,9 +49,10 @@ test.describe('F8.2 — flujo e2e', () => {
   test('feedback de error muestra nombre del país objetivo, no ISO2 plano', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await goToSetup(page)
+    await openSetupOptions(page)
 
     await page.locator('#question-count').fill('1')
-    await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
+    await clickStartGame(page)
 
     await expect(page.getByTestId('game-shell')).toBeVisible()
     await expect(page.locator('path[data-iso]')).not.toHaveCount(0, { timeout: 45_000 })
@@ -74,10 +77,11 @@ test.describe('F8.3 — anti-cheat estricto (visibilidad)', () => {
   test('document.hidden + visibilitychange aborta la partida y actualiza resultados', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 })
     await goToSetup(page)
+    await openSetupOptions(page)
 
     await page.getByRole('radio', { name: /Estricto|Strict/i }).check()
     await page.locator('#question-count').fill('1')
-    await page.getByRole('button', { name: /Iniciar partida|Start game/i }).click()
+    await clickStartGame(page)
 
     await expect(page.getByTestId('game-shell')).toBeVisible()
 

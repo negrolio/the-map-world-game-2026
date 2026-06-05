@@ -55,6 +55,9 @@ El juego permite competir adivinando paises o capitales sobre un mapa interactiv
 ## 5. Requerimientos funcionales
 
 ### RF-01 — Setup de partida
+
+> **Actualizado por _Setup redesign — menos web, más game_ (2026-06-04).** La UI del setup se rediseñó como lobby (cards de modo + "Jugar ahora" sobre el panel) y se sumó el modo `ai` con reglas propias (máx. 2 jugadores, 5 preguntas fijas ocultas). Detalle y RF vigentes en [`../tasks/setup-redesign/01-prd-setup-redesign.md`](../tasks/setup-redesign/01-prd-setup-redesign.md). Lo de abajo describe el MVP base.
+
 El usuario debe poder configurar:
 - cantidad de jugadores (`1-6`);
 - modo de pregunta (`pais` o `capital`);

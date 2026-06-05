@@ -18,6 +18,25 @@ export async function goToSetup(page: Page): Promise<void> {
   await page.getByTestId('home-card-game').click()
 }
 
+export async function selectSetupMode(
+  page: Page,
+  mode: 'country' | 'capital' | 'ai',
+): Promise<void> {
+  await page.getByTestId(`setup-mode-${mode}`).click()
+}
+
+export async function clickStartGame(page: Page): Promise<void> {
+  await page.getByRole('button', { name: /Jugar ahora|Play now/i }).first().click()
+}
+
+/** Despliega el panel pergamino de opciones (idempotente si ya está abierto). */
+export async function openSetupOptions(page: Page): Promise<void> {
+  const toggle = page.getByTestId('setup-options-toggle')
+  if ((await toggle.getAttribute('aria-expanded')) !== 'true') {
+    await toggle.click()
+  }
+}
+
 export async function goToLearnMode(page: Page): Promise<void> {
   await goToHome(page)
   await selectAppLocale(page, 'es')
