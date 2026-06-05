@@ -30,6 +30,11 @@ import {
   type WorldMapBaselineViewport,
 } from './world-map-baseline-viewport'
 import {
+  computeFocusViewport,
+  FOCUS_GATE_DESKTOP,
+  FOCUS_GATE_TOUCH,
+} from './world-map-focus-country'
+import {
   MAP_ACTIVE_CONTINENT_PALETTE,
   MAP_CORRECT_TARGET_PALETTE,
   MAP_DEFAULT_PALETTE,
@@ -76,6 +81,11 @@ export interface WorldMapProps {
   readonly fullBleed?: boolean
   /** MAP-UX-05: filtro de región activo para atenuar el resto del mundo (no afecta `world`). */
   readonly regionFilter?: RegionFilter
+  /**
+   * MAP-UX-07: al cerrar una ronda, centra (y opcionalmente reencuadra) el país correcto.
+   * `token` cambia en cada cierre para re-disparar el efecto de cámara.
+   */
+  readonly cameraFocus?: { readonly iso2: IsoCountryCode; readonly token: string } | null
 }
 
 type MapViewport = WorldMapBaselineViewport
@@ -103,6 +113,21 @@ const VIEWPORT_LIMITS = {
 const TOUCH_UI_MAX_WIDTH_MEDIA_QUERY = '(max-width: 1023px)'
 /** Tablets / teléfonos aunque el viewport CSS sea ancho (p. ej. iPad landscape). */
 const TOUCH_UI_POINTER_COARSE_MEDIA_QUERY = '(pointer: coarse)'
+/** Duración del auto-move en desktop (ratón). */
+const CAMERA_MOVE_DURATION_DESKTOP_MS = 620
+/** Táctil: recorrido y zoom mayores (maxTouchUi 22) → animación algo más larga para percibir el viaje. */
+const CAMERA_MOVE_DURATION_TOUCH_MS = 820
+
+/** easeOutCubic: arranque rápido y frenado suave; igual sensación que cubic-bezier(0.22,1,0.36,1). */
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3)
+}
+
+function nowMs(): number {
+  return typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now()
+}
 
 function subscribeTouchUiZoomMatch(onChange: () => void): () => void {
   if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
@@ -432,6 +457,7 @@ function WorldMapInner({
   mapInteractionLocked = false,
   fullBleed = false,
   regionFilter = 'world',
+  cameraFocus = null,
 }: WorldMapProps) {
   const { t, i18n } = useTranslation('aria')
   const projectionConfig = useMemo(() => {
@@ -446,6 +472,11 @@ function WorldMapInner({
   /** Último pan/zoom aplicado al DOM; se alinea con `viewport` en layout effect y tras gestos. */
   const viewportLiveRef = useRef<MapViewport | null>(null)
   const wheelFlushRafRef = useRef<number | null>(null)
+  /** Frame en curso del auto-move (interpolación por rAF, no transición CSS). */
+  const cameraAnimFrameRef = useRef<number | null>(null)
+  /** Destino del auto-move en curso; `null` cuando no hay animación pendiente. */
+  const cameraAnimTargetRef = useRef<MapViewport | null>(null)
+  const cancelCameraAnimRef = useRef<() => void>(() => {})
   const panStartRef = useRef<{
     readonly pointerX: number
     readonly pointerY: number
@@ -476,6 +507,126 @@ function WorldMapInner({
     mapInteractionLockedRef.current = mapInteractionLocked
   }, [zoomClampMax, touchUiZoom, mapInteractionLocked])
 
+  const stopCameraAnim = (): void => {
+    if (cameraAnimFrameRef.current != null) {
+      cancelAnimationFrame(cameraAnimFrameRef.current)
+      cameraAnimFrameRef.current = null
+    }
+    cameraAnimTargetRef.current = null
+  }
+
+  const finalizeCameraMove = (next: MapViewport): void => {
+    stopCameraAnim()
+    const layer = transformLayerRef.current
+    if (layer) {
+      layer.style.transition = ''
+      layer.style.transform = mapViewportToTransformCss(next)
+    }
+    viewportLiveRef.current = next
+    setViewport(next)
+  }
+
+  /**
+   * Interrumpe el auto-move en curso (p. ej. el usuario empieza a hacer
+   * pan/zoom). Detiene la interpolación y sincroniza el estado React con el
+   * último frame visual (`viewportLiveRef`), para que el gesto continúe desde
+   * donde está el mapa, sin saltos.
+   */
+  const cancelCameraAnim = (): void => {
+    if (cameraAnimFrameRef.current == null && cameraAnimTargetRef.current == null) {
+      return
+    }
+    stopCameraAnim()
+    const layer = transformLayerRef.current
+    if (layer) {
+      layer.style.transition = ''
+    }
+    const live = viewportLiveRef.current
+    if (live) {
+      setViewport(live)
+    }
+  }
+
+  /**
+   * Anima la cámara hacia `next` interpolando `zoom`/`offset` por
+   * `requestAnimationFrame` y escribiendo el `transform` en cada frame.
+   *
+   * No usamos transición CSS: en navegadores táctiles, fijar `transition` y
+   * `transform` de forma imperativa (aun con reflow) coalescía el cambio y el
+   * mapa saltaba directo al destino sin animar. La interpolación por rAF es
+   * fiable en desktop y móvil y da control exacto de la duración.
+   *
+   * NOTA (2026-06-05): el auto-move **no** respeta `prefers-reduced-motion`,
+   * igual que las animaciones de los carteles de feedback/prompt
+   * (`tokens.css`), por decisión de producto: el movimiento de cámara comunica
+   * dónde estaba el país correcto y se quiere que se perciba incluso con el SO
+   * pidiendo reducir movimiento (p. ej. ahorro de batería en móvil).
+   */
+  const applyCameraMove = (next: MapViewport): void => {
+    const layer = transformLayerRef.current
+    if (!layer) {
+      return
+    }
+
+    stopCameraAnim()
+    layer.style.transition = ''
+
+    const from = viewportLiveRef.current ?? viewport
+    const fromZoom = from.zoom
+    const fromX = from.offset[0]
+    const fromY = from.offset[1]
+    const deltaZoom = next.zoom - fromZoom
+    const deltaX = next.offset[0] - fromX
+    const deltaY = next.offset[1] - fromY
+
+    // Sin cambio perceptible: aplicar de una sin animar.
+    if (Math.abs(deltaZoom) < 1e-3 && Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) {
+      finalizeCameraMove(next)
+      return
+    }
+
+    const duration = touchUiZoomRef.current
+      ? CAMERA_MOVE_DURATION_TOUCH_MS
+      : CAMERA_MOVE_DURATION_DESKTOP_MS
+    const start = nowMs()
+    cameraAnimTargetRef.current = next
+
+    const step = (): void => {
+      const elapsed = nowMs() - start
+      const tRaw = duration <= 0 ? 1 : Math.min(1, elapsed / duration)
+      const t = easeOutCubic(tRaw)
+      const current: MapViewport = {
+        zoom: fromZoom + deltaZoom * t,
+        offset: [fromX + deltaX * t, fromY + deltaY * t],
+      }
+      const node = transformLayerRef.current
+      if (node) {
+        node.style.transform = mapViewportToTransformCss(current)
+      }
+      viewportLiveRef.current = current
+      if (tRaw < 1) {
+        cameraAnimFrameRef.current = requestAnimationFrame(step)
+      } else {
+        finalizeCameraMove(next)
+      }
+    }
+
+    cameraAnimFrameRef.current = requestAnimationFrame(step)
+  }
+
+  useInsertionEffect(() => {
+    cancelCameraAnimRef.current = cancelCameraAnim
+  })
+
+  useEffect(() => {
+    return () => {
+      if (cameraAnimFrameRef.current != null) {
+        cancelAnimationFrame(cameraAnimFrameRef.current)
+        cameraAnimFrameRef.current = null
+      }
+    }
+  }, [])
+
   useLayoutEffect(() => {
     // Al pasar de UI táctil a escritorio (u orientación) hay que bajar el zoom si superaba el máximo de escritorio.
     // eslint-disable-next-line react-hooks/set-state-in-effect -- el tope viene de `matchMedia`, no de props React
@@ -501,6 +652,64 @@ function WorldMapInner({
   }, [viewport])
 
   useEffect(() => {
+    if (!cameraFocus) {
+      return
+    }
+    const vp = viewportRef.current
+    if (!vp) {
+      return
+    }
+
+    let rafOuter: number | null = null
+    let rafInner: number | null = null
+    let cancelled = false
+
+    rafOuter = requestAnimationFrame(() => {
+      rafInner = requestAnimationFrame(() => {
+        if (cancelled) {
+          return
+        }
+        const vRect = vp.getBoundingClientRect()
+        const path = vp.querySelector<SVGPathElement>(`path[data-iso="${cameraFocus.iso2}"]`)
+        if (!path) {
+          return
+        }
+        const cRect = path.getBoundingClientRect()
+        if (cRect.width <= 0 || cRect.height <= 0) {
+          return
+        }
+        const current = viewportLiveRef.current ?? viewport
+        const gate = touchUiZoomRef.current ? FOCUS_GATE_TOUCH : FOCUS_GATE_DESKTOP
+        const next = computeFocusViewport({
+          viewport: { width: vRect.width, height: vRect.height },
+          country: {
+            x: cRect.left - vRect.left,
+            y: cRect.top - vRect.top,
+            width: cRect.width,
+            height: cRect.height,
+          },
+          current,
+          ...gate,
+          minZoom: VIEWPORT_LIMITS.zoom.min,
+          maxZoom: zoomClampMaxRef.current,
+        })
+        applyCameraMove(next)
+      })
+    })
+
+    return () => {
+      cancelled = true
+      if (rafOuter != null) {
+        cancelAnimationFrame(rafOuter)
+      }
+      if (rafInner != null) {
+        cancelAnimationFrame(rafInner)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- token dispara; refs cubren el resto
+  }, [cameraFocus?.token])
+
+  useEffect(() => {
     const viewportNode = viewportRef.current
     if (!viewportNode) {
       return
@@ -523,6 +732,7 @@ function WorldMapInner({
       if (mapInteractionLockedRef.current) {
         return
       }
+      cancelCameraAnimRef.current()
       event.preventDefault()
       event.stopPropagation()
       const zoomDelta = wheelDeltaToZoomStep(
@@ -641,6 +851,7 @@ function WorldMapInner({
     if (event.pointerType === 'mouse' && event.button !== 0) {
       return
     }
+    cancelCameraAnim()
     const node = viewportRef.current
     if (!node) {
       return

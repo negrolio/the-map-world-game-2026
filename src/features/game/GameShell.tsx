@@ -165,6 +165,13 @@ export function GameShell({
     }
     return null
   })()
+  const cameraFocus =
+    roundGuess && activeRound
+      ? {
+          iso2: activeRound.targetCountryCode,
+          token: `${session.activeRoundIndex}-${roundGuess.selectedCountryCode}-${String(roundGuess.isCorrect)}`,
+        }
+      : null
   const isLastRound = session.activeRoundIndex >= session.rounds.length - 1
 
   useEffect(() => {
@@ -361,6 +368,7 @@ export function GameShell({
           regionFilter={session.config.regionFilter}
           mapFeedback={mapFeedback}
           answerLocked={Boolean(roundGuess)}
+          cameraFocus={cameraFocus}
           onCountryClick={onCountryClick}
         />
       </div>

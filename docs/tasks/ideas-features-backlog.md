@@ -60,13 +60,6 @@ Mantener entradas **breves** en pendientes (1–3 líneas). El diseño y el chec
   - Esfuerzo estimado: medio.
   - Notas: al promover → `docs/tasks/modo-ai-trivia-hints/` con `00-decision-*.md` + `01-prd-*.md` + callout en PRD AI trivia. Iteración separada del grupo UX-feedback: cambia contrato API y mecánica de juego.
 
-- **Mapa — auto-zoom post-respuesta (fit-bounds)** — 2026-05-27
-  - Contexto / problema: al cerrar una ronda con error, el mapa muestra el país correcto en amarillo y el seleccionado erróneo, pero la vista puede quedar lejos de ambos (ej. Japón vs Argentina). En modo AI, hasta 3 países erróneos + el correcto deben entrar en pantalla.
-  - Idea / dirección: utilidad `fit-bounds` que, dado un conjunto de ISO2, calcule `zoom` + `offset` del `MapViewport` actual para encuadrarlos con padding. Cross-mode: 2 países en country/capital, hasta 4 en AI. Reutilizar geometrías del TopoJSON y respetar `VIEWPORT_LIMITS` en `WorldMap.tsx`.
-  - Impacto estimado: UX · medio.
-  - Esfuerzo estimado: medio (geometría + viewport).
-  - Notas: entrada atómica; puede implementarse después del grupo **Modo AI — UX de intentos y feedback** (F2 pinta países; esta entrada mueve la cámara). Archivos: `WorldMap.tsx`, util nueva tipo `world-map-fit-bounds.ts`, `GameShell.tsx`.
-
 - **Audio del juego — música de fondo + mute** — 2026-05-27
   - Contexto / problema: la experiencia es silenciosa; falta ambiente sonoro opcional sin molestar.
   - Idea / dirección: track de fondo en loop (asset con licencia clara: CC0 o propio), botón mute persistente en HUD o Setup, primer play tras interacción del usuario (autoplay policies iOS/Safari). Persistir preferencia en `localStorage` con clave versionada (mismo patrón que i18n).
@@ -123,7 +116,7 @@ Mantener entradas **breves** en pendientes (1–3 líneas). El diseño y el chec
 
 <!-- Ideas promovidas con trabajo activo. Al cerrar, mover a Cerradas y actualizar 04-current-state-post-mvp.mdc §1. -->
 
-_Sin iteraciones en ejecución._
+- **Mapa — centrado adaptativo post-respuesta (auto-zoom)** — promovida 2026-06-05. Doc único: [`map-game-ux-and-data/06-auto-zoom-centrado-adaptativo.md`](./map-game-ux-and-data/06-auto-zoom-centrado-adaptativo.md). Rediseño respecto a la idea original "fit-bounds 2–4 países": ahora **centra solo el país correcto** + **gate de zoom** adaptativo por dispositivo, con animación suave.
 
 ---
 

@@ -21,12 +21,15 @@ vi.mock('../../components', async () => {
     ...actual,
     WorldMap: ({
       mapFeedback,
+      cameraFocus,
     }: {
       readonly mapFeedback?: import('../../components').MapAnswerFeedback | null
+      readonly cameraFocus?: { readonly iso2: string; readonly token: string } | null
     }) => (
       <div
         data-testid="mock-world-map"
         data-feedback={mapFeedback ? JSON.stringify(mapFeedback) : ''}
+        data-camera-focus={cameraFocus ? JSON.stringify(cameraFocus) : ''}
       />
     ),
   }
@@ -387,6 +390,74 @@ describe('GameShell — gating AiSourceLink (F1)', () => {
     )
 
     expect(screen.getByTestId('ai-source-link')).toBeInTheDocument()
+  })
+})
+
+describe('GameShell — cameraFocus post-respuesta (MAP-UX-07)', () => {
+  const noop = (): void => {}
+
+  beforeEach(() => {
+    vi.spyOn(window, 'matchMedia').mockImplementation((query: string) =>
+      mockMediaQueryList(false, query),
+    )
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('no pasa cameraFocus con ronda abierta', () => {
+    const session: GameSession = {
+      id: 's-open',
+      status: 'playing',
+      config: baseConfig,
+      players: [lonePlayer],
+      rounds: [
+        {
+          id: 'r-1',
+          roundNumber: 1,
+          targetCountryCode: 'AR',
+          prompt: 'Argentina',
+        },
+      ],
+      activeRoundIndex: 0,
+      incidentCount: 0,
+      datasetVersion: 't',
+    }
+
+    renderWithI18n(
+      <GameShell
+        session={session}
+        guessSubmitError={null}
+        antiCheatNotice={null}
+        onCountryClick={noop}
+        onAdvanceRound={noop}
+        onExitToSetup={noop}
+        onExitToHome={noop}
+      />,
+    )
+
+    expect(screen.getByTestId('mock-world-map')).toHaveAttribute('data-camera-focus', '')
+  })
+
+  it('pasa cameraFocus con el pais correcto al cerrar la ronda', () => {
+    renderWithI18n(
+      <GameShell
+        session={buildSessionWithGuess()}
+        guessSubmitError={null}
+        antiCheatNotice={null}
+        onCountryClick={noop}
+        onAdvanceRound={noop}
+        onExitToSetup={noop}
+        onExitToHome={noop}
+      />,
+    )
+
+    const raw = screen.getByTestId('mock-world-map').getAttribute('data-camera-focus') ?? ''
+    expect(raw).not.toBe('')
+    const parsed = JSON.parse(raw) as { iso2: string; token: string }
+    expect(parsed.iso2).toBe('AR')
+    expect(parsed.token).toBe('0-UY-false')
   })
 })
 

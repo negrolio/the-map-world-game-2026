@@ -406,6 +406,158 @@ describe('WorldMap', () => {
     expect(map).toHaveAttribute('data-projection-center', '15,52')
   })
 
+  it('aplica cameraFocus moviendo el transform layer cuando el pais existe', async () => {
+    renderWithI18n(<WorldMap cameraFocus={{ iso2: 'AR', token: '0-AR-true' }} />)
+    const viewport = screen.getByTestId('world-map-viewport')
+    const layer = screen.getByTestId('world-map-transform-layer')
+    const path = screen.getByTestId('geo-ar')
+
+    vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      width: 800,
+      height: 600,
+      top: 0,
+      right: 800,
+      bottom: 600,
+      left: 0,
+      toJSON: () => ({}),
+    })
+    vi.spyOn(path, 'getBoundingClientRect').mockReturnValue({
+      x: 100,
+      y: 80,
+      width: 40,
+      height: 30,
+      top: 80,
+      right: 140,
+      bottom: 110,
+      left: 100,
+      toJSON: () => ({}),
+    })
+
+    await waitFor(() => {
+      expect(layer.style.transform).not.toBe('translate3d(0px, 0px, 0) scale(1)')
+    })
+  })
+
+  it('no mueve la camara cuando cameraFocus es null', async () => {
+    renderWithI18n(<WorldMap cameraFocus={null} />)
+    const layer = screen.getByTestId('world-map-transform-layer')
+    await waitFor(() => {
+      expect(layer.style.transform).toBe('translate3d(0px, 0px, 0) scale(1)')
+    })
+  })
+
+  it('no mueve la camara si el path del pais no existe', async () => {
+    renderWithI18n(<WorldMap cameraFocus={{ iso2: 'XX', token: '0-XX-false' }} />)
+    const viewport = screen.getByTestId('world-map-viewport')
+    const layer = screen.getByTestId('world-map-transform-layer')
+
+    vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      width: 800,
+      height: 600,
+      top: 0,
+      right: 800,
+      bottom: 600,
+      left: 0,
+      toJSON: () => ({}),
+    })
+
+    await waitFor(() => {
+      expect(layer.style.transform).toBe('translate3d(0px, 0px, 0) scale(1)')
+    })
+  })
+
+  it('anima cameraFocus por rAF hasta centrar el pais sin usar transicion CSS', async () => {
+    renderWithI18n(<WorldMap cameraFocus={{ iso2: 'AR', token: '1-DE-false' }} />)
+    const root = screen.getByTestId('world-map-root')
+    const viewport = screen.getByTestId('world-map-viewport')
+    const layer = screen.getByTestId('world-map-transform-layer')
+    const path = screen.getByTestId('geo-ar')
+
+    vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      width: 800,
+      height: 600,
+      top: 0,
+      right: 800,
+      bottom: 600,
+      left: 0,
+      toJSON: () => ({}),
+    })
+    vi.spyOn(path, 'getBoundingClientRect').mockReturnValue({
+      x: 100,
+      y: 80,
+      width: 40,
+      height: 30,
+      top: 80,
+      right: 140,
+      bottom: 110,
+      left: 100,
+      toJSON: () => ({}),
+    })
+
+    // País 40x30 en viewport 800x600 → muy chico → zoom in hasta el máximo desktop (4).
+    await waitFor(() => {
+      expect(root).toHaveAttribute('data-viewport-zoom', '4.00')
+    })
+    // Nunca recurre a transición CSS (interpolación por rAF).
+    expect(layer.style.transition).toBe('')
+  })
+
+  it('interrumpe la animacion de cameraFocus al iniciar un gesto manual', async () => {
+    renderWithI18n(<WorldMap cameraFocus={{ iso2: 'AR', token: '2-AR-true' }} />)
+    const viewport = screen.getByTestId('world-map-viewport')
+    const layer = screen.getByTestId('world-map-transform-layer')
+    const path = screen.getByTestId('geo-ar')
+
+    vi.spyOn(viewport, 'getBoundingClientRect').mockReturnValue({
+      x: 0,
+      y: 0,
+      width: 800,
+      height: 600,
+      top: 0,
+      right: 800,
+      bottom: 600,
+      left: 0,
+      toJSON: () => ({}),
+    })
+    vi.spyOn(path, 'getBoundingClientRect').mockReturnValue({
+      x: 100,
+      y: 80,
+      width: 40,
+      height: 30,
+      top: 80,
+      right: 140,
+      bottom: 110,
+      left: 100,
+      toJSON: () => ({}),
+    })
+
+    await waitFor(() => {
+      expect(layer.style.transform).not.toBe('translate3d(0px, 0px, 0) scale(1)')
+    })
+
+    fireEvent.pointerDown(viewport, {
+      clientX: 10,
+      clientY: 10,
+      pointerId: 1,
+      pointerType: 'mouse',
+      button: 0,
+      buttons: 1,
+    })
+
+    // Cancelada la animación, el transform queda congelado en el frame actual
+    // (no avanza solo hacia el destino).
+    const frozen = layer.style.transform
+    await new Promise((resolve) => setTimeout(resolve, 80))
+    expect(layer.style.transform).toBe(frozen)
+    expect(layer.style.transition).toBe('')
+  })
+
   it('bloquea zoom y clics cuando mapInteractionLocked es true', () => {
     const onCountryClick = vi.fn()
     renderWithI18n(<WorldMap mapInteractionLocked onCountryClick={onCountryClick} />)
