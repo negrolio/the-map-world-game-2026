@@ -73,3 +73,61 @@ export const MAP_REVEALED_TARGET_PALETTE: MapGeographyStyle = {
   hover: { fill: '#c9a700', stroke: '#8a7100', strokeWidth: 0.65 },
   pressed: { fill: '#9a8662' },
 }
+
+/** Variantes tonales del default (world). El índice 0 == base actual. */
+export const MAP_DEFAULT_TONES: readonly MapGeographyStyle[] = [
+  MAP_DEFAULT_PALETTE,
+  {
+    default: { fill: '#c9b487', stroke: '#7d6845', strokeWidth: 0.4 },
+    hover: { fill: '#dbc9a0', stroke: '#5d4f33', strokeWidth: 0.4 },
+    pressed: { fill: '#a89470' },
+  },
+  {
+    default: { fill: '#a98f63', stroke: '#7d6845', strokeWidth: 0.4 },
+    hover: { fill: '#c0a87a', stroke: '#5d4f33', strokeWidth: 0.4 },
+    pressed: { fill: '#8a7554' },
+  },
+  {
+    default: { fill: '#d4b892', stroke: '#7d6845', strokeWidth: 0.4 },
+    hover: { fill: '#e6cba8', stroke: '#5d4f33', strokeWidth: 0.4 },
+    pressed: { fill: '#b09a72' },
+  },
+  {
+    default: { fill: '#968052', stroke: '#7d6845', strokeWidth: 0.4 },
+    hover: { fill: '#ad9668', stroke: '#5d4f33', strokeWidth: 0.4 },
+    pressed: { fill: '#7a6844' },
+  },
+]
+
+/** Variantes tonales del continente activo (in-region). El índice 0 == base actual. */
+export const MAP_ACTIVE_CONTINENT_TONES: readonly MapGeographyStyle[] = [
+  MAP_ACTIVE_CONTINENT_PALETTE,
+  {
+    default: { fill: '#e8d3a8', stroke: '#5d4f33', strokeWidth: 0.55 },
+    hover: { fill: '#f2e2be', stroke: '#3a2412', strokeWidth: 0.55 },
+    pressed: { fill: '#b09a72' },
+  },
+  {
+    default: { fill: '#c4ad82', stroke: '#5d4f33', strokeWidth: 0.55 },
+    hover: { fill: '#d8c49a', stroke: '#3a2412', strokeWidth: 0.55 },
+    pressed: { fill: '#9a8662' },
+  },
+  {
+    default: { fill: '#f0e0b8', stroke: '#5d4f33', strokeWidth: 0.55 },
+    hover: { fill: '#faf0d0', stroke: '#3a2412', strokeWidth: 0.55 },
+    pressed: { fill: '#c4ad82' },
+  },
+  {
+    default: { fill: '#b09a72', stroke: '#5d4f33', strokeWidth: 0.55 },
+    hover: { fill: '#c4ad82', stroke: '#3a2412', strokeWidth: 0.55 },
+    pressed: { fill: '#8a7554' },
+  },
+]
+
+export function tonedDefaultStyle(toneIndex: number): MapGeographyStyle {
+  return MAP_DEFAULT_TONES[toneIndex] ?? MAP_DEFAULT_PALETTE
+}
+
+export function tonedActiveContinentStyle(toneIndex: number): MapGeographyStyle {
+  return MAP_ACTIVE_CONTINENT_TONES[toneIndex] ?? MAP_ACTIVE_CONTINENT_PALETTE
+}

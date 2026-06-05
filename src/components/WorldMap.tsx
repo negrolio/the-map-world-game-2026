@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next'
 
 import countriesTopologyUrl from 'world-atlas/countries-110m.json?url'
 import { getContinentForIso2 } from '../data/countries'
+import { getToneIndexForIso2 } from '../data/country-tones'
 import { resolveCountryClickFromTopologyProperties } from '../services/topology-country-click'
 import type { IsoCountryCode, RegionFilter } from '../types'
 
@@ -35,13 +36,13 @@ import {
   FOCUS_GATE_TOUCH,
 } from './world-map-focus-country'
 import {
-  MAP_ACTIVE_CONTINENT_PALETTE,
   MAP_CORRECT_TARGET_PALETTE,
-  MAP_DEFAULT_PALETTE,
   MAP_OUT_OF_REGION_PALETTE,
   MAP_REVEALED_TARGET_PALETTE,
   MAP_WRONG_SELECTION_DIMMED_PALETTE,
   MAP_WRONG_SELECTION_PALETTE,
+  tonedActiveContinentStyle,
+  tonedDefaultStyle,
 } from './world-map-palette'
 
 export interface MapAnswerFeedback {
@@ -301,10 +302,13 @@ function geographyStyleForIso(
     if (!continent || continent !== regionFilter) {
       return toGeographyStyle(MAP_OUT_OF_REGION_PALETTE, interactionLocked)
     }
-    return toGeographyStyle(MAP_ACTIVE_CONTINENT_PALETTE, interactionLocked)
+    return toGeographyStyle(
+      tonedActiveContinentStyle(getToneIndexForIso2(iso2)),
+      interactionLocked,
+    )
   }
 
-  return toGeographyStyle(MAP_DEFAULT_PALETTE, interactionLocked)
+  return toGeographyStyle(tonedDefaultStyle(getToneIndexForIso2(iso2)), interactionLocked)
 }
 
 type WorldMapGeographyRowProps = {

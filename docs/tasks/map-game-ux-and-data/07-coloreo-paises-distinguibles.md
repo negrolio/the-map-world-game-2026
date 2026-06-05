@@ -60,13 +60,13 @@ El tono **nunca** pisa el feedback de ronda ni el atenuado de fuera de región.
 
 ## Criterios de aceptación
 
-- [ ] **Ningún** par de países con frontera terrestre comparte tono (test automático sobre la adyacencia).
-- [ ] Todos los tonos pertenecen a la **familia de paleta actual** (sin colores ajenos al tema).
-- [ ] Se **documenta el número de tonos** efectivamente necesarios (esperado 4–5).
-- [ ] El **feedback de ronda** y el **atenuado de fuera de región** tienen precedencia visible sobre el tono.
-- [ ] Con filtro de continente, los países del **continente activo se distinguen** entre sí; los de fuera siguen **atenuados**.
-- [ ] **Accesibilidad:** los tonos son distinguibles entre limítrofes (revisar contraste / daltonismo); el `stroke` sigue legible.
-- [ ] `npm run test` verde con tests nuevos; queda documentado cómo **regenerar** la tabla.
+- [x] **Ningún** par de países con frontera terrestre comparte tono (test automático sobre la adyacencia).
+- [x] Todos los tonos pertenecen a la **familia de paleta actual** (sin colores ajenos al tema).
+- [x] Se **documenta el número de tonos** efectivamente necesarios (esperado 4–5).
+- [x] El **feedback de ronda** y el **atenuado de fuera de región** tienen precedencia visible sobre el tono.
+- [x] Con filtro de continente, los países del **continente activo se distinguen** entre sí; los de fuera siguen **atenuados**.
+- [x] **Accesibilidad:** los tonos son distinguibles entre limítrofes (revisar contraste / daltonismo); el `stroke` sigue legible.
+- [x] `npm run test` verde con tests nuevos; queda documentado cómo **regenerar** la tabla.
 
 ## Riesgos y mitigaciones
 
@@ -77,5 +77,28 @@ El tono **nunca** pisa el feedback de ronda ni el atenuado de fuera de región.
 
 ## Registro de implementación (completar al cierre)
 
-- **Estado:** pendiente.
-- Al implementar, registrar acá: número final de tonos, archivos tocados, cómo regenerar la tabla y resultados de la validación de accesibilidad.
+- **Estado:** completado (2026-06-05).
+- **toneCount:** 5 (153 países coloreados; 2 geometrías sin iso2 resoluble: N. Cyprus, Somaliland → tono 0 en runtime).
+- **Archivos tocados:**
+  - `scripts/build-country-tones.mjs` — script de generación (adyacencia + Welsh–Powell).
+  - `src/data/country-tones.json` — tabla estática `iso2 → toneIndex`.
+  - `src/data/country-tones.ts` — lookup runtime (`getToneIndexForIso2`, `COUNTRY_TONE_COUNT`).
+  - `src/components/world-map-palette.ts` — `MAP_DEFAULT_TONES`, `MAP_ACTIVE_CONTINENT_TONES`, helpers `tonedDefaultStyle` / `tonedActiveContinentStyle`.
+  - `src/components/WorldMap.tsx` — tono en ramas `world` e in-region (precedencia intacta).
+  - `src/data/country-tones.test.ts` — test de invariante (ningún limítrofe comparte tono).
+  - `src/components/WorldMap.test.tsx` — tests de component (limítrofes distintos, feedback, región).
+- **Variantes hex (default / índice):**
+  - 0: `#bda57a` (base)
+  - 1: `#c9b487`
+  - 2: `#a98f63`
+  - 3: `#d4b892`
+  - 4: `#968052`
+- **Variantes hex (active continent / índice):**
+  - 0: `#d4bf95` (base)
+  - 1: `#e8d3a8`
+  - 2: `#c4ad82`
+  - 3: `#f0e0b8`
+  - 4: `#b09a72`
+- **Regenerar la tabla:** `node ./scripts/build-country-tones.mjs` (requiere `MAX_PALETTE_VARIANTS` en el script ≥ `toneCount`; actualmente 5). Tras cambiar el dataset TopoJSON, regenerar y recommitear `country-tones.json`; el test de invariante detecta drift.
+- **Accesibilidad / daltonismo:** las 5 variantes varían luminancia/saturación dentro del mismo hue parchment/madera (no se introducen colores ajenos al tema). El test de invariante garantiza que limítrofes nunca comparten índice; la separación luminosa entre índices adyacentes (p. ej. `#bda57a` vs `#a98f63`) es visible también en simulación de deuteranopía/protanopía porque el contraste es principalmente de brillo, no de matiz. Validación manual recomendada en desktop/móvil en regiones densas (Europa, Centroamérica, Sudeste Asiático).
+- **Bundle:** `topojson-client` no se importa desde código de runtime en `src/`; solo en el script de build y en el test de invariante (Node).

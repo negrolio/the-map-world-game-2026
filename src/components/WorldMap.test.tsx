@@ -4,11 +4,20 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { WorldMap } from './WorldMap'
 import { renderWithI18n } from '../test/render-with-i18n'
+import {
+  MAP_CORRECT_TARGET_PALETTE,
+  MAP_OUT_OF_REGION_PALETTE,
+  tonedActiveContinentStyle,
+  tonedDefaultStyle,
+} from './world-map-palette'
+import { getToneIndexForIso2 } from '../data/country-tones'
 
 const { mockGeographies } = vi.hoisted(() => ({
   mockGeographies: [
     { rsmKey: 'geo-ar', id: '032', properties: { name: 'Argentina', ISO_A2: 'AR' } },
+    { rsmKey: 'geo-cl', id: '152', properties: { name: 'Chile', ISO_A2: 'CL' } },
     { rsmKey: 'geo-de', id: '276', properties: { name: 'Germany', ISO_A2: 'DE' } },
+    { rsmKey: 'geo-fr', id: '250', properties: { name: 'France', ISO_A2: 'FR' } },
   ],
 }))
 
@@ -295,10 +304,59 @@ describe('WorldMap', () => {
     renderWithI18n(<WorldMap regionFilter="europe" />)
     expect(screen.getByTestId('world-map-root')).toHaveAttribute('data-region-filter', 'europe')
 
-    // MAP_ACTIVE_CONTINENT_PALETTE.default.fill = '#d4bf95'
-    expect(screen.getByTestId('geo-de')).toHaveStyle({ fill: 'rgb(212, 191, 149)' })
+    const deFill = tonedActiveContinentStyle(getToneIndexForIso2('DE')).default.fill
+    expect(screen.getByTestId('geo-de')).toHaveStyle({ fill: deFill })
     // MAP_OUT_OF_REGION_PALETTE.default.fill = '#3a2412'
     expect(screen.getByTestId('geo-ar')).toHaveStyle({ fill: 'rgb(58, 36, 18)' })
+  })
+
+  it('asigna tonos distintos a paises limítrofes en modo world', () => {
+    renderWithI18n(<WorldMap regionFilter="world" />)
+
+    const arFill = tonedDefaultStyle(getToneIndexForIso2('AR')).default.fill
+    const clFill = tonedDefaultStyle(getToneIndexForIso2('CL')).default.fill
+    const deFill = tonedDefaultStyle(getToneIndexForIso2('DE')).default.fill
+    const frFill = tonedDefaultStyle(getToneIndexForIso2('FR')).default.fill
+
+    expect(arFill).not.toBe(clFill)
+    expect(deFill).not.toBe(frFill)
+    expect(screen.getByTestId('geo-ar')).toHaveStyle({ fill: arFill })
+    expect(screen.getByTestId('geo-cl')).toHaveStyle({ fill: clFill })
+    expect(screen.getByTestId('geo-de')).toHaveStyle({ fill: deFill })
+    expect(screen.getByTestId('geo-fr')).toHaveStyle({ fill: frFill })
+  })
+
+  it('prioriza feedback sobre el tono por pais en modo world', () => {
+    renderWithI18n(
+      <WorldMap
+        regionFilter="world"
+        mapFeedback={{
+          selectedIso2: 'DE',
+          targetIso2: 'DE',
+          isCorrect: true,
+        }}
+      />,
+    )
+
+    expect(screen.getByTestId('geo-de')).toHaveStyle({
+      fill: MAP_CORRECT_TARGET_PALETTE.default.fill,
+    })
+    const arFill = tonedDefaultStyle(getToneIndexForIso2('AR')).default.fill
+    expect(screen.getByTestId('geo-ar')).toHaveStyle({ fill: arFill })
+  })
+
+  it('aplica tono in-region y atenuado fuera de region con filtro de continente', () => {
+    renderWithI18n(<WorldMap regionFilter="europe" />)
+
+    const deFill = tonedActiveContinentStyle(getToneIndexForIso2('DE')).default.fill
+    expect(screen.getByTestId('geo-de')).toHaveStyle({ fill: deFill })
+    expect(screen.getByTestId('geo-fr')).toHaveStyle({
+      fill: tonedActiveContinentStyle(getToneIndexForIso2('FR')).default.fill,
+    })
+    expect(screen.getByTestId('geo-ar')).toHaveStyle({
+      fill: MAP_OUT_OF_REGION_PALETTE.default.fill,
+    })
+    expect(deFill).not.toBe(MAP_OUT_OF_REGION_PALETTE.default.fill)
   })
 
   it('prioriza estilos de mapFeedback sobre el dimming regional', () => {
