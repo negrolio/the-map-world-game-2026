@@ -189,10 +189,11 @@ export function SetupView(props: SetupViewProps) {
   }, [playerCountMax])
 
   const [questionCountInput, setQuestionCountInput] = useState(String(questionCount))
-
-  useEffect(() => {
+  const [prevQuestionCount, setPrevQuestionCount] = useState(questionCount)
+  if (questionCount !== prevQuestionCount) {
+    setPrevQuestionCount(questionCount)
     setQuestionCountInput(String(questionCount))
-  }, [questionCount])
+  }
 
   const [optionsOpen, setOptionsOpen] = useState(false)
   const hasConfigErrors = !validationResult.isValid || schemaOnlyErrors.length > 0
