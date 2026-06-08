@@ -126,6 +126,8 @@ Mantener entradas **breves** en pendientes (1–3 líneas). El diseño y el chec
 
 <!-- Índice breve. Detalle de producto: 04-current-state-post-mvp.mdc §1. Origen de la idea: fecha en que se anotó en el backlog. -->
 
+- **Pantalla de resultados — rediseño visual (alinear con look "game")** — promovida 2026-06-08 · cerrada 2026-06-08. [`results-redesign/`](./results-redesign/) — hero/podio de cierre con copa oro/plata/cobre (fishbone sin aciertos), metadata en panel "Ver detalle" colapsable, `AiRoundsSummary` alineado; solo visual. **523 tests Vitest** verdes.
+
 - **Setup redesign — menos web, más game** — promovida 2026-06-01 · cerrada 2026-06-04. [`setup-redesign/`](./setup-redesign/) — lobby (cards de modo + Jugar ahora) + panel pergamino; modo AI con máx. 2 jugadores y 5 preguntas fijas ocultas; limpieza UX (sin JSON ni cartel de config válida). Cierra también la sub-feature **C1** de *Modo AI — control de costo* (topes en Setup).
 
 - **Modo AI — UX de intentos y feedback** — promovida 2026-05-27 · cerrada 2026-05-28. [`modo-ai-trivia-ux-feedback/`](./modo-ai-trivia-ux-feedback/) (F1–F5: link gating, highlight, anti-cheat pausado, loader, resumen final).

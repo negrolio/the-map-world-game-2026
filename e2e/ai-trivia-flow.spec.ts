@@ -199,7 +199,7 @@ test.describe('AI trivia mode — happy path', () => {
       await page.getByTestId('advance-round-button').click()
     }
 
-    await expect(page.getByTestId('game-finished-status')).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByTestId('toggle-results-meta')).toBeVisible({ timeout: 20_000 })
   })
 })
 
@@ -310,7 +310,7 @@ test.describe('AI trivia mode — UX feedback (F1–F5)', () => {
       await page.getByTestId('advance-round-button').click()
     }
 
-    await expect(page.getByTestId('game-finished-status')).toBeVisible({ timeout: 20_000 })
+    await expect(page.getByTestId('toggle-results-meta')).toBeVisible({ timeout: 20_000 })
     await expect(page.getByTestId('ai-rounds-summary')).toBeVisible()
     await expect(page.getByText(/Acertaste en intento 3/i)).toBeVisible()
     await expect(page.getByText(/\+0\.25 pts/i)).toBeVisible()
@@ -341,7 +341,8 @@ test.describe('AI trivia mode — anti-cheat pausado entre rondas (F3)', () => {
     await page.evaluate(() => {
       window.dispatchEvent(new Event('blur'))
     })
-    await expect(page.getByTestId('game-finished-status')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('toggle-results-meta')).toBeVisible({ timeout: 15_000 })
+    await page.getByTestId('toggle-results-meta').click()
     await expect(page.getByTestId('game-finished-status')).toContainText(/abortada por anti-cheat/i)
     await expect(page.getByTestId('anti-cheat-incidents')).toContainText(/1/)
   })

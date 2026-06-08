@@ -37,10 +37,12 @@ export function AiRoundsSummary({ session, locale }: AiRoundsSummaryProps) {
   const { t } = useTranslation('results')
 
   return (
-    <Panel tone="paper" padding="md" data-testid="ai-rounds-summary">
-      <h2 className="mb-3 font-display text-xs uppercase tracking-wide text-ink-soft">
-        {t('ai.summaryHeading')}
-      </h2>
+    <Panel
+      tone="paper"
+      padding="md"
+      ribbonTitle={t('ai.summaryHeading')}
+      data-testid="ai-rounds-summary"
+    >
       <ol className="space-y-4">
         {session.rounds.map((round) => (
           <AiRoundSummaryEntry
@@ -66,7 +68,7 @@ function AiRoundSummaryEntry({ round, locale }: AiRoundSummaryEntryProps) {
 
   return (
     <li
-      className="border-b-2 border-wood-dark/15 pb-3 last:border-b-0 last:pb-0"
+      className="rounded-card border-2 border-wood-dark/15 bg-paper-mute/40 p-3 last:border-b-2"
       data-testid={`ai-rounds-summary-entry-${round.roundNumber}`}
     >
       <div className="flex flex-col gap-2">

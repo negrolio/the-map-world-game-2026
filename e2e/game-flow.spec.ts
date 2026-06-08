@@ -41,9 +41,11 @@ test.describe('F8.2 — flujo e2e', () => {
       }
     }
 
-    await expect(page.getByTestId('game-finished-status')).toBeVisible({ timeout: 20_000 })
-    await expect(page.getByTestId('game-finished-status')).toContainText(/finalizada por rondas/i)
+    await expect(page.getByTestId('toggle-results-meta')).toBeVisible({ timeout: 20_000 })
     await expect(page.locator('[data-testid^="finished-rank-"]')).toHaveCount(1)
+    await page.getByTestId('toggle-results-meta').click()
+    await expect(page.getByTestId('game-finished-status')).toBeVisible()
+    await expect(page.getByTestId('game-finished-status')).toContainText(/finalizada por rondas/i)
   })
 
   test('feedback de error muestra nombre del país objetivo, no ISO2 plano', async ({ page }) => {
@@ -90,7 +92,8 @@ test.describe('F8.3 — anti-cheat estricto (visibilidad)', () => {
       document.dispatchEvent(new Event('visibilitychange'))
     })
 
-    await expect(page.getByTestId('game-finished-status')).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByTestId('toggle-results-meta')).toBeVisible({ timeout: 15_000 })
+    await page.getByTestId('toggle-results-meta').click()
     await expect(page.getByTestId('game-finished-status')).toContainText(/abortada por anti-cheat/i)
     await expect(page.getByTestId('anti-cheat-incidents')).toContainText(/1/)
 

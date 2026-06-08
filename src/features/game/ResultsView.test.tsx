@@ -111,6 +111,82 @@ function buildCountryFinishedSession(): GameSession {
   }
 }
 
+const playerTwo: Player = {
+  id: 'player-2',
+  name: 'Bob',
+  turnOrder: 1,
+  score: 0,
+  correctAnswers: 0,
+  wrongAnswers: 1,
+}
+
+function buildTwoPlayerSession(): GameSession {
+  return {
+    id: 'session-two',
+    status: 'finished',
+    config: { ...countryConfig, players: ['Ana', 'Bob'] },
+    players: [lonePlayer, playerTwo],
+    rounds: [countryFinishedRound()],
+    activeRoundIndex: 0,
+    incidentCount: 0,
+    datasetVersion: 'test',
+  }
+}
+
+describe('ResultsView — layout de cierre', () => {
+  const noop = (): void => {}
+
+  it('con 1 jugador muestra hero "Tu resultado" y un finished-rank', () => {
+    renderWithI18n(
+      <ResultsView
+        session={buildCountryFinishedSession()}
+        antiCheatNotice={null}
+        onReplaySameConfig={noop}
+        onGoToSetup={noop}
+        onGoToHome={noop}
+      />,
+    )
+
+    expect(screen.getByText('Tu resultado')).toBeInTheDocument()
+    expect(screen.getByTestId('game-winner')).toBeInTheDocument()
+    expect(screen.getAllByTestId(/^finished-rank-/)).toHaveLength(1)
+    expect(screen.queryByText('Podio')).toBeNull()
+  })
+
+  it('con 2 jugadores muestra podio y dos finished-rank', () => {
+    renderWithI18n(
+      <ResultsView
+        session={buildTwoPlayerSession()}
+        antiCheatNotice={null}
+        onReplaySameConfig={noop}
+        onGoToSetup={noop}
+        onGoToHome={noop}
+      />,
+    )
+
+    expect(screen.getByText('Ganador')).toBeInTheDocument()
+    expect(screen.getByText('Podio')).toBeInTheDocument()
+    expect(screen.getAllByTestId(/^finished-rank-/)).toHaveLength(2)
+    expect(screen.getByTestId('game-finished-status')).toHaveTextContent(
+      /finalizada por rondas/i,
+    )
+  })
+
+  it('metadata en chips conserva incidentes visibles', () => {
+    renderWithI18n(
+      <ResultsView
+        session={{ ...buildCountryFinishedSession(), incidentCount: 2 }}
+        antiCheatNotice={null}
+        onReplaySameConfig={noop}
+        onGoToSetup={noop}
+        onGoToHome={noop}
+      />,
+    )
+
+    expect(screen.getByTestId('anti-cheat-incidents')).toHaveTextContent(/2/)
+  })
+})
+
 describe('ResultsView — sección AI', () => {
   const noop = (): void => {}
 
